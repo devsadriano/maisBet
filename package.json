@@ -1,0 +1,27 @@
+{
+  "name": "BET",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxtjs/supabase": "^2.0.4",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "dayjs": "^1.11.20",
+    "nuxt": "^4.4.2",
+    "vue": "^3.5.30",
+    "vue-router": "^5.0.3"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.99.2",
+    "@types/node": "^25.5.0",
+    "dotenv": "^17.3.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

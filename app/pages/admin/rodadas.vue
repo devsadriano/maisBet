@@ -1,0 +1,599 @@
+<template>
+  <div class="space-y-8">
+    <div v-if="openDropdown" class="fixed inset-0 z-40" @click="openDropdown = null"></div>
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/5 pb-6">
+      <div>
+        <NuxtLink to="/admin" class="text-sm text-gray-400 hover:text-white mb-3 flex items-center gap-1.5 transition-colors group w-fit">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Voltar ao Painel Admin
+        </NuxtLink>
+        <h1 class="text-4xl font-bebas tracking-wider text-white mt-1">Gestão de Rodadas</h1>
+        <p class="text-sm text-gray-400 mt-1">Acompanhe e controle o status e prazos das rodadas importadas.</p>
+      </div>
+
+      <div class="flex flex-col gap-2 items-start md:items-end w-full md:w-auto relative z-50">
+        <label class="text-[10px] uppercase font-black tracking-widest text-gray-500">Filtrar por Campeonato</label>
+        
+        <!-- Custom Dropdown for Campeonato -->
+        <div class="relative w-full md:w-64">
+          <button 
+            @click="toggleDropdown('camp_filter')"
+            class="w-full flex items-center justify-between bg-black/40 border border-white/10 text-white rounded-xl px-4 py-2 outline-none hover:border-brand-500/50 hover:bg-white/[0.04] transition-all text-left group"
+          >
+            <span class="truncate pr-2 font-medium text-sm">
+              {{ campeonatosAdmin.find(c => c.id === selectedChampionshipId)?.nome 
+                 ? `${campeonatosAdmin.find(c => c.id === selectedChampionshipId)?.nome} (${campeonatosAdmin.find(c => c.id === selectedChampionshipId)?.season})` 
+                 : 'Selecione...' }}
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:text-brand-400 shrink-0" :class="openDropdown === 'camp_filter' ? 'rotate-180 text-brand-400' : 'text-gray-500'" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+
+          <div v-if="openDropdown === 'camp_filter'" class="absolute right-0 w-full md:w-[320px] mt-2 bg-pitch-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden py-2 animate-fade-in-up z-50 max-h-64 overflow-y-auto custom-scrollbar">
+            <button 
+              class="w-full text-left px-4 py-2.5 text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+              @click="selectedChampionshipId = ''; fetchRodadas(); toggleDropdown('camp_filter')"
+            >
+              <span class="opacity-50 font-mono">-- Selecione... --</span>
+            </button>
+            <button 
+              v-for="c in campeonatosAdmin" :key="c.id"
+              class="w-full text-left px-4 py-2.5 text-xs hover:bg-white/5 transition-colors flex items-center justify-between"
+              :class="[
+                 c.id === selectedChampionshipId ? 'bg-brand-500/10 text-brand-400 font-bold' : 'text-gray-300'
+              ]"
+              @click="selectedChampionshipId = c.id; fetchRodadas(); toggleDropdown('camp_filter')"
+            >
+              <span class="truncate flex-1">{{ c.nome }} <span class="opacity-60 text-[10px]">({{ c.season }})</span></span>
+              <span v-if="c.id === selectedChampionshipId" class="text-brand-400 text-[10px] uppercase font-bold tracking-widest shrink-0 ml-2">✔</span>
+            </button>
+          </div>
+        </div>
+
+        <button :disabled="!selectedChampionshipId" @click="showStandings = true" class="mt-2 flex w-full md:w-auto justify-center items-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all text-emerald-400 font-bold text-sm tracking-wide group active:scale-95 shadow-lg shadow-emerald-500/5 disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
+          </svg>
+          Ver Tabela Oficial
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="flex justify-center py-16">
+      <div class="w-10 h-10 border-4 border-brand-500/20 border-t-brand-500 rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="!selectedChampionshipId" class="text-center py-20 border border-white/5 rounded-3xl bg-white/[0.02]">
+      <div class="text-5xl mb-4 opacity-30">🤔</div>
+      <p class="text-gray-400 font-medium tracking-wide">Selecione um Campeonato Acima.</p>
+    </div>
+    
+    <div v-else-if="rodadas.length === 0" class="text-center py-20 border border-white/5 rounded-3xl bg-white/[0.02]">
+      <div class="text-5xl mb-4 opacity-30">📋</div>
+      <p class="text-gray-400 font-medium">Nenhuma rodada importada ainda.</p>
+      <p class="text-gray-600 text-sm mt-1">As rodadas são criadas automaticamente pelo sistema ao importar e iniciar.</p>
+    </div>
+
+    <!-- Cards Grid -->
+    <div v-else class="space-y-4">
+      <div
+        v-for="r in rodadas"
+        :key="r.id"
+        class="group bg-white/[0.04] border border-white/10 rounded-3xl transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06]"
+      >
+        <!-- Card Top Bar: Round number + status badge -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/[0.02] rounded-t-3xl">
+          <div class="flex items-center gap-4">
+            <!-- Round number chip -->
+            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500/20 to-brand-600/10 border border-brand-500/20 shadow-inner">
+              <span class="font-bebas text-3xl text-brand-400 leading-none pt-1">#{{ r.numero_rodada }}</span>
+            </div>
+            <div>
+              <div class="text-white font-bold text-lg leading-tight flex items-center gap-3">
+                Rodada {{ r.numero_rodada }}
+                <!-- Status Text Indicator -->
+                <div :class="statusClass(r.status)" class="flex items-center gap-1.5 text-[9px] uppercase font-black tracking-widest mt-0.5">
+                  <div class="w-1.5 h-1.5 rounded-full shadow-lg" :class="[dotClass(r.status), r.status === 'aberta' ? 'animate-pulse' : '']"></div>
+                  {{ formatStatus(r.status) }}
+                </div>
+              </div>
+              <div class="text-brand-400 text-xs font-bold mt-1">
+                {{ counts[r.id] || 0 }} palpitante(s)
+              </div>
+            </div>
+          </div>
+          
+          <!-- Ver Partidas Primary Button -->
+          <button @click="openMatchesModal(r)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-brand-500/50 hover:bg-white/10 transition-all text-gray-300 hover:text-white font-semibold text-xs tracking-wide active:scale-95 group">
+             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-brand-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+             Ver Partidas
+          </button>
+        </div>
+
+        <!-- Card Body: 3-column grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/5 px-0">
+
+          <!-- Col 1: Organizador -->
+          <div class="p-6">
+            <div class="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-3">Organizador</div>
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center font-bebas text-lg text-brand-400 shrink-0">
+                {{ r.organizador?.nome?.[0]?.toUpperCase() || '?' }}
+              </div>
+              <div>
+                <div class="text-white font-semibold text-sm leading-tight">{{ r.organizador?.nome || 'Não definido' }}</div>
+                <span v-if="isAtrasado(r)" class="text-[9px] text-red-400 font-black uppercase tracking-widest animate-pulse">⚠️ Prazo Esgotado</span>
+                <span v-else class="text-[10px] text-gray-500">Organizador(a)</span>
+              </div>
+            </div>
+            <!-- Trocar Organizador Customizado -->
+            <div v-if="r.status === 'aguardando_escolha' || r.status === 'aberta'" class="mt-4 relative z-50">
+              <div class="flex items-center gap-2">
+                <button 
+                  @click="toggleDropdown('org-' + r.id)"
+                  class="flex-1 min-w-0 flex items-center justify-between bg-white/5 border border-white/10 text-gray-400 text-xs rounded-xl px-3 py-2.5 outline-none hover:border-brand-500/50 hover:bg-white/[0.08] transition-all text-left group"
+                >
+                  <span class="truncate" :class="pendingOrganizer[r.id] ? 'text-brand-400 font-bold' : ''">
+                    {{ getPendingOrgName(r.id) || '🔄 Trocar Organizador...' }}
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:text-brand-400" :class="openDropdown === 'org-' + r.id ? 'rotate-180 text-brand-400' : ''" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <button 
+                  v-if="pendingOrganizer[r.id] && pendingOrganizer[r.id] !== r.organizer_id"
+                  @click="confirmUpdateOrganizer(r.id, pendingOrganizer[r.id] || '')"
+                  class="bg-brand-500 hover:bg-brand-400 text-white font-bold text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-brand-500/20 active:scale-95 shrink-0"
+                >
+                  Salvar
+                </button>
+              </div>
+
+              <!-- Menu Suspenso Organizador -->
+              <div v-if="openDropdown === 'org-' + r.id" class="absolute left-0 w-full mt-2 bg-pitch-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden py-2 animate-fade-in-up max-h-48 overflow-y-auto hide-scrollbar z-50">
+                <div class="px-3 pb-1 mb-1 border-b border-white/5 text-[9px] uppercase font-black text-gray-500 tracking-widest">
+                  Escolha na lista
+                </div>
+                <button 
+                  class="w-full text-left px-3 py-2 text-xs text-gray-400 hover:text-white hover:bg-white/5"
+                  @click="pendingOrganizer[r.id] = ''; toggleDropdown('org-' + r.id)"
+                >
+                  <span class="opacity-50 font-mono">-- Cancelar Troca --</span>
+                </button>
+                <button 
+                  v-for="u in usuarios" :key="u.id" 
+                  :disabled="u.id === r.organizer_id"
+                  class="w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors flex items-center justify-between"
+                  :class="[
+                    u.id === r.organizer_id ? 'text-gray-400 cursor-not-allowed bg-black/20' : 'text-white', 
+                    pendingOrganizer[r.id] === u.id ? 'bg-brand-500/10 text-brand-400 font-bold' : ''
+                  ]"
+                  @click="pendingOrganizer[r.id] = u.id; toggleDropdown('org-' + r.id)"
+                >
+                  <span class="truncate max-w-[124px]">{{ u.nome }}</span>
+                  <span v-if="u.id === r.organizer_id" class="text-[9px] font-bold uppercase tracking-widest text-gray-500">Atual</span>
+                  <span v-if="pendingOrganizer[r.id] === u.id" class="text-brand-400 text-[10px] uppercase font-bold tracking-widest">✔ Sel</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 2: Prazos -->
+          <div class="p-6">
+            <div class="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-3">Prazos de Controle</div>
+            <div class="space-y-3">
+              <!-- Organizador Deadline -->
+              <div class="flex items-start gap-3 p-3 rounded-xl bg-black/20 border border-white/5" :class="isAtrasado(r) ? 'border-red-500/20 bg-red-500/5' : ''">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" :class="isAtrasado(r) ? 'bg-red-500/20' : 'bg-white/5'">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" :class="isAtrasado(r) ? 'text-red-400' : 'text-gray-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-[9px] uppercase font-black tracking-widest mb-0.5" :class="isAtrasado(r) ? 'text-red-400' : 'text-gray-500'">Organizador</div>
+                  <div class="text-xs font-mono" :class="isAtrasado(r) ? 'text-red-300' : 'text-gray-300'">{{ formatDateTime(r.organizer_deadline) }}</div>
+                </div>
+              </div>
+              <!-- Betting Deadline -->
+              <div class="flex items-start gap-3 p-3 rounded-xl bg-black/20 border border-white/5">
+                <div class="w-7 h-7 rounded-lg bg-brand-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-[9px] uppercase font-black tracking-widest text-brand-500/70 mb-0.5">Prazo dos Palpites</div>
+                  <div class="text-xs font-mono text-gray-300">{{ formatDateTime(r.betting_deadline) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Col 3: Controle de Status -->
+          <div class="p-6">
+            <div class="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-3">Forçar Status</div>
+            <p class="text-[11px] text-gray-500 leading-relaxed mb-4">Use apenas em emergências. O sistema gerencia os status automaticamente.</p>
+            <!-- Trocar Status Customizado -->
+            <div class="relative z-40">
+              <div class="flex items-center gap-2">
+                <button 
+                  @click="toggleDropdown('status-' + r.id)"
+                  class="flex-1 min-w-0 flex items-center justify-between bg-white/5 border border-white/10 text-gray-400 text-xs rounded-xl px-3 py-2.5 outline-none hover:border-orange-500/50 hover:bg-white/[0.08] transition-all text-left group"
+                >
+                  <span class="truncate" :class="pendingStatus[r.id] ? 'text-orange-400 font-bold' : ''">
+                    {{ getPendingStatusName(r.id) || '⚙️ Forçar Status...' }}
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:text-orange-400" :class="openDropdown === 'status-' + r.id ? 'rotate-180 text-orange-400' : ''" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <button 
+                  v-if="pendingStatus[r.id] && pendingStatus[r.id] !== r.status"
+                  @click="confirmUpdateStatus(r.id, pendingStatus[r.id] || '')"
+                  class="bg-orange-500 hover:bg-orange-400 text-white font-bold text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-95 shrink-0"
+                >
+                  Salvar
+                </button>
+              </div>
+
+              <!-- Menu Suspenso Status -->
+              <div v-if="openDropdown === 'status-' + r.id" class="absolute left-0 w-full mt-2 bg-pitch-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden py-2 animate-fade-in-up z-50">
+                 <button 
+                    class="w-full text-left px-4 py-2 text-xs text-gray-400 hover:text-white hover:bg-white/5"
+                    @click="pendingStatus[r.id] = ''; toggleDropdown('status-' + r.id)"
+                  >
+                    <span class="opacity-50 font-mono">-- Desfazer --</span>
+                  </button>
+                  <button 
+                    v-for="s in statusOptions" :key="s.value"
+                    class="w-full text-left px-4 py-2 text-xs hover:bg-white/5 transition-colors flex items-center justify-between"
+                    :class="[
+                       s.value === r.status ? 'text-gray-400 bg-black/20 cursor-not-allowed' : 'text-white',
+                       pendingStatus[r.id] === s.value ? 'bg-orange-500/10 text-orange-400 font-bold' : ''
+                    ]"
+                    :disabled="s.value === r.status"
+                    @click="pendingStatus[r.id] = s.value; toggleDropdown('status-' + r.id)"
+                  >
+                    <span>{{ s.label }}</span>
+                    <span v-if="s.value === r.status" class="text-[9px] font-bold uppercase tracking-widest text-gray-500">Atual</span>
+                    <span v-if="pendingStatus[r.id] === s.value" class="text-orange-400 text-[10px] uppercase font-bold tracking-widest">✔ Sel</span>
+                  </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Partidas -->
+    <Teleport to="body">
+      <div v-if="selectedRound" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-pitch-900/80 backdrop-blur-sm animate-fade-in">
+        <div class="bg-pitch-800 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in-up">
+          <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div>
+              <h2 class="text-2xl font-bebas tracking-wider text-white">Rodada {{ selectedRound.numero_rodada }}</h2>
+              <p class="text-sm text-gray-400">Visão geral das partidas desta rodada.</p>
+            </div>
+            <button @click="closeMatchesModal" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto p-6">
+            <div v-if="loadingMatches" class="flex justify-center py-12">
+              <div class="w-8 h-8 border-4 border-brand-500/30 border-t-brand-500 rounded-full animate-spin"></div>
+            </div>
+            
+            <div v-else-if="roundMatches.length === 0" class="text-center py-12 text-gray-500">
+              Nenhuma partida encontrada para esta rodada.
+            </div>
+            
+            <div v-else class="space-y-3">
+              <div v-for="match in roundMatches" :key="match.id" class="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span v-if="match.is_mandatory" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-gray-500/20 text-gray-300">Obrigatório</span>
+                    <span v-if="match.is_extra" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-brand-500/20 text-brand-400 border border-brand-500/30">Extra (Org)</span>
+                    <span v-if="!match.is_mandatory && !match.is_extra" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-white/5 text-gray-500">Regular</span>
+                    <span class="text-[10px] text-gray-500 uppercase">{{ formatDateTime(match.data_partida) }}</span>
+                  </div>
+                  <div class="font-semibold text-white/90 text-sm flex items-center gap-3">
+                    <span class="text-right w-28 truncate" :title="match.time_casa">{{ match.time_casa }}</span>
+                    <div class="flex items-center justify-center bg-black/40 px-3 py-1 rounded font-bebas tracking-wider text-brand-400">
+                      {{ match.gols_casa !== null ? match.gols_casa : '-' }} x {{ match.gols_fora !== null ? match.gols_fora : '-' }}
+                    </div>
+                    <span class="w-28 truncate" :title="match.time_fora">{{ match.time_fora }}</span>
+                  </div>
+                </div>
+                
+                <div class="text-xs font-medium px-2 py-1 rounded bg-black/40 border border-white/5" :class="match.status === 'finalizado' ? 'text-emerald-400' : 'text-gray-400'">
+                  {{ match.status }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Tabela do Brasileirão (ou do campeonato selecionado) -->
+    <BrasileiraoStandings 
+      :show="showStandings" 
+      :competitionCode="selectedCompetitionCode" 
+      @close="showStandings = false" 
+    />
+  </div>
+</template>
+
+<style scoped>
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
+import { useToast } from '~/composables/useToast'
+import BrasileiraoStandings from '~/components/BrasileiraoStandings.vue'
+
+definePageMeta({ middleware: 'is-admin' })
+
+const { success: toastSuccess, error: toastError, info: toastInfo } = useToast()
+const supabase = useSupabaseClient<any>()
+
+// State for Dropdown
+const campeonatosAdmin = ref<any[]>([])
+const selectedChampionshipId = ref<string>('')
+
+// Computed code for the Standings
+const selectedCompetitionCode = computed(() => {
+  const c = campeonatosAdmin.value.find(x => x.id === selectedChampionshipId.value)
+  return c?.api_competition_code || ''
+})
+
+const rodadas = ref<any[]>([])
+const usuarios = ref<any[]>([])
+const counts = ref<Record<string, number>>({})
+const loading = ref(true)
+const showStandings = ref(false)
+
+// Watch championship selection
+watch(selectedChampionshipId, () => {
+    fetchRodadas()
+})
+
+// -- State Menu Dropdowns --
+const openDropdown = ref<string | null>(null)
+const pendingOrganizer = ref<Record<string, string>>({})
+const pendingStatus = ref<Record<string, string>>({})
+
+const statusOptions = [
+  { value: 'aguardando_escolha', label: 'Aguardando Organizador' },
+  { value: 'aberta', label: 'Palpites Abertos' },
+  { value: 'fechada', label: 'Jogos Rolando' },
+  { value: 'finalizada', label: 'Finalizada' }
+]
+
+function toggleDropdown(id: string) {
+  openDropdown.value = openDropdown.value === id ? null : id
+}
+
+function getPendingOrgName(rId: string) {
+  const orgId = pendingOrganizer.value[rId]
+  if (!orgId) return null
+  return usuarios.value.find(u => u.id === orgId)?.nome || null
+}
+
+function getPendingStatusName(rId: string) {
+  const st = pendingStatus.value[rId]
+  if (!st) return null
+  return statusOptions.find(o => o.value === st)?.label || null
+}
+
+async function confirmUpdateOrganizer(id: string, newOrgId: string) {
+    if (!newOrgId) return
+    await updateOrganizer(id, newOrgId)
+    pendingOrganizer.value[id] = ''
+}
+
+async function confirmUpdateStatus(id: string, newStatus: string) {
+    if (!newStatus) return
+    await updateStatus(id, newStatus)
+    pendingStatus.value[id] = ''
+}
+
+// -- Helpers --
+const formatDateTime = (iso: string) => {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleString('pt-BR', { 
+    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+  })
+}
+
+const formatStatus = (s: string) => {
+  const map: Record<string, string> = {
+    'aguardando_escolha': 'Aguardando Organizador',
+    'aberta': 'Palpites Abertos',
+    'fechada': 'Jogos Rolando',
+    'finalizada': 'Rodada Concluída'
+  }
+  return map[s] || s
+}
+
+const statusClass = (s: string) => {
+  const map: Record<string, string> = {
+    'aguardando_escolha': 'text-orange-400/80',
+    'aberta': 'text-brand-400',
+    'fechada': 'text-gray-400',
+    'finalizada': 'text-emerald-400/80'
+  }
+  return map[s] || 'text-gray-500'
+}
+
+const dotClass = (s: string) => {
+  const map: Record<string, string> = {
+    'aguardando_escolha': 'bg-orange-500 shadow-orange-500/50',
+    'aberta': 'bg-brand-500 shadow-brand-500/50',
+    'fechada': 'bg-gray-500 shadow-gray-500/50',
+    'finalizada': 'bg-emerald-500 shadow-emerald-500/50'
+  }
+  return map[s] || 'bg-gray-500/50'
+}
+
+const isAtrasado = (r: any) => {
+  if (r.status !== 'aguardando_escolha') return false
+  if (!r.organizer_deadline) return false
+  return new Date() > new Date(r.organizer_deadline)
+}
+
+// -- Data Loading --
+async function fetchCampeonatos() {
+  const { data } = await supabase.from('campeonatos').select('*').order('created_at', { ascending: false })
+  if (data) {
+     campeonatosAdmin.value = data
+     // auto-select first one if exists
+     if (data.length > 0 && !selectedChampionshipId.value) {
+        selectedChampionshipId.value = data[0].id
+     }
+  }
+}
+
+async function fetchRodadas() {
+  if (!selectedChampionshipId.value) {
+      rodadas.value = []
+      loading.value = false
+      return
+  }
+
+  loading.value = true
+  
+  // 1. Busca Rodadas do campeonato selecionado
+  const { data: roundsData } = await supabase
+    .from('rodadas')
+    .select('*, organizador:usuarios!organizer_id(nome)')
+    .eq('campeonato_id', selectedChampionshipId.value)
+    .order('numero_rodada', { ascending: false })
+  
+  if (roundsData) {
+    rodadas.value = roundsData
+    
+    // 2. Busca contagem de participantes
+    const roundIds = roundsData.map((r: any) => r.id)
+    if (roundIds.length > 0) {
+        const { data: stats } = await supabase
+          .from('palpites')
+          .select('usuario_id, partidas!inner(rodada_id)')
+          .in('partidas.rodada_id', roundIds)
+
+        if (stats) {
+           const map: Record<string, Set<string>> = {}
+           stats.forEach((s: any) => {
+             const rId = s.partidas.rodada_id
+             if (!map[rId]) map[rId] = new Set()
+             map[rId].add(s.usuario_id)
+           })
+           
+           const finalCounts: Record<string, number> = {}
+           Object.keys(map).forEach(rId => {
+             const userSet = map[rId]
+             if (userSet) finalCounts[rId] = userSet.size
+           })
+           counts.value = finalCounts
+        } else {
+           counts.value = {}
+        }
+    } else {
+       counts.value = {}
+    }
+  }
+  
+  loading.value = false
+}
+
+async function fetchUsuarios() {
+  const { data } = await supabase.from('usuarios').select('id, nome').order('nome')
+  if (data) usuarios.value = data
+}
+
+onMounted(async () => {
+  await fetchCampeonatos()
+  await fetchUsuarios()
+})
+
+
+const selectedRound = ref<any>(null)
+const roundMatches = ref<any[]>([])
+const loadingMatches = ref(false)
+
+async function openMatchesModal(round: any) {
+  selectedRound.value = round
+  loadingMatches.value = true
+  roundMatches.value = []
+  
+  const { data } = await supabase
+    .from('partidas')
+    .select('*')
+    .eq('rodada_id', round.id)
+    .order('data_partida', { ascending: true })
+    
+  if (data) {
+    roundMatches.value = data
+  }
+  loadingMatches.value = false
+}
+
+function closeMatchesModal() {
+  selectedRound.value = null
+  roundMatches.value = []
+}
+
+async function updateStatus(id: string, newStatus: string) {
+  if (!newStatus) return
+  if (!confirm(`Tem certeza que deseja forçar o status para '${formatStatus(newStatus)}'?`)) {
+    await fetchRodadas() // reload para resetar select
+    return
+  }
+  
+  try {
+    await $fetch(`/api/admin/rounds/${id}/status`, {
+      method: 'PUT',
+      body: { status: newStatus }
+    })
+    await fetchRodadas() // reload
+    toastSuccess('Status da rodada atualizado com sucesso!')
+  } catch (e: any) {
+    console.error(e)
+    toastError(e.data?.message || 'Erro ao atualizar status')
+  }
+}
+
+async function updateOrganizer(id: string, newOrgId: string) {
+  if (!newOrgId) return
+  const userName = usuarios.value.find(u => u.id === newOrgId)?.nome || 'Usuário'
+  
+  if (!confirm(`Tem certeza que deseja forçar '${userName}' como o novo organizador desta rodada?`)) {
+    await fetchRodadas() // reload para resetar select
+    return
+  }
+  
+  try {
+    toastInfo('Atualizando organizador...')
+    await $fetch(`/api/admin/rounds/${id}/organizer`, {
+      method: 'PUT',
+      body: { organizer_id: newOrgId }
+    })
+    await fetchRodadas() // reload
+    toastSuccess('Organizador(a) alterado com sucesso!')
+  } catch (e: any) {
+    console.error(e)
+    toastError(e.data?.message || 'Erro ao trocar organizador')
+  }
+}
+</script>

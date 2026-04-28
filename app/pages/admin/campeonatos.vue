@@ -1,0 +1,168 @@
+<template>
+  <div class="space-y-8 pb-10">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <NuxtLink to="/admin" class="text-[var(--brand)] hover:underline text-sm mb-2 inline-block">&larr; Voltar ao Painel</NuxtLink>
+        <h1 class="text-3xl font-bebas tracking-wider text-white">Gestão de Campeonatos</h1>
+        <p class="text-sm text-gray-400">Crie novos torneios, vincule Regras e importe rodadas da API.</p>
+      </div>
+      <button @click="openCreateModal" class="px-6 py-2 bg-[var(--brand)] text-white font-bold rounded-xl transition-transform hover:-translate-y-0.5 shadow-lg">
+        + Novo Campeonato
+      </button>
+    </header>
+
+    <!-- Content -->
+    <div v-if="loading" class="py-10 text-center">
+      <div class="w-8 h-8 border-4 border-t-[var(--brand)] border-[var(--brand-dim)] rounded-full animate-spin mx-auto mb-4"></div>
+      <p class="text-gray-400">Carregando campeonatos...</p>
+    </div>
+    <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div v-for="camp in campeonatos" :key="camp.id" class="bg-white/5 border border-white/10 rounded-2xl p-6 relative flex flex-col justify-between">
+        <div class="mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded" :class="camp.status === 'ativo' ? 'bg-emerald-500/20 text-emerald-400' : (camp.status === 'arquivado' ? 'bg-gray-500/20 text-gray-400' : 'bg-amber-500/20 text-amber-500')">
+              {{ camp.status }}
+            </span>
+            <span class="text-xs text-gray-500 font-mono">{{ camp.api_competition_code }}</span>
+          </div>
+          <h2 class="text-2xl font-bebas tracking-wide text-white mb-1">{{ camp.nome }}</h2>
+          <p class="text-sm text-gray-400">Temporada: {{ camp.season }} &bull; Max Rodadas: {{ camp.max_rodadas }}</p>
+          <div class="mt-4 p-3 bg-black/20 rounded-lg text-xs text-gray-300">
+            Regras de Box: <span class="font-bold text-[var(--brand)]">{{ camp.scoring_systems?.nome || 'Padrão' }}</span>
+          </div>
+        </div>
+        
+        <div class="flex gap-2">
+          <button 
+             v-if="camp.status === 'rascunho'" 
+             @click="iniciarBolao(camp.id)" 
+             class="flex-1 py-3 px-4 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(16,185,129,0.1)] hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+             :disabled="isStarting === camp.id"
+          >
+            {{ isStarting === camp.id ? 'Baixando...' : '▶ IMPORTAR & INICIAR' }}
+          </button>
+          
+          <button v-if="camp.status === 'ativo'" @click="arquivarBolao(camp.id)" class="flex-1 py-2 bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors border border-white/10">
+            Arquivar do Painel
+          </button>
+          <button v-if="camp.status === 'arquivado'" @click="reativarBolao(camp.id)" class="py-2 px-4 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors border border-white/10">
+            Reativar
+          </button>
+          
+          <button v-if="camp.status !== 'ativo'" @click="deletarBolao(camp.id)" class="py-2 px-3 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-xl transition-colors border border-red-500/20" title="Excluir Definitivamente">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div v-if="campeonatos.length === 0" class="col-span-full py-16 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
+        <p class="text-gray-400 mb-4 font-bold tracking-widest text-sm uppercase">Nenhum campeonato encontrado.</p>
+        <button @click="openCreateModal" class="px-6 py-2 border border-white/20 hover:border-[var(--brand)] text-gray-300 hover:text-[var(--brand)] rounded-xl transition-colors text-sm font-bold uppercase tracking-wider">Criar Primeiro Campeonato</button>
+      </div>
+    </div>
+
+    <!-- Modal Wizard Novo Campeonato -->
+    <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+      <WizardCampeonato 
+        @close="showModal = false" 
+        @created="onCampeonatoCriado" 
+        :sistemas="sistemas" 
+      />
+    </div>
+    <BaseToast ref="toastRef" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import BaseToast from '~/components/ui/BaseToast.vue'
+import WizardCampeonato from '~/components/admin/WizardCampeonato.vue'
+import { useToast } from '~/composables/useToast'
+
+definePageMeta({ middleware: 'is-admin' })
+
+const supabase = useSupabaseClient()
+const campeonatos = ref<any[]>([])
+const sistemas = ref<any[]>([])
+const loading = ref(true)
+const isStarting = ref<string | null>(null)
+const showModal = ref(false)
+const toast = useToast()
+
+const fetchDados = async () => {
+   loading.value = true
+   const { data: c } = await supabase.from('campeonatos').select('*, scoring_systems(*)').order('created_at', { ascending: false })
+   const { data: s } = await supabase.from('scoring_systems').select('*').order('nome')
+   campeonatos.value = c || []
+   sistemas.value = s || []
+   
+   loading.value = false
+}
+
+onMounted(() => {
+   fetchDados()
+})
+
+const openCreateModal = () => {
+   showModal.value = true
+}
+
+const onCampeonatoCriado = async (newCamp?: any) => {
+   showModal.value = false
+   toast.success('Campeonato cadastrado com sucesso!')
+   
+   // Wait a slight delay to let user read modal success, then fetch all fresh
+   await fetchDados()
+}
+
+const arquivarBolao = async (id: string) => {
+   if(!confirm('Tem certeza que deseja ARQUIVAR este campeonato? O layout sumirá da tela principal.')) return
+   await supabase.from('campeonatos').update({ status: 'arquivado' }).eq('id', id)
+   fetchDados()
+}
+
+const reativarBolao = async (id: string) => {
+   await supabase.from('campeonatos').update({ status: 'ativo' }).eq('id', id)
+   fetchDados()
+}
+
+const deletarBolao = async (id: string) => {
+    if(!confirm('Excluir Campeonato? Irreversível.')) return
+    await supabase.from('campeonatos').delete().eq('id', id)
+    fetchDados()
+}
+
+const iniciarBolao = async (id: string) => {
+  if (!confirm('Iniciar Bolão e importar rodadas da API? Isso pode demorar 1-2 minutos devido ao Limite de Taxas.')) return
+  
+  isStarting.value = id
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Não autenticado.')
+
+    const response = await fetch('/api/admin/start-championship', {
+      method: 'POST',
+      headers: { 
+         'Authorization': `Bearer ${session.access_token}`,
+         'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ campeonato_id: id })
+    })
+    
+    const result = await response.json()
+    
+    if (response.ok) {
+       await supabase.from('campeonatos').update({ status: 'ativo' }).eq('id', id)
+       toast.success(`Importados ${result.totalRoundsImported} rodadas com sucesso!`)
+       fetchDados()
+    } else {
+       throw new Error(result.message || 'Erro ao inicializar.')
+    }
+  } catch(e: any) {
+    toast.error(e.message)
+  } finally {
+    isStarting.value = null
+  }
+}
+</script>

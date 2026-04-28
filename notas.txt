@@ -1,0 +1,155 @@
+Com base na análise completa do projeto, elejo 3 temas prioritários em ordem de importância:
+
+🔴 1. Segurança — Server API sem proteção server-side
+As rotas /api/sync/matches, /api/sync/results e /api/sync/teams só são protegidas pelo middleware client-side (is-admin). Qualquer pessoa com uma sessão válida pode chamar essas rotas diretamente via curl ou Postman e importar/sobrescrever dados no banco. A proteção precisa existir no servidor também.
+
+🟡 2. UX — alert() nativo em 
+
+palpites.vue
+O feedback de sucesso/erro ao salvar palpites usa alert() do browser — aquele popup feio. O projeto tem um sistema de design premium e isso poluí a experiência. Merece um toast/notificação in-app.
+
+🟠 3. Type safety — 
+
+(supabase as any)
+ em 
+
+useBets.ts
+O upsert de palpites usa um cast 
+
+(supabase as any)
+ para contornar o TypeScript. Isso desliga a proteção de tipos justamente numa operação crítica de escrita no banco.
+
+Na minha opinião, o ponto 1 é o mais urgente — é uma falha de segurança real, não cosmética. Os outros dois são qualidade de código/UX.
+
+Por onde quer começar?
+
+
+
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+
+
+
+
+Com a casa arrumada, podemos implementar melhorias que ficaram para depois, como:
+
+Painel Admin Turbinado: Melhorar a tela de gestão de rodadas (hoje apenas atualiza status).
+Meu Perfil: Uma tela para o usuário ver o próprio histórico de rodadas passadas.
+Loading States: Adicionar skeletons e spinners nos pontos onde a UI ainda pisca ou congela enquanto carrega dados do banco.
+O que você diz? Testamos, documentamos ou construímos novidades?
+
+
+
+
+
+
+
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+Deu muito show! 🏆
+
+Com o motor inteiro do bolão automatizado e rodando sozinho no background, os próximos grandes passos naturais para o sistema seriam focar na experiência tática do jogador:
+
+Painel do Organizador (Front-end): Criar a interface onde o usuário que foi sorteado como organizador da rodada entra e vê o aviso: "Você é o organizador! Escolha X jogos extras", com a lista de partidas disponíveis e um relógio em contagem regressiva para o prazo dele (aquelas 12 horas antes).
+Interface de Palpites (Finalização): Garantir que a página onde os jogadores inserem os placares esteja travando certinho 1 hora antes do primeiro jogo (baseado no betting_deadline que automatizamos), e mostrar de forma clara os jogos "Obrigatórios" vs "Extras".
+Notificações / Alertas: Implementar um sistema de alerta na Home (ou toast ao fazer login) do tipo "A Rodada 12 está aberta! Faça seus palpites." ou "Atenção: Você não preencheu seus palpites e a rodada fecha em 2 horas!"
+Qual desses você quer atacar agora?
+
+
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+
+outro ponto importante!
+
+como gerenciar o acesso dos usuarios aos boloes, 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+
+📊 Relatório de Consumo — +BET
+1. Football-Data.org API
+Plano Atual: Free Tier
+Recurso	Limite	Observação
+Requisições/Minuto	10 por minuto	Verificado: 9 disponíveis (1 usada pelo teste)
+Requisições/Dia	Sem limite diário explícito	Máximo teórico: ~14.400/dia (por throttle)
+Competições	Tier 1 apenas (BSA, PL, CL, etc.)	Brasileirão Série A está incluído ✅
+Endpoints no Código (7 rotas que chamam a API)
+Endpoint do +BET	API Football-Data	Quando é chamado
+sync/teams.post	/competitions/{code}/teams	Admin sincroniza times (1x por campeonato)
+sync/matches.post	/competitions/{code}/matches?matchday=X	Admin sincroniza rodada (1x por rodada)
+sync/results.post	/competitions/{code}/matches?matchday=X	Atualiza placares (pode ser frequente)
+app/standings.get	/competitions/{code}/standings	Cada vez que o card de classificação carrega
+admin/wizard/leagues.get	/competitions	Admin abre wizard (raro)
+admin/wizard/league/[code].get	/competitions/{code}	Admin seleciona liga (raro)
+admin/start-championship.post	/competitions/{code} + /matches?matchday=X	2 chamadas ao iniciar bolão (1x)
+⚠️ Pontos de Atenção
+app/standings.get — Esta é a rota mais perigosa. Ela é chamada toda vez que alguém carrega a tela de classificação. Em produção com 10 usuários cada um carregando a página 5 vezes, seriam 50 requisições — mas como tem limite de 10/min, pode haver erros 429 Too Many Requests.
+sync/results.post — Se um CRON automático rodar a cada minuto, seriam 1 chamada/minuto, dentro do limite.
+✅ Consumo Estimado em Desenvolvimento
+Cenário	Chamadas/dia estimadas
+Dev solo (você testando)	~20-50 requisições
+Com CRON a cada 5min	+288/dia
+Standings sem cache	+variável por page load
+Veredicto: Para desenvolvimento, o consumo está dentro do esperado e seguro. O limite de 10 req/min é confortável para 1 desenvolvedor.
+
+2. Supabase
+Plano Atual: Free Tier
+Recurso	Limite Free	Status
+Database	500 MB	✅ Baixo uso (poucos registros)
+Auth Users	50.000 MAU	✅ Poucos usuários em dev
+Storage	1 GB	✅ Sem uploads pesados
+Edge Functions	500K invocações/mês	✅ Sem edge functions
+Realtime	200 conexões simultâneas	✅ Sem realtime ativo
+API Requests	Sem limite explícito	✅ Limitado pelo tráfego
+Bandwidth	5 GB/mês	✅ Confortável em dev
+Observação sobre RLS
+Todas as tabelas utilizam Row Level Security (RLS). Isso não afeta consumo, mas garante segurança. ✅
+
+3. Recomendações para Produção
+WARNING
+
+Antes de ir para produção, implemente estas mudanças:
+
+Cache no standings.get — Adicionar cache de 5-10 minutos no servidor para evitar bater o rate limit da Football-Data
+CRON inteligente para results — Rodar sync apenas em dias de jogo e horários específicos
+Monitorar plano Supabase — Se ultrapassar 500 MB no DB, considerar upgrade (Pro = $25/mês)
+Football-Data pago — Se precisar de mais competições ou >10 req/min, plano pago começa em €12/mês
+
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************
+*****************************************************************

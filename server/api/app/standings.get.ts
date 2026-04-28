@@ -1,0 +1,68 @@
+import { defineEventHandler, createError } from 'h3'
+
+export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
+  const FOOTBALL_DATA_KEY = process.env.FOOTBALL_DATA_KEY
+
+  if (!FOOTBALL_DATA_KEY) {
+    throw createError({
+      statusCode: 500,
+      message: 'FOOTBALL_DATA_KEY não configurada no servidor.'
+    })
+  }
+
+  try {
+    const query = getQuery(event)
+    const api_competition_code = query.api_competition_code || 'BSA'
+
+    const response = await fetch(`https://api.football-data.org/v4/competitions/${api_competition_code}/standings`, {
+      headers: {
+        'X-Auth-Token': FOOTBALL_DATA_KEY
+      }
+    })
+
+    if (!response.ok) {
+      throw createError({
+        statusCode: response.status,
+        message: 'Erro ao buscar dados da API externa'
+      })
+    }
+
+    const data = await response.json()
+    
+    const totalStandings = data.standings?.filter((s:any) => s.type === 'TOTAL') || []
+    
+    // Retornamos agrupado, pois Copas têm múltiplos grupos, enquanto Ligas têm 1 grupo principal
+    return {
+      competition: data.competition.name,
+      season: data.filters.season || data.season?.startDate?.substring(0,4),
+      standings: totalStandings.map((stdg: any) => ({
+        group: stdg.group, // Nullable string como "GROUP_A"
+        table: stdg.table.map((item: any) => ({
+          position: item.position,
+          team: {
+            id: item.team.id,
+            name: item.team.shortName || item.team.name,
+            tla: item.team.tla,
+            crest: item.team.crest
+          },
+          playedGames: item.playedGames,
+          won: item.won,
+          draw: item.draw,
+          lost: item.lost,
+          points: item.points,
+          goalsFor: item.goalsFor,
+          goalsAgainst: item.goalsAgainst,
+          goalDifference: item.goalDifference,
+          form: item.form // Ex: W,D,L,W,W
+        }))
+      }))
+    }
+  } catch (err: any) {
+    console.error('Erro standings api:', err)
+    throw createError({
+      statusCode: 500,
+      message: 'Falha interna ao processar classificação'
+    })
+  }
+})
