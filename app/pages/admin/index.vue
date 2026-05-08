@@ -85,6 +85,33 @@
         </div>
       </NuxtLink>
 
+      <!-- Card Central de Pedidos (NEW) -->
+      <NuxtLink to="/admin/solicitacoes" class="group bg-white/5 border p-6 rounded-2xl hover:bg-white/10 transition-all flex flex-col justify-between overflow-hidden relative"
+        :class="pendingCount > 0 ? 'border-amber-500/40 hover:border-amber-500/60 animate-subtle-glow' : 'border-white/10 hover:border-brand-500/50'"
+      >
+        <div class="absolute -right-6 -bottom-6 text-white/5 group-hover:text-amber-500/20 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </div>
+        <div class="relative z-10">
+          <div class="relative w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors"
+               :class="pendingCount > 0 ? 'bg-amber-500/20 text-amber-400 group-hover:bg-amber-500 group-hover:text-white' : 'bg-white/10 text-gray-400 group-hover:bg-brand-500 group-hover:text-white'">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <!-- Badge -->
+            <span v-if="pendingCount > 0" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce shadow-lg">
+              {{ pendingCount }}
+            </span>
+          </div>
+          <div class="text-xl font-sans font-semibold tracking-tight text-white mb-2">Central de Pedidos</div>
+          <p class="text-sm font-sans text-gray-300 leading-relaxed">
+            {{ pendingCount > 0 ? `${pendingCount} solicitação(ões) aguardando análise.` : 'Gerencie as solicitações de acesso dos usuários.' }}
+          </p>
+        </div>
+      </NuxtLink>
+
       <!-- Card Tabela (Restored) -->
       <button @click="showStandings = true" class="group bg-white/5 border border-white/10 p-6 rounded-2xl hover:bg-white/10 hover:border-emerald-500/50 transition-all flex flex-col justify-between overflow-hidden relative text-left">
         <div class="absolute -right-6 -bottom-6 text-white/5 group-hover:text-emerald-500/20 transition-colors">
@@ -112,11 +139,27 @@
 
 <script setup lang="ts">
 import BrasileiraoStandings from '@/components/BrasileiraoStandings.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 definePageMeta({
   middleware: 'is-admin'
 })
 
+const { pendingCount, fetchPendingCount } = useSolicitacoes()
 const showStandings = ref(false)
+
+onMounted(() => {
+  fetchPendingCount()
+})
 </script>
+
+<style scoped>
+.animate-subtle-glow {
+  animation: subtleGlow 2s ease-in-out infinite;
+}
+
+@keyframes subtleGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  50% { box-shadow: 0 0 15px 2px rgba(245, 158, 11, 0.15); }
+}
+</style>

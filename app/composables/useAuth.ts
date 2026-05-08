@@ -12,6 +12,7 @@ export const useAuth = () => {
   const profile = useState<Usuario | null>('user-profile', () => null)
   
   const isAdmin = computed(() => profile.value?.is_admin === true)
+  const userStatus = computed(() => profile.value?.status ?? 'ativo')
 
   // Busca o perfil público sempre que o UUID do Auth mudar
   watch(user, async (newUser) => {
@@ -98,6 +99,7 @@ export const useAuth = () => {
     user,
     profile,
     isAdmin,
+    userStatus,
     login,
     register,
     logout

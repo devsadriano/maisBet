@@ -80,9 +80,9 @@ const formatDate = (iso: string) => {
     <div class="flex items-center justify-between gap-2 sm:gap-6">
       <!-- Home Team -->
       <div class="flex flex-col items-center flex-1 w-24 sm:w-32 group-hover:scale-105 transition-transform duration-500">
-        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-2 mb-3 shadow-lg group-hover:border-brand-500/30 transition-all">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-3">
           <img v-if="shieldHome" :src="shieldHome" class="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
-          <span v-else class="text-2xl font-bebas text-gray-700">{{ match.time_casa.charAt(0) }}</span>
+          <span v-else class="text-3xl font-bebas text-gray-700">{{ match.time_casa.charAt(0) }}</span>
         </div>
         <span class="font-bebas text-sm sm:text-base text-white text-center tracking-wider px-1">{{ match.time_casa }}</span>
       </div>
@@ -123,9 +123,9 @@ const formatDate = (iso: string) => {
 
       <!-- Away Team -->
       <div class="flex flex-col items-center flex-1 w-24 sm:w-32 group-hover:scale-105 transition-transform duration-500">
-        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center p-2 mb-3 shadow-lg group-hover:border-brand-500/30 transition-all">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-3">
           <img v-if="shieldAway" :src="shieldAway" class="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
-          <span v-else class="text-2xl font-bebas text-gray-700">{{ match.time_fora.charAt(0) }}</span>
+          <span v-else class="text-3xl font-bebas text-gray-700">{{ match.time_fora.charAt(0) }}</span>
         </div>
         <span class="font-bebas text-sm sm:text-base text-white text-center tracking-wider px-1">{{ match.time_fora }}</span>
       </div>

@@ -21,6 +21,16 @@
       <!-- Desktop Nav -->
       <nav class="hidden md:flex items-center gap-6 ml-8 mr-auto">
         <NuxtLink
+          v-if="!isAdmin"
+          to="/palpites"
+          class="text-xs font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--brand)] group relative py-1"
+          :class="isDark ? 'text-gray-400' : 'text-gray-600'"
+          active-class="!text-[var(--brand)]"
+        >
+          Meus Palpites
+          <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
+        </NuxtLink>
+        <NuxtLink
           to="/ranking"
           class="text-xs font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--brand)] group relative py-1"
           :class="isDark ? 'text-gray-400' : 'text-gray-600'"
@@ -39,16 +49,6 @@
           <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
         </NuxtLink>
         <NuxtLink
-          v-if="!isAdmin"
-          to="/palpites"
-          class="text-xs font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--brand)] group relative py-1"
-          :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-          active-class="!text-[var(--brand)]"
-        >
-          Meus Palpites
-          <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
-        </NuxtLink>
-        <NuxtLink
           v-if="isAdmin"
           to="/admin"
           class="text-xs font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--brand)] group relative py-1"
@@ -56,6 +56,7 @@
           active-class="!text-[var(--brand)]"
         >
           Painel Admin
+          <span v-if="adminPendingCount > 0" class="absolute -top-2 -right-5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ adminPendingCount }}</span>
           <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
         </NuxtLink>
       </nav>
@@ -182,6 +183,13 @@
         <span class="text-[10px] font-medium uppercase tracking-wider">Início</span>
       </NuxtLink>
 
+      <NuxtLink v-if="!isAdmin" to="/palpites" activeClass="!text-[var(--brand)]" class="flex flex-col items-center gap-1 transition-colors" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        <span class="text-[10px] font-medium uppercase tracking-wider">Palpites</span>
+      </NuxtLink>
+
       <NuxtLink to="/ranking" activeClass="!text-[var(--brand)]" class="flex flex-col items-center gap-1 transition-colors" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -196,18 +204,14 @@
         <span class="text-[10px] font-medium uppercase tracking-wider">Regras</span>
       </NuxtLink>
 
-      <NuxtLink v-if="!isAdmin" to="/palpites" activeClass="!text-[var(--brand)]" class="flex flex-col items-center gap-1 transition-colors" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-        <span class="text-[10px] font-medium uppercase tracking-wider">Palpites</span>
-      </NuxtLink>
-
-      <NuxtLink v-if="isAdmin" to="/admin" activeClass="!text-[var(--brand)]" class="flex flex-col items-center gap-1 transition-colors" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
+      <NuxtLink v-if="isAdmin" to="/admin" activeClass="!text-[var(--brand)]" class="flex flex-col items-center gap-1 transition-colors relative" :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+        <div class="relative">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span v-if="adminPendingCount > 0" class="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">{{ adminPendingCount }}</span>
+        </div>
         <span class="text-[10px] font-medium uppercase tracking-wider">Admin</span>
       </NuxtLink>
 
@@ -247,6 +251,7 @@ import BaseToast from '~/components/ui/BaseToast.vue'
 const { profile, user, isAdmin, logout } = useAuth()
 const { isDark, toggleTheme, initTheme } = useTheme()
 const { campeonatos, campeonatoAtivo, currentAcesso, fetchCampeonatos, selecionarCampeonato } = useCampeonato()
+const { pendingCount: adminPendingCount, fetchPendingCount: fetchAdminPendingCount } = useSolicitacoes()
 
 onMounted(() => {
   initTheme()
@@ -255,6 +260,10 @@ onMounted(() => {
 watch(user, async (newUser) => {
   if (newUser) {
     await fetchCampeonatos()
+    // Fetch pending count for admin badge
+    if (isAdmin.value) {
+      await fetchAdminPendingCount()
+    }
   }
 }, { immediate: true })
 

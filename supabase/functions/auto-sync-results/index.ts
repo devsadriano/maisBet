@@ -53,20 +53,25 @@ Deno.serve(async (req: Request) => {
     // Identificar de quais rodadas precisamos buscar dados (geralmente só 1)
     const rodadaIds = [...new Set(activeMatches.map((m: any) => m.rodada_id))]
 
+    // Buscar rodadas COM informações do campeonato (para saber o código da competição)
     const { data: rodadas, error: rodadasErr } = await supabase
       .from('rodadas')
-      .select('id, numero_rodada')
+      .select('id, numero_rodada, campeonato_id, campeonatos(api_competition_code, season)')
       .in('id', rodadaIds)
 
     if (rodadasErr) throw rodadasErr
 
     let totalUpdated = 0
-    let totalErros = []
+    let totalErros: string[] = []
 
     for (const rodada of rodadas) {
-        console.log(`Buscando dados da rodada ${rodada.numero_rodada}...`)
+        const competitionCode = (rodada as any).campeonatos?.api_competition_code || 'BSA'
+        const season = (rodada as any).campeonatos?.season
+        const seasonParam = season ? `&season=${season}` : ''
         
-        const res = await fetch(`https://api.football-data.org/v4/competitions/BSA/matches?matchday=${rodada.numero_rodada}`, {
+        console.log(`Buscando dados da rodada ${rodada.numero_rodada} (${competitionCode})...`)
+        
+        const res = await fetch(`https://api.football-data.org/v4/competitions/${competitionCode}/matches?matchday=${rodada.numero_rodada}${seasonParam}`, {
             headers: { 'X-Auth-Token': footballdataKey }
         })
 
@@ -87,6 +92,7 @@ Deno.serve(async (req: Request) => {
                 localStatus = 'adiado'
             }
 
+            // Atualizar filtrando por api_match_id + rodada_id (campeonato-específico)
             const { error: matchError } = await supabase
                 .from('partidas')
                 .update({
@@ -95,6 +101,7 @@ Deno.serve(async (req: Request) => {
                     status: localStatus,
                 })
                 .eq('api_match_id', m.id)
+                .eq('rodada_id', rodada.id)
                 // Atualiza só se estiver em status diferente de finalizado/adiado
                 .eq('status', 'agendado') 
 

@@ -93,26 +93,32 @@
        </div>
 
        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <button 
+          <div 
              v-for="camp in campeonatos.filter(c => c.status === 'ativo')" 
              :key="camp.id"
-             @click="enterBolao(camp.id)"
-             class="group relative flex flex-col text-left overflow-hidden bg-white dark:bg-[#151515] hover:bg-gray-50 dark:hover:bg-[#1a1a1a] rounded-[2rem] border border-gray-200 dark:border-white/5 hover:border-brand-500/50 transition-all duration-500 outline-none focus-visible:ring-2 ring-brand-500 shadow-xl"
+             class="group relative flex flex-col text-left overflow-hidden bg-white dark:bg-[#151515] rounded-[2rem] border shadow-xl transition-all duration-500 outline-none"
+             :class="hasAccess(camp)
+               ? 'hover:bg-gray-50 dark:hover:bg-[#1a1a1a] border-gray-200 dark:border-white/5 hover:border-brand-500/50 cursor-pointer'
+               : 'border-gray-200 dark:border-white/5 opacity-90'"
+             @click="hasAccess(camp) ? enterBolao(camp.id) : null"
           >
              <!-- Decoration Flow -->
-             <div class="absolute -top-16 -right-16 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl group-hover:bg-brand-500/20 transition-colors duration-500 pointer-events-none"></div>
+             <div class="absolute -top-16 -right-16 w-32 h-32 rounded-full blur-2xl transition-colors duration-500 pointer-events-none"
+                  :class="hasAccess(camp) ? 'bg-brand-500/10 group-hover:bg-brand-500/20' : 'bg-gray-500/5'"></div>
 
              <div class="p-8 flex-1 w-full space-y-6 z-10">
                 <!-- Escudo do Campeonato -->
-                <div class="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-black/40 border border-gray-200 dark:border-white/10 flex items-center justify-center p-2 shadow-inner group-hover:scale-110 transition-transform duration-500 relative overflow-hidden">
-                    <!-- Background Glow inside shield -->
-                    <div class="absolute inset-0 bg-brand-500/5 group-hover:bg-brand-500/10 transition-colors"></div>
+                <div class="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-black/40 border border-gray-200 dark:border-white/10 flex items-center justify-center p-2 shadow-inner transition-transform duration-500 relative overflow-hidden"
+                     :class="hasAccess(camp) ? 'group-hover:scale-110' : ''">
+                    <div class="absolute inset-0 transition-colors"
+                         :class="hasAccess(camp) ? 'bg-brand-500/5 group-hover:bg-brand-500/10' : 'bg-gray-500/5'"></div>
                     
                     <img 
                       v-if="camp.logo_url" 
                       :src="camp.logo_url" 
                       :alt="camp.nome" 
                       class="w-full h-full object-contain drop-shadow-lg relative z-10"
+                      :class="{ 'grayscale opacity-60': !hasAccess(camp) }"
                       @error="(e) => (e.target as HTMLImageElement).src = 'https://crests.football-data.org/764.png'" 
                     >
                     <div v-else class="flex flex-col items-center justify-center relative z-10">
@@ -126,20 +132,48 @@
                    <div class="flex items-center gap-2 mb-2">
                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-brand-500/10 text-brand-600 dark:text-brand-400">Ativo</span>
                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest shadow-sm">{{ camp.season || new Date().getFullYear() }}</span>
+                       <!-- Lock badge for no-access -->
+                       <span v-if="!isAdmin && !hasAccess(camp)" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                         🔒 Sem acesso
+                       </span>
                    </div>
-                   <h3 class="text-2xl font-bebas text-gray-900 dark:text-white tracking-widest group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{{ camp.nome }}</h3>
+                   <h3 class="text-2xl font-bebas tracking-widest transition-colors"
+                       :class="hasAccess(camp) ? 'text-gray-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400' : 'text-gray-900 dark:text-white'">
+                     {{ camp.nome }}
+                   </h3>
                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 uppercase font-bold tracking-wider text-[10px]">{{ camp.max_rodadas }} Rodadas Oficiais</p>
                 </div>
              </div>
 
              <!-- Action Bar -->
-             <div class="w-full bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 py-4 px-8 flex justify-between items-center z-10 group-hover:bg-brand-500 group-hover:border-brand-500 transition-colors duration-300">
+             <!-- Has Access: Enter -->
+             <div v-if="isAdmin || hasAccess(camp)" 
+                  class="w-full bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 py-4 px-8 flex justify-between items-center z-10 group-hover:bg-brand-500 group-hover:border-brand-500 transition-colors duration-300 cursor-pointer">
                  <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 group-hover:text-white transition-colors">Acessar Bolão</span>
                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                  </svg>
              </div>
-          </button>
+             
+             <!-- Pending Request -->
+             <div v-else-if="isPendingRequest(camp.id)"
+                  class="w-full bg-amber-500/5 border-t border-amber-500/10 py-4 px-8 flex justify-between items-center z-10">
+                 <span class="text-xs font-black uppercase tracking-[0.2em] text-amber-500">⏳ Solicitação Pendente</span>
+             </div>
+
+             <!-- No Access: Request -->
+             <button v-else
+                  @click.stop="handleRequestBolao(camp)"
+                  :disabled="requestingBolao === camp.id"
+                  class="w-full bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 py-4 px-8 flex justify-between items-center z-10 hover:bg-amber-500 hover:border-amber-500 transition-colors duration-300 cursor-pointer disabled:opacity-50">
+                 <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 hover-text-white transition-colors">
+                   {{ requestingBolao === camp.id ? 'Enviando...' : 'Solicitar Acesso' }}
+                 </span>
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                 </svg>
+             </button>
+          </div>
        </div>
     </div>
 
@@ -147,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 // Base UI
@@ -156,14 +190,76 @@ import BaseCard from '@/components/ui/BaseCard.vue'
 const { profile } = useAuth()
 const supabase = useSupabaseClient<any>()
 const router = useRouter()
+const toast = useToast()
 
 const isAdmin = computed(() => profile.value?.is_admin === true)
 const { campeonatos, campeonatoAtivo, selecionarCampeonato } = useCampeonato()
+const { solicitarAcessoBolao } = useSolicitacoes()
+
+// Track pending bolão requests for the current user
+const pendingBolaoRequests = ref<Set<string>>(new Set())
+const requestingBolao = ref<string | null>(null)
+
+// Check if user has access to a campeonato
+const hasAccess = (camp: any) => {
+  if (isAdmin.value) return true
+  return !!camp.user_acesso
+}
+
+// Check if there's a pending request for this bolão
+const isPendingRequest = (campId: string) => {
+  return pendingBolaoRequests.value.has(campId)
+}
+
+// Fetch pending bolão requests for the current user
+const fetchPendingRequests = async () => {
+  const email = profile.value?.email
+  if (!email || isAdmin.value) return
+
+  const { data } = await supabase
+    .from('solicitacoes')
+    .select('campeonato_id')
+    .eq('email', email)
+    .eq('tipo', 'acesso_bolao')
+    .eq('status', 'pendente')
+
+  if (data) {
+    pendingBolaoRequests.value = new Set(
+      data.map((r: any) => r.campeonato_id).filter(Boolean)
+    )
+  }
+}
+
+// Handle bolão access request
+const handleRequestBolao = async (camp: any) => {
+  if (!profile.value) return
+  
+  requestingBolao.value = camp.id
+  try {
+    const userId = (profile.value as any).id
+    await solicitarAcessoBolao(
+      profile.value.email,
+      userId,
+      camp.id,
+      profile.value.nome
+    )
+    pendingBolaoRequests.value.add(camp.id)
+    toast.success(`Solicitação enviada para ${camp.nome}!`)
+  } catch (err: any) {
+    toast.error(err.message || 'Erro ao solicitar acesso.')
+  } finally {
+    requestingBolao.value = null
+  }
+}
 
 const enterBolao = (id: string) => {
     selecionarCampeonato(id)
     router.push('/palpites')
 }
+
+onMounted(() => {
+  fetchPendingRequests()
+})
 
 // SEO
 useHead({

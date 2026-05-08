@@ -334,6 +334,43 @@ const saveAccesses = async () => {
     await supabase.from('campeonato_acessos').insert(toInsert)
   }
 
+  // Sincronizar com a Central de Pedidos: aprovar acesso ao sistema se estiver pendente
+  await supabase
+    .from('solicitacoes')
+    .update({ status: 'aprovada', resolved_at: new Date().toISOString() })
+    .eq('email', email)
+    .eq('tipo', 'acesso_sistema')
+    .eq('status', 'pendente')
+
+  // Aprovar pedidos pendentes de acesso aos bolões que acabaram de ser autorizados
+  if (toInsert.length > 0) {
+    await supabase
+      .from('solicitacoes')
+      .update({ status: 'aprovada', resolved_at: new Date().toISOString() })
+      .eq('email', email)
+      .eq('tipo', 'acesso_bolao')
+      .eq('status', 'pendente')
+      .in('campeonato_id', [...modalSelectedIds.value])
+  }
+
+  // Garantir que o usuário seja ativado no sistema, caso exista
+  const { data: usuario } = await supabase
+    .from('usuarios')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+    
+  if (usuario) {
+    await supabase
+      .from('usuarios')
+      .update({ status: 'ativo' })
+      .eq('id', usuario.id)
+  }
+
+  // Atualiza o contador global de pendências
+  const { fetchPendingCount } = useSolicitacoes()
+  await fetchPendingCount()
+
   // Update count badge
   accessCountByEmail[email] = toInsert.length
 

@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
                     gols_casa: m.score?.fullTime?.home ?? null,
                     gols_fora: m.score?.fullTime?.away ?? null,
                     status: ls,
-                  }).eq('api_match_id', m.id).eq('status', 'agendado')
+                  }).eq('api_match_id', m.id).eq('rodada_id', rd.id).eq('status', 'agendado')
                   if (!error) synced++
                 }
               }
@@ -172,7 +172,7 @@ Deno.serve(async (req: Request) => {
                 const bd = new Date(fmd.getTime() - deadlineHours * 3600000).toISOString()
                 const od = new Date(fmd.getTime() - 43200000).toISOString()
                 
-                const { data: oid } = await sb.rpc('get_organizer_for_round', { p_numero_rodada: next })
+                const { data: oid } = await sb.rpc('get_organizer_for_round', { p_numero_rodada: next, p_campeonato_id: c.id })
                 if (oid) {
                   // Phase/Multiplier logic (static for simplified sync)
                   let fase = 'grupos'
@@ -205,7 +205,7 @@ Deno.serve(async (req: Request) => {
                         gols_casa: m.score?.fullTime?.home ?? null,
                         gols_fora: m.score?.fullTime?.away ?? null,
                         status: ls, data_partida: m.utcDate, is_mandatory: m.is_mandatory,
-                      }, { onConflict: 'api_match_id' })
+                      }, { onConflict: 'api_match_id,rodada_id' })
                       if (!error) ins++
                     }
                     log(`[${c.api_competition_code}] Rd ${next} CRIADA com ${ins} partidas.`)

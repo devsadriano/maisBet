@@ -42,14 +42,18 @@
         <!-- Auth Card -->
         <BaseCard class="p-8 md:p-10 shadow-2xl bg-white dark:bg-[#161616]">
           <div class="mb-8">
-            <h2 class="text-3xl font-bebas text-[var(--text-primary)] tracking-widest">{{ isLoginMode ? 'ACESSAR CONTA' : 'CRIAR ACESSO' }}</h2>
-            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 uppercase tracking-widest font-bold">Inicie sua jornada no Brasileirão</p>
+            <h2 class="text-3xl font-bebas text-[var(--text-primary)] tracking-widest">
+              {{ isLoginMode ? 'ACESSAR CONTA' : 'SOLICITAR ACESSO' }}
+            </h2>
+            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1 uppercase tracking-widest font-bold">
+              {{ isLoginMode ? 'Inicie sua jornada no Brasileirão' : 'Preencha seus dados e aguarde aprovação' }}
+            </p>
           </div>
 
-          <form @submit.prevent="handleSubmit" class="space-y-6">
-            <!-- Name Field (Register) -->
+          <form @submit.prevent="handleSubmit" class="space-y-5">
+            <!-- Name Field (Solicitar) -->
             <div v-if="!isLoginMode" class="space-y-2 group">
-              <label for="nome" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Seu Nome Completo</label>
+              <label for="nome" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Seu Nome Completo *</label>
               <input 
                 id="nome"
                 v-model="form.nome" 
@@ -63,7 +67,9 @@
 
             <!-- Email Field -->
             <div class="space-y-2 group">
-              <label for="email" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">E-mail Autorizado</label>
+              <label for="email" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">
+                {{ isLoginMode ? 'E-mail Autorizado' : 'Seu E-mail *' }}
+              </label>
               <input 
                 id="email"
                 v-model="form.email" 
@@ -77,7 +83,7 @@
 
             <!-- Password Field -->
             <div class="space-y-2 group">
-              <label for="password" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Sua Senha</label>
+              <label for="password" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Sua Senha *</label>
               <input 
                 id="password"
                 v-model="form.password" 
@@ -88,6 +94,45 @@
                 :disabled="loading"
               />
             </div>
+
+            <!-- Extra Fields (Solicitar only) -->
+            <template v-if="!isLoginMode">
+              <div class="space-y-2 group">
+                <label for="telefone" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Telefone / WhatsApp</label>
+                <input 
+                  id="telefone"
+                  v-model="form.telefone" 
+                  type="tel" 
+                  placeholder="(00) 00000-0000"
+                  class="w-full px-5 py-4 bg-gray-50 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl text-[var(--text-primary)] placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:bg-white dark:focus:bg-white/[0.07] transition-all duration-300"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div class="space-y-2 group">
+                <label for="cidade" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Cidade / Estado</label>
+                <input 
+                  id="cidade"
+                  v-model="form.cidade" 
+                  type="text" 
+                  placeholder="Ex: São Paulo - SP"
+                  class="w-full px-5 py-4 bg-gray-50 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl text-[var(--text-primary)] placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:bg-white dark:focus:bg-white/[0.07] transition-all duration-300"
+                  :disabled="loading"
+                />
+              </div>
+
+              <div class="space-y-2 group">
+                <label for="mensagem" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Mensagem (opcional)</label>
+                <textarea 
+                  id="mensagem"
+                  v-model="form.mensagem"
+                  rows="3"
+                  placeholder="Por que quer participar do bolão?"
+                  class="w-full px-5 py-4 bg-gray-50 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl text-[var(--text-primary)] placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:bg-white dark:focus:bg-white/[0.07] transition-all duration-300 resize-none"
+                  :disabled="loading"
+                ></textarea>
+              </div>
+            </template>
 
             <!-- Messages -->
             <div v-if="errorMsg" class="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-[11px] font-bold uppercase tracking-wider text-center animate-shake">
@@ -105,7 +150,7 @@
               class="w-full py-5 text-xl tracking-[0.2em]"
               :loading="loading"
             >
-              {{ isLoginMode ? 'ENTRAR AGORA' : 'FINALIZAR CADASTRO' }}
+              {{ isLoginMode ? 'ENTRAR AGORA' : 'ENVIAR SOLICITAÇÃO' }}
             </BaseButton>
           </form>
 
@@ -124,7 +169,7 @@
         <!-- Footer Info -->
         <div class="text-center px-8">
           <p class="text-[9px] text-gray-500 dark:text-gray-600 font-bold uppercase tracking-[0.4em] leading-loose">
-            Acesso restrito a usuários autorizados do sistema de bolão dinâmico PLFC. v4.0.2
+            Acesso restrito a usuários autorizados do sistema de bolão dinâmico PLFC. v4.1.0
           </p>
         </div>
       </div>
@@ -142,6 +187,7 @@ definePageMeta({
 })
 
 const { login, register } = useAuth()
+const supabase = useSupabaseClient()
 
 const isLoginMode = ref(true)
 const loading = ref(false)
@@ -151,7 +197,10 @@ const successMsg = ref('')
 const form = reactive({
   email: '',
   password: '',
-  nome: ''
+  nome: '',
+  telefone: '',
+  cidade: '',
+  mensagem: ''
 })
 
 const toggleMode = () => {
@@ -168,20 +217,44 @@ const handleSubmit = async () => {
 
   try {
     if (isLoginMode.value) {
+      // ── Login ────────────────────────────────
       await login(form.email, form.password)
+      await navigateTo('/')
+      
     } else {
+      // ── Solicitar Acesso ─────────────────────
       if (form.password.length < 6) {
         throw new Error('A senha deve ter pelo menos 6 caracteres.')
       }
-      await register(form.email, form.password, form.nome)
+
+      // Chama a Edge Function no modo 'solicitar'
+      const { data, error } = await supabase.functions.invoke('verificar-e-cadastrar', {
+        body: {
+          email: form.email,
+          password: form.password,
+          nome: form.nome,
+          telefone: form.telefone || undefined,
+          cidade: form.cidade || undefined,
+          mensagem: form.mensagem || undefined,
+          modo: 'solicitar'
+        }
+      })
+
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+
+      // Sucesso: faz login automático e redireciona para área de espera
+      await login(form.email, form.password)
+      await navigateTo('/aguardando-aprovacao')
     }
-    
-    // Sucesso no login ou registro redireciona para a home
-    await navigateTo('/')
     
   } catch (err: any) {
     if (err.message?.includes('Invalid login credentials')) {
       errorMsg.value = 'E-mail ou senha incorretos.'
+    } else if (err.message?.includes('solicitação pendente')) {
+      errorMsg.value = err.message
+    } else if (err.message?.includes('Já existe uma conta')) {
+      errorMsg.value = err.message
     } else {
       errorMsg.value = err.message || 'Ocorreu um erro. Tente novamente.'
     }

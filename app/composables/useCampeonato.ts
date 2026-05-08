@@ -46,7 +46,7 @@ export const useCampeonato = () => {
             .eq('status', 'ativo')
             .order('created_at', { ascending: false })
       } else {
-          // Jogadores só enxergam bolões onde receberam acesso explícito prévio
+          // Jogadores veem TODOS os bolões ativos, mas com metadados de acesso
           const userEmail = user.value?.email || '';
           
           if (!userEmail) {
@@ -66,21 +66,15 @@ export const useCampeonato = () => {
           
           acessosDoJogador = acessos;
           
-          if (!acessos || acessos.length === 0) {
-             query = supabase.from('campeonatos').select('*').eq('id', '00000000-0000-0000-0000-000000000000'); // Dummy query to return empty
-          } else {
-             // @ts-ignore
-             const ids = acessos.map(a => a.campeonato_id).filter((id): id is string => id !== null);
-             query = supabase
-               .from('campeonatos')
-               .select(`
-                 *,
-                 scoring_system:scoring_systems(*)
-               `)
-               .eq('status', 'ativo')
-               .in('id', ids)
-               .order('created_at', { ascending: false });
-          }
+          // 2. Busca TODOS os campeonatos ativos (não apenas os com acesso)
+          query = supabase
+            .from('campeonatos')
+            .select(`
+              *,
+              scoring_system:scoring_systems(*)
+            `)
+            .eq('status', 'ativo')
+            .order('created_at', { ascending: false });
       }
 
       const { data, error } = await query
@@ -88,12 +82,12 @@ export const useCampeonato = () => {
       if (error) throw error
 
       if (data) {
-        // Para jogadores, embutir o acesso de cada campeonato de forma síncrona
-        if (acessosDoJogador && acessosDoJogador.length > 0) {
+        // Para jogadores, embutir o acesso de cada campeonato (null se sem acesso)
+        if (!isAdmin.value) {
            campeonatos.value = data.map(camp => {
               // @ts-ignore
-              const acc = acessosDoJogador!.find(a => a.campeonato_id === camp.id);
-              return { ...camp, user_acesso: acc || null }
+              const acc = acessosDoJogador?.find(a => a.campeonato_id === camp.id) || null;
+              return { ...camp, user_acesso: acc }
            }) as any[];
         } else {
            campeonatos.value = data as any[];

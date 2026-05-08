@@ -425,27 +425,102 @@ export type Database = {
       }
       usuarios: {
         Row: {
+          cidade: string | null
           created_at: string
           email: string
           id: string
           is_admin: boolean
           nome: string
+          status: string
+          telefone: string | null
         }
         Insert: {
+          cidade?: string | null
           created_at?: string
           email: string
           id: string
           is_admin?: boolean
           nome: string
+          status?: string
+          telefone?: string | null
         }
         Update: {
+          cidade?: string | null
           created_at?: string
           email?: string
           id?: string
           is_admin?: boolean
           nome?: string
+          status?: string
+          telefone?: string | null
         }
         Relationships: []
+      }
+      solicitacoes: {
+        Row: {
+          admin_id: string | null
+          campeonato_id: string | null
+          cidade: string | null
+          created_at: string
+          email: string
+          id: string
+          mensagem: string | null
+          motivo_rejeicao: string | null
+          nome: string | null
+          resolved_at: string | null
+          status: string
+          telefone: string | null
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          campeonato_id?: string | null
+          cidade?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          mensagem?: string | null
+          motivo_rejeicao?: string | null
+          nome?: string | null
+          resolved_at?: string | null
+          status?: string
+          telefone?: string | null
+          tipo?: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          campeonato_id?: string | null
+          cidade?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          mensagem?: string | null
+          motivo_rejeicao?: string | null
+          nome?: string | null
+          resolved_at?: string | null
+          status?: string
+          telefone?: string | null
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_campeonato_id_fkey"
+            columns: ["campeonato_id"]
+            isOneToOne: false
+            referencedRelation: "campeonatos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

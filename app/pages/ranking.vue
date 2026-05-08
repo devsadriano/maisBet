@@ -55,6 +55,11 @@
             :current-user-id="user?.id || ''" 
           />
 
+          <RankingShameZone 
+            v-if="ranking.length >= 3" 
+            :entries="ranking" 
+          />
+
           <div v-else class="py-20 text-center">
             <div class="text-6xl grayscale opacity-20 mb-6 font-bebas">🏆</div>
             <h2 class="text-3xl font-bebas tracking-wider text-gray-400 uppercase">O Campeonato ainda não começou</h2>
@@ -72,7 +77,7 @@
           :round-status="roundStatus"
         />
 
-        <div class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 items-start">
           <div class="min-w-0">
             <RankingMatchesPanel 
               :matches="matches" 
@@ -80,7 +85,7 @@
             />
           </div>
 
-          <div class="min-w-0">
+          <div class="min-w-0 overflow-x-auto">
             <RankingMatrixTable 
               :active-users="activeUsers"
               :matches="matches"
@@ -109,6 +114,7 @@ import RankingGeneralTable from '~/components/ranking/RankingGeneralTable.vue'
 import RankingRoundControls from '~/components/ranking/RankingRoundControls.vue'
 import RankingMatchesPanel from '~/components/ranking/RankingMatchesPanel.vue'
 import RankingMatrixTable from '~/components/ranking/RankingMatrixTable.vue'
+import RankingShameZone from '~/components/ranking/RankingShameZone.vue'
 
 // Composables
 const { user } = useAuth()

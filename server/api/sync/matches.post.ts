@@ -7,10 +7,14 @@ export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseServiceRole<any>(event)
   const body = await readBody(event)
   const matchday = parseInt(body.matchday)
-  const api_competition_code = body.api_competition_code || 'BSA'
+  const campeonato_id = body.campeonato_id
 
   if (!matchday || isNaN(matchday)) {
     throw createError({ statusCode: 400, message: 'O número da rodada (matchday) é obrigatório e deve ser numérico.' })
+  }
+
+  if (!campeonato_id) {
+    throw createError({ statusCode: 400, message: 'O campeonato_id é obrigatório.' })
   }
 
   const FOOTBALL_DATA_KEY = process.env.FOOTBALL_DATA_KEY
@@ -19,18 +23,23 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // Buscar campeonato pelo ID (não mais por código, para suportar duplicatas)
     const { data: campeonatoData } = await supabase
       .from('campeonatos')
-      .select('id, max_rodadas, formato')
-      .eq('api_competition_code', api_competition_code)
-      .limit(1)
+      .select('id, api_competition_code, season, max_rodadas, formato')
+      .eq('id', campeonato_id)
       .single()
 
-    const campeonato_id = campeonatoData?.id
-    const max_rodadas = campeonatoData?.max_rodadas || 38
+    if (!campeonatoData) {
+      throw createError({ statusCode: 404, message: 'Campeonato não encontrado.' })
+    }
+
+    const api_competition_code = campeonatoData.api_competition_code
+    const max_rodadas = campeonatoData.max_rodadas || 38
 
     // 1. Buscar partidas na API
-    const res = await fetch(`https://api.football-data.org/v4/competitions/${api_competition_code}/matches?matchday=${matchday}`, {
+    const seasonParam = campeonatoData.season ? `&season=${campeonatoData.season}` : ''
+    const res = await fetch(`https://api.football-data.org/v4/competitions/${api_competition_code}/matches?matchday=${matchday}${seasonParam}`, {
       headers: { 'X-Auth-Token': FOOTBALL_DATA_KEY }
     })
 
@@ -86,21 +95,19 @@ export default defineEventHandler(async (event) => {
     const sortedMatches = [...matchesProcessed].sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
     const firstMatchDate = new Date(sortedMatches[0].utcDate)
 
-    // Regra Copa: 2h para mata-mata (se rodada > 3 ou formato copa + fase != grupos)
-    // Para simplificar, assumimos que no Brasileirão (BSA) é sempre 1h. 
-    // Na Copa, se a rodada não for a de grupos (1, 2, 3), é mata-mata.
     const isMataMata = campeonatoData?.formato === 'copa' && matchday > 3
     const deadlineHours = isMataMata ? 2 : 1
 
     const bettingDeadline = new Date(firstMatchDate.getTime() - deadlineHours * 60 * 60 * 1000).toISOString()
     const organizerDeadline = new Date(firstMatchDate.getTime() - 12 * 60 * 60 * 1000).toISOString() // 12h antes
 
-    // 4. Buscar ou criar a Rodada
+    // 4. Buscar ou criar a Rodada — FILTRAR POR CAMPEONATO
     let rodadaId = null
     const { data: existingRodada } = await supabase
       .from('rodadas')
       .select('id')
       .eq('numero_rodada', matchday)
+      .eq('campeonato_id', campeonato_id)
       .single()
 
     if (existingRodada) {
@@ -112,9 +119,10 @@ export default defineEventHandler(async (event) => {
         required_extra_games: requiredExtras
       }).eq('id', rodadaId)
     } else {
-      // Cria a nova rodada escolhendo o organizador (ignora admins)
+      // Cria a nova rodada escolhendo o organizador entre participantes do campeonato
       const { data: organizerId, error: rpcError } = await supabase.rpc('get_organizer_for_round', {
-        p_numero_rodada: matchday
+        p_numero_rodada: matchday,
+        p_campeonato_id: campeonato_id
       })
 
       if (rpcError || !organizerId) {
@@ -125,7 +133,8 @@ export default defineEventHandler(async (event) => {
         .from('rodadas')
         .insert({
           numero_rodada: matchday,
-          status: matchday === max_rodadas ? 'aberta' : 'aguardando_escolha', // Se for a última já abre direto!
+          campeonato_id: campeonato_id,
+          status: matchday === max_rodadas ? 'aberta' : 'aguardando_escolha',
           organizer_id: organizerId,
           organizer_deadline: organizerDeadline,
           betting_deadline: bettingDeadline,
@@ -138,10 +147,10 @@ export default defineEventHandler(async (event) => {
       rodadaId = newRodada.id
     }
 
-    // 5. Inserir (Upsert) todas as partidas
+    // 5. Inserir partidas — insert direto (não mais upsert por api_match_id global)
+    // Primeiro verificar se já existem partidas nesta rodada para este match
     let updatedCount = 0
     for (const m of matchesProcessed) {
-      // Mapeia o status da Football-Data para o BOLÃO
       let localStatus = 'agendado'
       if (m.status === 'FINISHED' || m.status === 'AWARDED') localStatus = 'finalizado'
       if (m.status === 'POSTPONED' || m.status === 'CANCELLED') localStatus = 'adiado'
@@ -159,12 +168,13 @@ export default defineEventHandler(async (event) => {
         status: localStatus,
         data_partida: m.utcDate,
         grupo: m.group || null,
-        is_mandatory: m.is_mandatory // Salva a marcação automática
+        is_mandatory: m.is_mandatory
       }
 
+      // Upsert com constraint composta (api_match_id + rodada_id)
       const { error: matchError } = await supabase
         .from('partidas')
-        .upsert(matchData, { onConflict: 'api_match_id' })
+        .upsert(matchData, { onConflict: 'api_match_id,rodada_id' })
 
       if (!matchError) {
         updatedCount++

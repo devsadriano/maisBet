@@ -140,7 +140,8 @@ export default defineEventHandler(async (event) => {
 
       // Calcular organizador
       const { data: organizerId } = await supabase.rpc('get_organizer_for_round', {
-        p_numero_rodada: matchday
+        p_numero_rodada: matchday,
+        p_campeonato_id: campeonato_id
       })
 
       if (!organizerId) {
@@ -208,7 +209,7 @@ export default defineEventHandler(async (event) => {
 
         const { error } = await supabase
           .from('partidas')
-          .upsert(matchData, { onConflict: 'api_match_id' })
+          .upsert(matchData, { onConflict: 'api_match_id,rodada_id' })
 
         if (!error) insertedCount++
       }

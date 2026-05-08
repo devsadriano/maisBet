@@ -6,6 +6,9 @@ export interface Usuario {
   nome: string
   email: string
   is_admin: boolean
+  status: string
+  telefone: string | null
+  cidade: string | null
   time_id: string | null
   created_at: string
   // Relação opcional (join)

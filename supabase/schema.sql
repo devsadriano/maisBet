@@ -57,7 +57,7 @@ COMMENT ON TABLE public.rodadas IS 'Rodada do Brasileirão. Cada rodada tem um o
 -- 2.4 Partidas
 CREATE TABLE public.partidas (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  api_match_id     INT  NOT NULL UNIQUE,   -- ID da API-Sports (inteiro)
+  api_match_id     INT  NOT NULL,              -- ID da API-Sports (inteiro)
   rodada_id        UUID NOT NULL REFERENCES public.rodadas(id) ON DELETE CASCADE,
   time_casa        TEXT NOT NULL,
   time_fora        TEXT NOT NULL,
@@ -108,6 +108,8 @@ COMMENT ON TABLE public.palpites_especiais IS 'Palpites bônus (Copa do Mundo).'
 -- ============================================================
 CREATE INDEX idx_partidas_rodada_id    ON public.partidas (rodada_id);
 CREATE INDEX idx_partidas_api_match_id ON public.partidas (api_match_id);
+-- Constraint composta: mesma partida pode existir em rodadas de campeonatos diferentes
+ALTER TABLE public.partidas ADD CONSTRAINT partidas_api_match_rodada_unique UNIQUE (api_match_id, rodada_id);
 CREATE INDEX idx_palpites_usuario_id   ON public.palpites (usuario_id);
 CREATE INDEX idx_palpites_partida_id   ON public.palpites (partida_id);
 CREATE INDEX idx_rodadas_status        ON public.rodadas  (status);
@@ -136,6 +138,11 @@ CREATE POLICY "usuarios_insert_proprio" ON public.usuarios
 
 CREATE POLICY "usuarios_update_proprio" ON public.usuarios
   FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "usuarios_admin_update" ON public.usuarios
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND is_admin = true)
+  );
 
 -- ---- rodadas ----
 CREATE POLICY "rodadas_leitura_publica" ON public.rodadas
@@ -245,7 +252,9 @@ CREATE TRIGGER trg_calcular_pontos
 
 
 -- 5.2 Function: Retornar o organizador da rodada (rodízio por nome)
-CREATE OR REPLACE FUNCTION public.get_organizer_for_round(p_numero_rodada INT)
+--     Se p_campeonato_id for informado, sorteia entre os participantes daquele campeonato.
+--     Senão, sorteia entre todos os não-admin (legado).
+CREATE OR REPLACE FUNCTION public.get_organizer_for_round(p_numero_rodada INT, p_campeonato_id UUID DEFAULT NULL)
 RETURNS UUID
 LANGUAGE plpgsql
 AS $$
@@ -254,29 +263,52 @@ DECLARE
   v_idx   INT;
   v_id    UUID;
 BEGIN
-  -- Conta total de usuários ativos (jogadores, ignorando admins)
-  SELECT COUNT(*) INTO v_total FROM public.usuarios WHERE is_admin = false;
+  IF p_campeonato_id IS NOT NULL THEN
+    SELECT COUNT(*) INTO v_total
+    FROM public.campeonato_acessos ca
+    JOIN public.usuarios u ON u.email = ca.email
+    WHERE ca.campeonato_id = p_campeonato_id
+      AND u.is_admin = false;
 
-  IF v_total = 0 THEN
-    RAISE EXCEPTION 'Nenhum usuário cadastrado.';
+    IF v_total = 0 THEN
+      SELECT COUNT(*) INTO v_total FROM public.usuarios WHERE is_admin = false;
+      IF v_total = 0 THEN
+        RAISE EXCEPTION 'Nenhum usuário cadastrado.';
+      END IF;
+      v_idx := (p_numero_rodada - 1) % v_total;
+      SELECT id INTO v_id
+      FROM public.usuarios
+      WHERE is_admin = false
+      ORDER BY nome ASC
+      LIMIT 1 OFFSET v_idx;
+    ELSE
+      v_idx := (p_numero_rodada - 1) % v_total;
+      SELECT u.id INTO v_id
+      FROM public.campeonato_acessos ca
+      JOIN public.usuarios u ON u.email = ca.email
+      WHERE ca.campeonato_id = p_campeonato_id
+        AND u.is_admin = false
+      ORDER BY u.nome ASC
+      LIMIT 1 OFFSET v_idx;
+    END IF;
+  ELSE
+    SELECT COUNT(*) INTO v_total FROM public.usuarios WHERE is_admin = false;
+    IF v_total = 0 THEN
+      RAISE EXCEPTION 'Nenhum usuário cadastrado.';
+    END IF;
+    v_idx := (p_numero_rodada - 1) % v_total;
+    SELECT id INTO v_id
+    FROM public.usuarios
+    WHERE is_admin = false
+    ORDER BY nome ASC
+    LIMIT 1 OFFSET v_idx;
   END IF;
-
-  -- Índice 0-based usando módulo sobre o número da rodada
-  -- Ex: rodada 1 → idx 0 (1º na ordem alfabética)
-  --     rodada 8 → idx 7 % total (loop contínuo)
-  v_idx := (p_numero_rodada - 1) % v_total;
-
-  SELECT id INTO v_id
-  FROM public.usuarios
-  WHERE is_admin = false
-  ORDER BY nome ASC
-  LIMIT 1 OFFSET v_idx;
 
   RETURN v_id;
 END;
 $$;
 COMMENT ON FUNCTION public.get_organizer_for_round IS
-  'Retorna o UUID do organizador para uma dada rodada. Rodízio por nome em ordem alfabética com loop contínuo.';
+  'Retorna o UUID do organizador para uma dada rodada. Se p_campeonato_id for informado, sorteia entre os participantes. Senão, todos os não-admin.';
 
 
 -- 5.3 Function: Criar perfil de usuário automaticamente após signup
