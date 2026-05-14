@@ -11,7 +11,17 @@
           Voltar ao Painel Admin
         </NuxtLink>
         <h1 class="text-4xl font-bebas tracking-wider text-white mt-1">Gestão de Rodadas</h1>
-        <p class="text-sm text-gray-400 mt-1">Acompanhe e controle o status e prazos das rodadas importadas.</p>
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mt-1">
+          <p class="text-sm text-gray-400">Acompanhe e controle o status e prazos das rodadas importadas.</p>
+          <div class="h-4 w-px bg-white/20 hidden md:block"></div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 w-fit" title="Auto-Cycle Cron Status">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest whitespace-nowrap">Auto-Cycle: {{ lastCronRun || 'Buscando...' }}</span>
+          </div>
+        </div>
       </div>
 
       <div class="flex flex-col gap-2 items-start md:items-end w-full md:w-auto relative z-50">
@@ -342,6 +352,12 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useToast } from '~/composables/useToast'
 import BrasileiraoStandings from '~/components/BrasileiraoStandings.vue'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/pt-br'
+
+dayjs.extend(relativeTime)
+dayjs.locale('pt-br')
 
 definePageMeta({ middleware: 'is-admin' })
 
@@ -363,6 +379,23 @@ const usuarios = ref<any[]>([])
 const counts = ref<Record<string, number>>({})
 const loading = ref(true)
 const showStandings = ref(false)
+
+const lastCronRun = ref<string>('')
+
+async function fetchCronStatus() {
+  const { data } = await supabase
+    .from('cron_logs')
+    .select('created_at')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+    
+  if (data) {
+    lastCronRun.value = dayjs(data.created_at).fromNow()
+  } else {
+    lastCronRun.value = 'Nunca'
+  }
+}
 
 // Watch championship selection
 watch(selectedChampionshipId, () => {
@@ -525,6 +558,7 @@ async function fetchUsuarios() {
 onMounted(async () => {
   await fetchCampeonatos()
   await fetchUsuarios()
+  fetchCronStatus()
 })
 
 

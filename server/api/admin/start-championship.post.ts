@@ -63,6 +63,40 @@ export default defineEventHandler(async (event) => {
     const competitionData = await competitionRes.json()
     const currentMatchday: number = competitionData.currentSeason?.currentMatchday || 1
 
+    // 1.5 Auto-sync escudos dos times deste campeonato
+    try {
+      const teamsRes = await fetch(
+        `https://api.football-data.org/v4/competitions/${api_competition_code}/teams`,
+        { headers: { 'X-Auth-Token': FOOTBALL_DATA_KEY } }
+      )
+      if (teamsRes.ok) {
+        const teamsData = await teamsRes.json()
+        const teams = teamsData.teams || []
+        for (const team of teams) {
+          const teamName = team.shortName || team.name || 'Desconhecido'
+          const { data: existing } = await supabase
+            .from('times')
+            .select('id')
+            .eq('api_team_id', team.id)
+            .maybeSingle()
+
+          if (existing) {
+            await supabase.from('times')
+              .update({ escudo_url: team.crest, nome: teamName })
+              .eq('id', existing.id)
+          } else {
+            await supabase.from('times')
+              .insert({ api_team_id: team.id, escudo_url: team.crest || null, nome: teamName })
+          }
+        }
+        console.log(`[start-championship] Synced ${teams.length} team crests for ${api_competition_code}`)
+      }
+      // Rate limit buffer after teams fetch
+      await new Promise(resolve => setTimeout(resolve, 6500))
+    } catch (e) {
+      console.warn('[start-championship] Warn: falha ao sincronizar escudos (não-bloqueante):', e)
+    }
+
     // Buscar participantes DESTE campeonato específico via campeonato_acessos
     const { data: acessosData, count: totalParticipants } = await supabase
       .from('campeonato_acessos')

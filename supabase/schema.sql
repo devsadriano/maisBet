@@ -388,6 +388,64 @@ CREATE POLICY "email_autorizados_admin_all" ON public.email_autorizados
   );
 
 -- ============================================================
+-- SEÇÃO 7.1: LOGS DO SISTEMA (cron_logs)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.cron_logs (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  content    TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.cron_logs IS 'Logs das execuções do edge function (auto-cycle).';
+
+ALTER TABLE public.cron_logs ENABLE ROW LEVEL SECURITY;
+
+-- Política de leitura apenas para Administradores
+CREATE POLICY "cron_logs_admin_leitura" ON public.cron_logs
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND is_admin = true)
+  );
+
+-- ============================================================
+-- SEÇÃO 8: PERMISSÕES (GRANTS) PARA API DE DADOS (SUPABASE)
+-- ============================================================
+
+-- Permissões para a Role 'anon' (Leitura pública onde RLS permitir)
+GRANT SELECT ON public.times TO anon;
+GRANT SELECT ON public.usuarios TO anon;
+GRANT SELECT ON public.rodadas TO anon;
+GRANT SELECT ON public.partidas TO anon;
+GRANT SELECT ON public.palpites TO anon;
+GRANT SELECT ON public.vw_ranking TO anon;
+
+-- Permissões para a Role 'authenticated' (CRUD sob regras do RLS)
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.times TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.usuarios TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.rodadas TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.partidas TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.palpites TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.palpites_especiais TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.email_autorizados TO authenticated;
+GRANT SELECT ON public.vw_ranking TO authenticated;
+GRANT SELECT ON public.cron_logs TO authenticated;
+
+-- Caso as tabelas de campeonato existam no banco, as permissões são aplicadas:
+DO $$ 
+BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'campeonatos') THEN
+    EXECUTE 'GRANT SELECT ON public.campeonatos TO anon;';
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON public.campeonatos TO authenticated;';
+  END IF;
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'campeonato_acessos') THEN
+    EXECUTE 'GRANT SELECT, INSERT, UPDATE, DELETE ON public.campeonato_acessos TO authenticated;';
+  END IF;
+END $$;
+
+-- Permissões para a Role 'service_role' (Acesso total para backend)
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT ALL PRIVILEGES ON ALL ROUTINES IN SCHEMA public TO service_role;
+
+-- ============================================================
 -- FIM DO SCHEMA
 -- ============================================================
 -- Próximos passos:
