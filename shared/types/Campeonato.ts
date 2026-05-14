@@ -13,6 +13,7 @@ export interface ScoringSystem {
 export interface Campeonato {
   id: string
   nome: string
+  apelido_grupo?: string | null
   api_competition_id?: number
   api_competition_code?: string
   status: 'rascunho' | 'ativo' | 'inativo' | 'finalizado'

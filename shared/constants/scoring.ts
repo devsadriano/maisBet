@@ -26,8 +26,8 @@ export const MAX_MATCHES_PER_ROUND = 7
 /** Número de jogos extras que o organizador escolhe por rodada */
 export const EXTRA_MATCHES_COUNT = 2
 
-/** Horas antes do 1º jogo para bloquear escolha do organizador */
-export const ORGANIZER_DEADLINE_HOURS = 12
+/** Horas antes do 1º jogo para auto-selecionar extras (se organizador não escolheu) */
+export const ORGANIZER_DEADLINE_HOURS = 1
 
 /** Horas antes do 1º jogo para bloquear palpites dos jogadores */
 export const BETTING_DEADLINE_HOURS = 1

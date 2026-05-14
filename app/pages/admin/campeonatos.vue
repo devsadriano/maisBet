@@ -27,7 +27,11 @@
             <span class="text-xs text-gray-500 font-mono">{{ camp.api_competition_code }}</span>
           </div>
           <h2 class="text-2xl font-bebas tracking-wide text-white mb-1">{{ camp.nome }}</h2>
-          <p class="text-sm text-gray-400">Temporada: {{ camp.season }} &bull; Max Rodadas: {{ camp.max_rodadas }}</p>
+          <p v-if="camp.apelido_grupo" class="text-xs text-amber-400 font-bold mb-1">📎 {{ camp.apelido_grupo }}</p>
+          <p class="text-sm text-gray-400 mb-1">Temporada: {{ camp.season }} &bull; Max Rodadas: {{ camp.max_rodadas }}</p>
+          <p class="text-xs text-gray-500">
+            Criado em: {{ new Date(camp.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+          </p>
           <div class="mt-4 p-3 bg-black/20 rounded-lg text-xs text-gray-300">
             Regras de Box: <span class="font-bold text-[var(--brand)]">{{ camp.scoring_systems?.nome || 'Padrão' }}</span>
           </div>

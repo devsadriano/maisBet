@@ -56,6 +56,7 @@ export type Database = {
       campeonatos: {
         Row: {
           api_competition_code: string
+          apelido_grupo: string | null
           area_flag: string | null
           area_name: string | null
           created_at: string | null
@@ -75,6 +76,7 @@ export type Database = {
         }
         Insert: {
           api_competition_code: string
+          apelido_grupo?: string | null
           area_flag?: string | null
           area_name?: string | null
           created_at?: string | null
@@ -94,6 +96,7 @@ export type Database = {
         }
         Update: {
           api_competition_code?: string
+          apelido_grupo?: string | null
           area_flag?: string | null
           area_name?: string | null
           created_at?: string | null

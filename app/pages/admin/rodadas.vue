@@ -196,7 +196,7 @@
                   </svg>
                 </div>
                 <div>
-                  <div class="text-[9px] uppercase font-black tracking-widest mb-0.5" :class="isAtrasado(r) ? 'text-red-400' : 'text-gray-500'">Organizador</div>
+                  <div class="text-[9px] uppercase font-black tracking-widest mb-0.5" :class="isAtrasado(r) ? 'text-red-400' : 'text-gray-500'">Prazo Organizador</div>
                   <div class="text-xs font-mono" :class="isAtrasado(r) ? 'text-red-300' : 'text-gray-300'">{{ formatDateTime(r.organizer_deadline) }}</div>
                 </div>
               </div>

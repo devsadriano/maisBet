@@ -74,7 +74,11 @@
                     </li>
                     <li class="flex gap-3">
                       <span class="text-brand-500 font-bold">»</span>
-                      <span><strong>Jogos Extras:</strong> Jogos de complemento (clássicos geralmente) que o Organizador da Rodada (sorteado) escolhe para aumentar os pontos.</span>
+                      <span><strong>Jogos Extras:</strong> A cada rodada, um participante (<strong>Organizador</strong>) é sorteado para escolher os jogos extras. Se o organizador <strong>não escolher até 1 hora antes do primeiro jogo</strong>, o sistema seleciona automaticamente de forma aleatória.</span>
+                    </li>
+                    <li class="flex gap-3">
+                      <span class="text-brand-500 font-bold">»</span>
+                      <span><strong>Confronto Direto:</strong> Se a rodada tiver um confronto direto entre os times de dois participantes, o número de jogos obrigatórios diminui. Nesses casos, o organizador (ou o sistema, como fallback) adicionará jogos extras para compensar.</span>
                     </li>
                     <li class="flex gap-3">
                       <span class="text-brand-500 font-bold">»</span>
@@ -129,7 +133,9 @@
               <template v-else>
                 <h2 class="text-2xl font-bebas text-white tracking-widest uppercase">O "Dito Cujo" da Rodada</h2>
                 <p class="text-sm text-gray-400 leading-relaxed max-w-2xl">
-                   Em campeonatos de liga, a cada nova rodada um participante assume o papel de Organizador, ficando responsável por montar a cartela com os jogos extras que complementam a rodada e afetam a todos. O rodízio é automático em ordem definida pelo robô. Tudo é transparente e auditável pelo app.
+                   Em campeonatos de liga, a cada nova rodada um participante assume o papel de <strong class="text-brand-400">Organizador</strong>, ficando responsável por montar a cartela com os jogos extras que complementam a rodada.
+                   O rodízio é automático em ordem definida pelo sistema. <strong class="text-orange-400">Se o organizador não escolher até 1 hora antes do primeiro jogo, o sistema seleciona automaticamente os extras de forma aleatória.</strong>
+                   Tudo é transparente e auditável pelo app.
                 </p>
               </template>
            </div>

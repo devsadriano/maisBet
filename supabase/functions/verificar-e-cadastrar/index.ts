@@ -88,11 +88,14 @@ serve(async (req) => {
         return json({ error: 'Você já possui uma solicitação pendente. Aguarde a análise do administrador.' }, 409)
       }
 
-      // 2. Verifica se já existe um user com esse email no Auth
-      const { data: existingUsers } = await supabase.auth.admin.listUsers()
-      const alreadyExists = existingUsers?.users?.find(u => u.email === email)
+      // 2. Verifica se já existe um user com esse email na tabela usuarios
+      const { data: existingUser } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle()
 
-      if (alreadyExists) {
+      if (existingUser) {
         return json({ error: 'Já existe uma conta com este e-mail. Tente fazer login.' }, 409)
       }
 

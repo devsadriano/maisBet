@@ -129,18 +129,25 @@
 
                 <!-- Info -->
                 <div>
-                   <div class="flex items-center gap-2 mb-2">
+                   <div class="flex items-center gap-2 mb-2 flex-wrap">
                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-brand-500/10 text-brand-600 dark:text-brand-400">Ativo</span>
                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest shadow-sm">{{ camp.season || new Date().getFullYear() }}</span>
+                       
                        <!-- Lock badge for no-access -->
                        <span v-if="!isAdmin && !hasAccess(camp)" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-500 border border-amber-500/20">
                          🔒 Sem acesso
+                       </span>
+                       
+                       <!-- Creation Date Badge -->
+                       <span v-if="camp.created_at" class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-gray-500/10 text-gray-400 border border-gray-500/20 ml-auto" :title="`Criado em: ${new Date(camp.created_at).toLocaleString('pt-BR')}`">
+                         🕒 {{ new Date(camp.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) }}
                        </span>
                    </div>
                    <h3 class="text-2xl font-bebas tracking-widest transition-colors"
                        :class="hasAccess(camp) ? 'text-gray-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400' : 'text-gray-900 dark:text-white'">
                      {{ camp.nome }}
                    </h3>
+                   <p v-if="camp.apelido_grupo" class="text-xs text-amber-400 font-bold mt-0.5">📎 {{ camp.apelido_grupo }}</p>
                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 uppercase font-bold tracking-wider text-[10px]">{{ camp.max_rodadas }} Rodadas Oficiais</p>
                 </div>
              </div>

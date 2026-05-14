@@ -18,7 +18,7 @@ export interface Solicitacao {
   created_at: string
   resolved_at: string | null
   // joined
-  campeonato?: { id: string; nome: string; logo_url: string | null } | null
+  campeonato?: { id: string; nome: string; logo_url: string | null; apelido_grupo?: string | null } | null
 }
 
 export const useSolicitacoes = () => {

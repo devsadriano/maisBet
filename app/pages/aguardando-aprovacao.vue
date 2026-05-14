@@ -106,6 +106,7 @@
                 <span v-else class="text-2xl">⚽</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm text-white font-medium truncate">{{ camp.nome }}</p>
+                  <p v-if="camp.apelido_grupo" class="text-[10px] text-amber-400 font-bold truncate">📎 {{ camp.apelido_grupo }}</p>
                   <p class="text-[10px] text-gray-500 uppercase tracking-wider">{{ camp.season || new Date().getFullYear() }} · {{ camp.max_rodadas }} rodadas</p>
                 </div>
                 <span class="text-[8px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20 whitespace-nowrap">
@@ -227,7 +228,7 @@ const fetchCampeonatos = async () => {
   loadingCamps.value = true
   const { data } = await supabase
     .from('campeonatos')
-    .select('id, nome, logo_url, season, max_rodadas, api_competition_code')
+    .select('id, nome, logo_url, season, max_rodadas, api_competition_code, apelido_grupo')
     .eq('status', 'ativo')
     .order('created_at', { ascending: false })
   campeonatos.value = data || []

@@ -1,6 +1,24 @@
 <template>
   <div class="min-h-screen bg-[var(--bg-base)] flex flex-col md:flex-row relative overflow-hidden transition-colors duration-300">
     
+    <!-- Global Loading Overlay -->
+    <div v-if="loading" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in transition-all">
+      <div class="bg-gray-900 border border-white/10 p-10 rounded-[2rem] shadow-[0_0_50px_rgba(16,185,129,0.2)] flex flex-col items-center gap-6 transform scale-100">
+        <div class="relative w-16 h-16">
+          <div class="absolute inset-0 border-4 border-brand-500/20 rounded-full"></div>
+          <div class="absolute inset-0 border-4 border-brand-500 rounded-full border-t-transparent animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center text-brand-400 text-xl font-black">+</div>
+        </div>
+        <div class="text-center">
+          <span class="block text-brand-400 font-bebas tracking-[0.2em] text-2xl">
+            {{ isLoginMode ? 'AUTENTICANDO' : 'PROCESSANDO SOLICITAÇÃO' }}
+          </span>
+          <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2 block">
+            Aguarde um momento...
+          </span>
+        </div>
+      </div>
+    </div>
     <!-- Left Side: Branding / Visual (Visible only on desktop md+) -->
     <div class="hidden md:flex flex-col items-center justify-center w-1/2 p-12 relative overflow-hidden bg-brand-500">
       <!-- Decor -->
@@ -178,7 +196,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import BaseCard from '@/components/ui/BaseCard.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 
@@ -201,6 +219,20 @@ const form = reactive({
   telefone: '',
   cidade: '',
   mensagem: ''
+})
+
+watch(() => form.telefone, (newVal) => {
+  if (!newVal) return
+  let v = newVal.replace(/\D/g, '').substring(0, 11)
+  if (v.length > 2) {
+    v = `(${v.substring(0, 2)}) ${v.substring(2)}`
+  }
+  if (v.length > 10) {
+    v = `${v.substring(0, 10)}-${v.substring(10)}`
+  }
+  if (form.telefone !== v) {
+    form.telefone = v
+  }
 })
 
 const toggleMode = () => {

@@ -62,7 +62,7 @@
           </div>
           <h2 class="text-xl font-sans font-semibold tracking-tight text-white mb-2">Status da Automação</h2>
           <p class="text-sm font-sans text-gray-300 leading-relaxed mb-4">
-            O ciclo de automação (Auto-Cycle) gerencia placares, rodadas e jogos extras automaticamente. O cron roda a cada hora.
+            O ciclo de automação (Auto-Cycle) gerencia placares, rodadas e auto-seleciona jogos extras (caso o organizador não escolha a tempo). O cron roda a cada hora.
           </p>
           <div class="mb-4">
             <div class="p-4 bg-black/20 rounded-xl border border-white/5">

@@ -10,15 +10,41 @@ export const useAuth = () => {
   
   // Perfil público do usuário vindo da tabela public.usuarios
   const profile = useState<Usuario | null>('user-profile', () => null)
+
+  // Flag que indica se o perfil já foi carregado do banco
+  // CRITICAL: Sem isso, o middleware assume 'ativo' antes do perfil carregar
+  const profileLoaded = useState<boolean>('user-profile-loaded', () => false)
   
   const isAdmin = computed(() => profile.value?.is_admin === true)
-  const userStatus = computed(() => profile.value?.status ?? 'ativo')
+
+  // SECURITY FIX: fallback é null (desconhecido) em vez de 'ativo'
+  // O middleware deve tratar null como "ainda carregando" e bloquear acesso
+  const userStatus = computed(() => {
+    if (!user.value) return null
+    if (!profileLoaded.value) return null  // perfil ainda não carregou
+    return profile.value?.status ?? 'pendente' // se não tem perfil, assume pendente (seguro)
+  })
+
+  // Retorna uma promise que resolve quando o perfil terminar de carregar.
+  // O middleware usa isso para ESPERAR o perfil antes de decidir redirecionar.
+  const waitForProfile = (): Promise<void> => {
+    if (profileLoaded.value) return Promise.resolve()
+    return new Promise((resolve) => {
+      const stop = watch(profileLoaded, (loaded) => {
+        if (loaded) {
+          stop()
+          resolve()
+        }
+      })
+    })
+  }
 
   // Busca o perfil público sempre que o UUID do Auth mudar
   watch(user, async (newUser) => {
     // useSupabaseUser() retorna JwtPayload — o UUID está em 'sub', não 'id'
     const uid = newUser?.sub
     if (newUser && uid) {
+      profileLoaded.value = false
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
@@ -48,8 +74,10 @@ export const useAuth = () => {
       } else if (data) {
         profile.value = data as unknown as Usuario
       }
+      profileLoaded.value = true
     } else {
       profile.value = null
+      profileLoaded.value = false
     }
   }, { immediate: true })
 
@@ -86,6 +114,7 @@ export const useAuth = () => {
       // ignora erro do servidor — o importante é limpar o lado do cliente
     }
     profile.value = null
+    profileLoaded.value = false
     useState('lista-campeonatos').value = []
     useState('campeonato-ativo').value = null
     useState('campeonato-acesso-atual').value = null
@@ -98,6 +127,8 @@ export const useAuth = () => {
   return {
     user,
     profile,
+    profileLoaded,
+    waitForProfile,
     isAdmin,
     userStatus,
     login,

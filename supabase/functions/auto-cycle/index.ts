@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -104,6 +105,7 @@ Deno.serve(async (req: Request) => {
         }
 
         // == ETAPA 3: Transicoes de status ==
+        // Regra: se o organizador não escolheu os extras até o deadline, o sistema auto-seleciona
         log(`[${c.api_competition_code}] ETAPA 3: Transicoes...`)
         const now = new Date().toISOString()
         const { data: trRds } = await sb.from('rodadas')
@@ -117,8 +119,9 @@ Deno.serve(async (req: Request) => {
               await sb.from('rodadas').update({ status: 'fechada' }).eq('id', r.id)
               log(`[${c.api_competition_code}] Palpites encerrados rd ${r.numero_rodada}.`)
             }
+            // Fallback: organizador não escolheu a tempo → sistema auto-seleciona extras
             if (c.formato !== 'copa' && r.status === 'aguardando_escolha' && now >= r.organizer_deadline) {
-              log(`[${c.api_competition_code}] Deadline expirou rd ${r.numero_rodada}. Auto-extras...`)
+              log(`[${c.api_competition_code}] ⚡ Organizador não escolheu rd ${r.numero_rodada}. Auto-seleção (fallback)...`)
               const { data: ce } = await sb.from('partidas').select('id').eq('rodada_id', r.id).eq('is_extra', true)
               const falta = Math.max(0, r.required_extra_games - (ce?.length || 0))
               if (falta > 0) {
@@ -127,10 +130,13 @@ Deno.serve(async (req: Request) => {
                 if (av && av.length > 0) {
                   const sel = av.sort(() => 0.5 - Math.random()).slice(0, falta)
                   for (const x of sel) await sb.from('partidas').update({ is_extra: true }).eq('id', x.id)
+                  log(`[${c.api_competition_code}] ${sel.length} jogos extras selecionados aleatoriamente.`)
                 }
+              } else {
+                log(`[${c.api_competition_code}] Extras já escolhidos (${ce?.length || 0}/${r.required_extra_games}).`)
               }
               await sb.from('rodadas').update({ status: 'aberta' }).eq('id', r.id)
-              log(`[${c.api_competition_code}] Rd ${r.numero_rodada} ABERTA.`)
+              log(`[${c.api_competition_code}] Rd ${r.numero_rodada} ABERTA (fallback auto-seleção).`)
             }
           }
         }
@@ -170,7 +176,8 @@ Deno.serve(async (req: Request) => {
                 const isCopaMataMata = c.formato === 'copa' && next > 3
                 const deadlineHours = isCopaMataMata ? 2 : 1
                 const bd = new Date(fmd.getTime() - deadlineHours * 3600000).toISOString()
-                const od = new Date(fmd.getTime() - 43200000).toISOString()
+                // Prazo organizador: 1h antes do 1º jogo (se não escolher, sistema auto-seleciona)
+                const od = new Date(fmd.getTime() - deadlineHours * 3600000).toISOString()
                 
                 const { data: oid } = await sb.rpc('get_organizer_for_round', { p_numero_rodada: next, p_campeonato_id: c.id })
                 if (oid) {

@@ -86,6 +86,7 @@
         <div v-if="sol.tipo === 'acesso_bolao' && sol.campeonato" class="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/5">
           <img v-if="sol.campeonato.logo_url" :src="sol.campeonato.logo_url" class="w-5 h-5 object-contain" />
           <span class="text-sm text-gray-300 font-medium">{{ sol.campeonato.nome }}</span>
+          <span v-if="sol.campeonato.apelido_grupo" class="text-[10px] text-amber-400 font-bold">📎 {{ sol.campeonato.apelido_grupo }}</span>
         </div>
 
         <!-- Message -->
@@ -159,7 +160,10 @@
                   class="accent-brand-500 w-4 h-4 flex-shrink-0"
                 />
                 <img v-if="camp.logo_url" :src="camp.logo_url" class="w-5 h-5 object-contain" />
-                <p class="font-medium text-sm truncate">{{ camp.nome }}</p>
+                <div class="min-w-0 flex-1">
+                  <p class="font-medium text-sm truncate">{{ camp.nome }}</p>
+                  <p v-if="camp.apelido_grupo" class="text-[10px] text-amber-400 font-bold truncate">📎 {{ camp.apelido_grupo }}</p>
+                </div>
               </label>
             </div>
           </div>
@@ -275,7 +279,7 @@ const loadData = async () => {
 const loadCampeonatos = async () => {
   const { data } = await supabase
     .from('campeonatos')
-    .select('id, nome, logo_url')
+    .select('id, nome, logo_url, apelido_grupo')
     .eq('status', 'ativo')
     .order('created_at', { ascending: false })
   campeonatos.value = data || []

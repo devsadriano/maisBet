@@ -99,7 +99,7 @@ export default defineEventHandler(async (event) => {
     const deadlineHours = isMataMata ? 2 : 1
 
     const bettingDeadline = new Date(firstMatchDate.getTime() - deadlineHours * 60 * 60 * 1000).toISOString()
-    const organizerDeadline = new Date(firstMatchDate.getTime() - 12 * 60 * 60 * 1000).toISOString() // 12h antes
+    const organizerDeadline = new Date(firstMatchDate.getTime() - deadlineHours * 60 * 60 * 1000).toISOString() // Prazo organizador: se não escolher, sistema auto-seleciona
 
     // 4. Buscar ou criar a Rodada — FILTRAR POR CAMPEONATO
     let rodadaId = null

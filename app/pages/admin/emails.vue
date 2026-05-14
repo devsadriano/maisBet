@@ -141,6 +141,7 @@
               />
               <div class="min-w-0">
                 <p class="font-medium text-sm truncate">{{ camp.nome }}</p>
+                <p v-if="camp.apelido_grupo" class="text-[10px] text-amber-400 font-bold truncate">📎 {{ camp.apelido_grupo }}</p>
                 <p class="text-xs text-gray-500 truncate">{{ camp.api_competition_code || camp.area_name || '—' }}</p>
               </div>
             </label>
@@ -229,7 +230,7 @@ const fetchAccessCounts = async (emailList: string[]) => {
 const fetchCampeonatos = async () => {
   const { data } = await supabase
     .from('campeonatos')
-    .select('id, nome, api_competition_code, area_name')
+    .select('id, nome, api_competition_code, area_name, apelido_grupo')
     .eq('status', 'ativo')
     .order('created_at', { ascending: false })
   campeonatos.value = data || []

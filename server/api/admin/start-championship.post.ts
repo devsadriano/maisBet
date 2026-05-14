@@ -136,7 +136,7 @@ export default defineEventHandler(async (event) => {
       )
       const firstMatchDate = new Date(sortedMatches[0].utcDate)
       const bettingDeadline = new Date(firstMatchDate.getTime() - 60 * 60 * 1000).toISOString()
-      const organizerDeadline = new Date(firstMatchDate.getTime() - 12 * 60 * 60 * 1000).toISOString()
+      const organizerDeadline = new Date(firstMatchDate.getTime() - 60 * 60 * 1000).toISOString() // Prazo organizador: se não escolher, sistema auto-seleciona
 
       // Calcular organizador
       const { data: organizerId } = await supabase.rpc('get_organizer_for_round', {

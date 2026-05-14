@@ -51,18 +51,38 @@
       <div v-else-if="rodada && rodada.status === 'aguardando_escolha' && campeonatoAtivo.formato !== 'copa'" class="animate-fade-in-up">
         <BaseCard class="text-center">
             <div class="py-10">
-                <span class="text-6xl mb-6 block drop-shadow-lg">⚙️</span>
-                <h2 class="text-3xl font-bebas text-white mb-3 tracking-widest uppercase">
-                  {{ profile?.id === rodada.organizer_id ? 'Você é o Organizador!' : 'Aguardando Organizador' }}
-                </h2>
-                <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-6">
-                  {{ profile?.id === rodada.organizer_id 
-                    ? `Você foi sorteado para escolher os ${rodada.required_extra_games} jogos extras da Rodada ${rodada.numero_rodada}.` 
-                    : `A Rodada ${rodada.numero_rodada} está aguardando o organizador escolher as partidas extras. Volte mais tarde!` }}
-                </p>
-                <div class="flex justify-center" v-if="profile?.id === rodada.organizer_id">
-                    <BaseButton variant="brand" @click="isOrganizerModalOpen = true">Organizar Partidas Extras</BaseButton>
-                </div>
+                <!-- Organizer View -->
+                <template v-if="profile?.id === rodada.organizer_id">
+                  <span class="text-6xl mb-6 block drop-shadow-lg">⚙️</span>
+                  <h2 class="text-3xl font-bebas text-white mb-3 tracking-widest uppercase">
+                    Você é o Organizador!
+                  </h2>
+                  <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-2">
+                    Você foi sorteado para escolher os {{ rodada.required_extra_games }} jogos extras da Rodada {{ rodada.numero_rodada }}.
+                  </p>
+                  <div v-if="rodada.organizer_deadline" class="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full mb-6">
+                    <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                    <span class="text-[11px] font-mono text-orange-400">Se não escolher até {{ formatAutoSelectTime(rodada.organizer_deadline) }}, o sistema escolherá automaticamente</span>
+                  </div>
+                  <div class="flex justify-center">
+                      <BaseButton variant="brand" @click="isOrganizerModalOpen = true">Organizar Partidas Extras</BaseButton>
+                  </div>
+                </template>
+
+                <!-- Non-Organizer View -->
+                <template v-else>
+                  <span class="text-6xl mb-6 block drop-shadow-lg">⏳</span>
+                  <h2 class="text-3xl font-bebas text-white mb-3 tracking-widest uppercase">
+                    Aguardando Organizador
+                  </h2>
+                  <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-4">
+                    A Rodada {{ rodada.numero_rodada }} está aguardando o organizador escolher as partidas extras. Volte mais tarde!
+                  </p>
+                  <div v-if="rodada.organizer_deadline" class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                    <span class="text-[11px] font-mono text-brand-400">Se não escolher a tempo, o sistema seleciona automaticamente às {{ formatAutoSelectTime(rodada.organizer_deadline) }}</span>
+                  </div>
+                </template>
             </div>
         </BaseCard>
         
@@ -167,6 +187,7 @@ import BetSaveBar from '~/components/bet/BetSaveBar.vue'
 import SpecialBetsCard from '~/components/bet/SpecialBetsCard.vue'
 import ModalOrganizer from '~/components/ModalOrganizer.vue'
 
+
 const { 
   rodada, 
   loading, 
@@ -223,6 +244,15 @@ const handleSave = async () => {
     } else if (result) {
         toastError('Erro ao salvar: ' + result.message)
     }
+}
+
+// Helper: formata o horário da seleção automática
+const formatAutoSelectTime = (iso: string) => {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleString('pt-BR', {
+    weekday: 'short', day: '2-digit', month: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  }).replace(',', ' -')
 }
 
 // SEO

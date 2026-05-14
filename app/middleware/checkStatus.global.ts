@@ -1,8 +1,17 @@
-export default defineNuxtRouteMiddleware((to) => {
-  const { user, userStatus } = useAuth()
+export default defineNuxtRouteMiddleware(async (to) => {
+  const { user, userStatus, waitForProfile } = useAuth()
 
-  // Só roda se o usuário estiver logado
+  // Páginas públicas que não precisam de verificação
+  const publicPaths = ['/login', '/confirm']
+  if (publicPaths.includes(to.path)) return
+
+  // Se não está logado, não interfere
   if (!user.value) return
+
+  // ── SEGURANÇA CRÍTICA ──
+  // Aguarda o perfil carregar do banco ANTES de tomar qualquer decisão.
+  // Isso evita tanto bloquear admins quanto liberar pendentes prematuramente.
+  await waitForProfile()
 
   const status = userStatus.value
 
