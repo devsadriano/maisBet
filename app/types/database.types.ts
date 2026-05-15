@@ -429,6 +429,7 @@ export type Database = {
       usuarios: {
         Row: {
           cidade: string | null
+          estado: string | null
           created_at: string
           email: string
           id: string
@@ -439,6 +440,7 @@ export type Database = {
         }
         Insert: {
           cidade?: string | null
+          estado?: string | null
           created_at?: string
           email: string
           id: string
@@ -449,6 +451,7 @@ export type Database = {
         }
         Update: {
           cidade?: string | null
+          estado?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -464,6 +467,7 @@ export type Database = {
           admin_id: string | null
           campeonato_id: string | null
           cidade: string | null
+          estado: string | null
           created_at: string
           email: string
           id: string
@@ -480,6 +484,7 @@ export type Database = {
           admin_id?: string | null
           campeonato_id?: string | null
           cidade?: string | null
+          estado?: string | null
           created_at?: string
           email: string
           id?: string
@@ -496,6 +501,7 @@ export type Database = {
           admin_id?: string | null
           campeonato_id?: string | null
           cidade?: string | null
+          estado?: string | null
           created_at?: string
           email?: string
           id?: string

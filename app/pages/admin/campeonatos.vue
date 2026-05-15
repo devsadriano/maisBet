@@ -156,10 +156,12 @@ const iniciarBolao = async (id: string) => {
     
     const result = await response.json()
     
-    if (response.ok) {
+    if (response.ok && result.success && result.totalRoundsImported > 0) {
        await supabase.from('campeonatos').update({ status: 'ativo' }).eq('id', id)
-       toast.success(`Importados ${result.totalRoundsImported} rodadas com sucesso!`)
+       toast.success(`Importadas ${result.totalRoundsImported} rodadas com sucesso!`)
        fetchDados()
+    } else if (response.ok && result.totalRoundsImported === 0) {
+       toast.error(`Nenhuma rodada foi importada. ${result.totalErrors || 0} erros. Verifique o terminal do servidor.`)
     } else {
        throw new Error(result.message || 'Erro ao inicializar.')
     }

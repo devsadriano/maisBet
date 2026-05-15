@@ -127,16 +127,30 @@
                 />
               </div>
 
-              <div class="space-y-2 group">
-                <label for="cidade" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Cidade / Estado</label>
-                <input 
-                  id="cidade"
-                  v-model="form.cidade" 
-                  type="text" 
-                  placeholder="Ex: São Paulo - SP"
-                  class="w-full px-5 py-4 bg-gray-50 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl text-[var(--text-primary)] placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:bg-white dark:focus:bg-white/[0.07] transition-all duration-300"
-                  :disabled="loading"
-                />
+              <div class="grid grid-cols-3 gap-4 group">
+                <div class="col-span-2 space-y-2">
+                  <label for="cidade" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">Cidade</label>
+                  <input 
+                    id="cidade"
+                    v-model="form.cidade" 
+                    type="text" 
+                    placeholder="Ex: São Paulo"
+                    class="w-full px-5 py-4 bg-gray-50 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl text-[var(--text-primary)] placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:bg-white dark:focus:bg-white/[0.07] transition-all duration-300"
+                    :disabled="loading"
+                  />
+                </div>
+                <div class="col-span-1 space-y-2">
+                  <label for="estado" class="block text-[10px] font-black uppercase tracking-widest text-[var(--brand-light)] md:text-[var(--brand)] opacity-80 group-focus-within:opacity-100 transition-opacity">UF</label>
+                  <select
+                    id="estado"
+                    v-model="form.estado"
+                    class="w-full px-5 py-4 bg-gray-50 dark:bg-white/[0.03] border border-black/10 dark:border-white/10 rounded-2xl text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:bg-white dark:focus:bg-white/[0.07] transition-all duration-300 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20fill%3D%22none%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_1rem_center] bg-no-repeat"
+                    :disabled="loading"
+                  >
+                    <option value="" disabled selected>UF</option>
+                    <option v-for="uf in ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']" :key="uf" :value="uf">{{ uf }}</option>
+                  </select>
+                </div>
               </div>
 
               <div class="space-y-2 group">
@@ -218,6 +232,7 @@ const form = reactive({
   nome: '',
   telefone: '',
   cidade: '',
+  estado: '',
   mensagem: ''
 })
 
@@ -232,6 +247,22 @@ watch(() => form.telefone, (newVal) => {
   }
   if (form.telefone !== v) {
     form.telefone = v
+  }
+})
+
+watch(() => form.cidade, (newVal) => {
+  if (!newVal) return
+  const v = newVal.replace(/\b\w/g, l => l.toUpperCase())
+  if (form.cidade !== v) {
+    form.cidade = v
+  }
+})
+
+watch(() => form.nome, (newVal) => {
+  if (!newVal) return
+  const v = newVal.replace(/\b\w/g, l => l.toUpperCase())
+  if (form.nome !== v) {
+    form.nome = v
   }
 })
 
@@ -267,6 +298,7 @@ const handleSubmit = async () => {
           nome: form.nome,
           telefone: form.telefone || undefined,
           cidade: form.cidade || undefined,
+          estado: form.estado || undefined,
           mensagem: form.mensagem || undefined,
           modo: 'solicitar'
         }

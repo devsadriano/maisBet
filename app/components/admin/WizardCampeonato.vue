@@ -139,11 +139,11 @@
                  <div class="grid grid-cols-2 gap-4">
                     <div>
                       <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Abrev. API</label>
-                      <input v-model="form.api_competition_code" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm opacity-80 cursor-not-allowed uppercase" tabindex="-1">
+                      <input v-model="form.api_competition_code" type="text" required readonly class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none text-sm opacity-80 cursor-not-allowed uppercase" tabindex="-1">
                     </div>
                     <div>
                       <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Temporada (Ano)</label>
-                      <input v-model="form.season" type="number" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm font-mono">
+                      <input v-model="form.season" type="number" required readonly class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none text-sm font-mono opacity-80 cursor-not-allowed" tabindex="-1">
                     </div>
                  </div>
               </div>
@@ -279,7 +279,7 @@ const selectLeague = async (leagueParam: any) => {
     
     // Auto-preenche defaults para UI imediata
     form.value.nome = leagueParam.name
-    form.value.api_competition_code = leagueParam.code
+    form.value.api_competition_code = leagueParam.code || String(leagueParam.id || '')
     form.value.logo_url = leagueParam.emblem
     form.value.area_name = leagueParam.area?.name
     form.value.area_flag = leagueParam.area?.flag
@@ -317,6 +317,12 @@ const finalize = async () => {
     isSubmitting.value = true
     errorMessage.value = ''
     
+    if (!form.value.api_competition_code) {
+        errorMessage.value = 'O Código da API não pode estar vazio. Tente pesquisar a liga novamente.'
+        isSubmitting.value = false
+        return
+    }
+
     try {
         const { data, error } = await supabase.from('campeonatos').insert({
             nome: form.value.nome,

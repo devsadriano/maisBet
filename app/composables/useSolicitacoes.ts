@@ -11,6 +11,7 @@ export interface Solicitacao {
   user_id: string | null
   telefone: string | null
   cidade: string | null
+  estado: string | null
   mensagem: string | null
   campeonato_id: string | null
   admin_id: string | null

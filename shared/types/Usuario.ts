@@ -9,6 +9,7 @@ export interface Usuario {
   status: string
   telefone: string | null
   cidade: string | null
+  estado: string | null
   time_id: string | null
   created_at: string
   // Relação opcional (join)

@@ -58,7 +58,7 @@
               <p class="text-xs text-gray-400 truncate">{{ sol.email }}</p>
               <div class="flex items-center gap-2 mt-1">
                 <span v-if="sol.telefone" class="text-[10px] text-gray-500">📞 {{ sol.telefone }}</span>
-                <span v-if="sol.cidade" class="text-[10px] text-gray-500">📍 {{ sol.cidade }}</span>
+                <span v-if="sol.cidade || sol.estado" class="text-[10px] text-gray-500">📍 {{ sol.cidade }}{{ sol.cidade && sol.estado ? ' - ' : '' }}{{ sol.estado }}</span>
               </div>
             </div>
           </div>

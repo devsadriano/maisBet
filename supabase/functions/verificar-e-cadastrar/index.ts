@@ -23,7 +23,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { email, password, nome, telefone, cidade, mensagem, modo = 'registrar' } = await req.json()
+    const { email, password, nome, telefone, cidade, estado, mensagem, modo = 'registrar' } = await req.json()
 
     if (!email || !password || !nome) {
       return json({ error: 'Faltam dados: email, password, ou nome.' }, 400)
@@ -65,6 +65,7 @@ serve(async (req) => {
           status: 'ativo',
           telefone: telefone || null,
           cidade: cidade || null,
+          estado: estado || null,
         }, { onConflict: 'id' })
       }
 
@@ -121,6 +122,7 @@ serve(async (req) => {
         status: 'pendente',
         telefone: telefone || null,
         cidade: cidade || null,
+        estado: estado || null,
       }, { onConflict: 'id' })
 
       // 5. Cria solicitação na tabela solicitacoes
@@ -132,6 +134,7 @@ serve(async (req) => {
         user_id: userId,
         telefone: telefone || null,
         cidade: cidade || null,
+        estado: estado || null,
         mensagem: mensagem || null,
       })
 

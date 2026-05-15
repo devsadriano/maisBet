@@ -49,6 +49,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 409, message: 'Este campeonato já foi iniciado! Já existem rodadas nele.' })
   }
 
+  console.log(`[start-championship] Iniciando campeonato ${campeonato_id} | code=${api_competition_code} season=${season} max_rodadas=${max_rodadas}`)
+
   try {
     // 1. Descobrir a rodada atual do Campeonato
     const competitionRes = await fetch(`https://api.football-data.org/v4/competitions/${api_competition_code}`, {
@@ -62,6 +64,7 @@ export default defineEventHandler(async (event) => {
 
     const competitionData = await competitionRes.json()
     const currentMatchday: number = competitionData.currentSeason?.currentMatchday || 1
+    console.log(`[start-championship] Rodada atual da API: ${currentMatchday}`)
 
     // 1.5 Auto-sync escudos dos times deste campeonato
     try {
@@ -172,17 +175,78 @@ export default defineEventHandler(async (event) => {
       const bettingDeadline = new Date(firstMatchDate.getTime() - 60 * 60 * 1000).toISOString()
       const organizerDeadline = new Date(firstMatchDate.getTime() - 60 * 60 * 1000).toISOString() // Prazo organizador: se não escolher, sistema auto-seleciona
 
-      // Calcular organizador
-      const { data: organizerId } = await supabase.rpc('get_organizer_for_round', {
-        p_numero_rodada: matchday,
-        p_campeonato_id: campeonato_id
-      })
+      // Calcular organizador (apenas para rodada atual e futuras)
+      let organizerId: string | null = null
+      if (!isPastRound) {
+        const { data: orgData, error: orgError } = await supabase.rpc('get_organizer_for_round', {
+          p_numero_rodada: matchday,
+          p_campeonato_id: campeonato_id
+        })
 
-      if (!organizerId) {
-        console.error(`Sem organizador para rodada ${matchday}`)
-        results.push({ round: matchday, status: 'erro_organizador', matches: 0 })
-        continue
+        if (orgError) {
+          console.error(`[start-championship] Erro no RPC organizador rodada ${matchday}:`, orgError.message)
+        } else {
+          organizerId = orgData
+        }
+
+        if (!organizerId) {
+          console.warn(`[start-championship] Sem organizador para rodada ${matchday}, usando primeiro participante como fallback`)
+          // Fallback: buscar qualquer participante não-admin
+          const { data: fallbackUser } = await supabase
+            .from('campeonato_acessos')
+            .select('email')
+            .eq('campeonato_id', campeonato_id)
+            .limit(1)
+            .single()
+          if (fallbackUser) {
+            const { data: fbUser } = await supabase
+              .from('usuarios')
+              .select('id')
+              .eq('email', fallbackUser.email)
+              .single()
+            organizerId = fbUser?.id || null
+          }
+        }
+
+        if (!organizerId) {
+          console.error(`[start-championship] Impossível encontrar organizador para rodada ${matchday}, pulando`)
+          results.push({ round: matchday, status: 'erro_organizador', matches: 0 })
+          continue
+        }
+      } else {
+        // Para rodadas passadas, pegar qualquer organizador válido (não é crítico)
+        const { data: orgData } = await supabase.rpc('get_organizer_for_round', {
+          p_numero_rodada: matchday,
+          p_campeonato_id: campeonato_id
+        })
+        organizerId = orgData || null
+        
+        // Se mesmo assim não tiver, buscar fallback
+        if (!organizerId) {
+          const { data: fallbackUser } = await supabase
+            .from('campeonato_acessos')
+            .select('email')
+            .eq('campeonato_id', campeonato_id)
+            .limit(1)
+            .single()
+          if (fallbackUser) {
+            const { data: fbUser } = await supabase
+              .from('usuarios')
+              .select('id')
+              .eq('email', fallbackUser.email)
+              .single()
+            organizerId = fbUser?.id || null
+          }
+        }
+
+        if (!organizerId) {
+          console.error(`[start-championship] Sem organizador mesmo com fallback para rodada passada ${matchday}, pulando`)
+          results.push({ round: matchday, status: 'erro_organizador', matches: 0 })
+          continue
+        }
       }
+
+      console.log(`[start-championship] Rodada ${matchday}: organizador=${organizerId}, status=${isPastRound ? 'finalizada' : 'atual'}`)
 
       // Determinar status da rodada
       let roundStatus: string
@@ -210,10 +274,12 @@ export default defineEventHandler(async (event) => {
         .single()
 
       if (rodadaError) {
-        console.error(`Erro ao criar rodada ${matchday}:`, rodadaError)
+        console.error(`[start-championship] Erro ao criar rodada ${matchday}:`, rodadaError.message, rodadaError.details)
         results.push({ round: matchday, status: 'erro_db', matches: 0 })
         continue
       }
+
+      console.log(`[start-championship] Rodada ${matchday} criada com ID: ${newRodada.id}`)
 
       // Inserir partidas
       let insertedCount = 0
@@ -255,13 +321,21 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    const successCount = results.filter(r => !r.status.startsWith('erro')).length
+    const errorCount = results.filter(r => r.status.startsWith('erro')).length
+
+    console.log(`[start-championship] Concluído: ${successCount} rodadas importadas, ${errorCount} erros`)
+
     return {
-      success: true,
+      success: successCount > 0,
       currentMatchday,
-      totalRoundsImported: results.length,
+      totalRoundsImported: successCount,
+      totalErrors: errorCount,
       activeRound: currentMatchday,
       details: results,
-      message: `Bolão iniciado! ${results.filter(r => r.status === 'finalizada').length} rodadas históricas + Rodada ${currentMatchday} ativa.`
+      message: successCount > 0
+        ? `Bolão iniciado! ${results.filter(r => r.status === 'finalizada').length} rodadas históricas + Rodada ${currentMatchday} ativa.`
+        : `Falha ao importar rodadas. ${errorCount} erros encontrados. Verifique os logs do servidor.`
     }
 
   } catch (err: any) {

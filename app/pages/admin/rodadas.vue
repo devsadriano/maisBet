@@ -14,13 +14,23 @@
         <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mt-1">
           <p class="text-sm text-gray-400">Acompanhe e controle o status e prazos das rodadas importadas.</p>
           <div class="h-4 w-px bg-white/20 hidden md:block"></div>
-          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 w-fit" title="Auto-Cycle Cron Status">
+          <button 
+            @click="triggerAutoCycle"
+            :disabled="isTriggeringCron"
+            class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors w-fit cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group" 
+            title="Clique para forçar a execução do Auto-Cycle agora"
+          >
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest whitespace-nowrap">Auto-Cycle: {{ lastCronRun || 'Buscando...' }}</span>
-          </div>
+            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest whitespace-nowrap">
+              {{ isTriggeringCron ? 'Executando...' : 'Auto-Cycle: ' + (lastCronRun || 'Buscando...') }}
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -32,11 +42,17 @@
           <button 
             @click="toggleDropdown('camp_filter')"
             class="w-full flex items-center justify-between bg-black/40 border border-white/10 text-white rounded-xl px-4 py-2 outline-none hover:border-brand-500/50 hover:bg-white/[0.04] transition-all text-left group"
+            :title="selectedChampionship ? `${selectedChampionship.nome} (${selectedChampionship.season})${selectedChampionship.apelido_grupo ? ' 📎 ' + selectedChampionship.apelido_grupo : ''}` : 'Selecione...'"
           >
             <span class="truncate pr-2 font-medium text-sm">
-              {{ campeonatosAdmin.find(c => c.id === selectedChampionshipId)?.nome 
-                 ? `${campeonatosAdmin.find(c => c.id === selectedChampionshipId)?.nome} (${campeonatosAdmin.find(c => c.id === selectedChampionshipId)?.season})` 
-                 : 'Selecione...' }}
+              <template v-if="selectedChampionship">
+                {{ selectedChampionship.nome }} 
+                <span class="opacity-60 text-xs">({{ selectedChampionship.season }})</span>
+                <span v-if="selectedChampionship.apelido_grupo" class="text-amber-400 ml-1.5 font-bold">
+                  📎 {{ selectedChampionship.apelido_grupo }}
+                </span>
+              </template>
+              <template v-else>Selecione...</template>
             </span>
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:text-brand-400 shrink-0" :class="openDropdown === 'camp_filter' ? 'rotate-180 text-brand-400' : 'text-gray-500'" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -57,8 +73,13 @@
                  c.id === selectedChampionshipId ? 'bg-brand-500/10 text-brand-400 font-bold' : 'text-gray-300'
               ]"
               @click="selectedChampionshipId = c.id; fetchRodadas(); toggleDropdown('camp_filter')"
+              :title="`${c.nome} (${c.season})${c.apelido_grupo ? ' 📎 ' + c.apelido_grupo : ''}`"
             >
-              <span class="truncate flex-1">{{ c.nome }} <span class="opacity-60 text-[10px]">({{ c.season }})</span></span>
+              <span class="truncate flex-1">
+                {{ c.nome }} 
+                <span class="opacity-60 text-[10px]">({{ c.season }})</span>
+                <span v-if="c.apelido_grupo" class="text-amber-400 ml-1.5 text-[10px] font-bold">📎 {{ c.apelido_grupo }}</span>
+              </span>
               <span v-if="c.id === selectedChampionshipId" class="text-brand-400 text-[10px] uppercase font-bold tracking-widest shrink-0 ml-2">✔</span>
             </button>
           </div>
@@ -79,6 +100,12 @@
     </div>
 
     <!-- Empty State -->
+    <div v-else-if="campeonatosAdmin.length === 0" class="text-center py-20 border border-white/5 rounded-3xl bg-white/[0.02]">
+      <div class="text-5xl mb-4 opacity-30">🏟️</div>
+      <p class="text-gray-400 font-medium tracking-wide">Nenhum campeonato cadastrado ainda.</p>
+      <p class="text-gray-600 text-sm mt-1">Vá para a Gestão de Campeonatos para criar o primeiro bolão.</p>
+    </div>
+
     <div v-else-if="!selectedChampionshipId" class="text-center py-20 border border-white/5 rounded-3xl bg-white/[0.02]">
       <div class="text-5xl mb-4 opacity-30">🤔</div>
       <p class="text-gray-400 font-medium tracking-wide">Selecione um Campeonato Acima.</p>
@@ -369,9 +396,12 @@ const campeonatosAdmin = ref<any[]>([])
 const selectedChampionshipId = ref<string>('')
 
 // Computed code for the Standings
+const selectedChampionship = computed(() => {
+  return campeonatosAdmin.value.find(c => c.id === selectedChampionshipId.value)
+})
+
 const selectedCompetitionCode = computed(() => {
-  const c = campeonatosAdmin.value.find(x => x.id === selectedChampionshipId.value)
-  return c?.api_competition_code || ''
+  return selectedChampionship.value?.api_competition_code || ''
 })
 
 const rodadas = ref<any[]>([])
@@ -381,6 +411,36 @@ const loading = ref(true)
 const showStandings = ref(false)
 
 const lastCronRun = ref<string>('')
+const isTriggeringCron = ref(false)
+
+async function triggerAutoCycle() {
+  if (isTriggeringCron.value) return
+  isTriggeringCron.value = true
+  toastInfo('Iniciando Auto-Cycle... Isso pode levar alguns segundos.')
+  
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Não autenticado')
+
+    const response = await fetch('/api/admin/trigger-auto-cycle', {
+       method: 'POST',
+       headers: { 'Authorization': `Bearer ${session.access_token}` }
+    })
+    
+    if (response.ok) {
+       toastSuccess('Auto-Cycle executado com sucesso!')
+       await fetchCronStatus()
+       await fetchRodadas()
+    } else {
+       throw new Error('Falha na execução.')
+    }
+  } catch (error: any) {
+    console.error(error)
+    toastError('Erro ao executar Auto-Cycle manualmente.')
+  } finally {
+    isTriggeringCron.value = false
+  }
+}
 
 async function fetchCronStatus() {
   const { data } = await supabase
@@ -557,6 +617,9 @@ async function fetchUsuarios() {
 
 onMounted(async () => {
   await fetchCampeonatos()
+  if (!selectedChampionshipId.value) {
+    loading.value = false
+  }
   await fetchUsuarios()
   fetchCronStatus()
 })
