@@ -49,10 +49,44 @@ export default defineEventHandler(async (event) => {
 
   // 5. Atualiza os jogos obrigatórios para refletir a nova seleção
   try {
-    await $fetch('/api/app/fix-mandatory', {
-      method: 'POST',
-      body: { campeonato_id: acesso.campeonato_id }
-    })
+    // Buscar rodadas ativas
+    const { data: rodadas } = await supabase
+      .from('rodadas')
+      .select('id')
+      .eq('campeonato_id', acesso.campeonato_id)
+      .in('status', ['aberta', 'aguardando_escolha'])
+
+    if (rodadas && rodadas.length > 0) {
+      // Buscar times de todos os participantes
+      const { data: acessos } = await supabase
+        .from('campeonato_acessos')
+        .select('times(api_team_id)')
+        .eq('campeonato_id', acesso.campeonato_id)
+        .not('time_id', 'is', null)
+
+      const userTeamIds = new Set(
+        acessos?.map((a: any) => a.times?.api_team_id).filter(Boolean) || []
+      )
+
+      if (userTeamIds.size > 0) {
+        for (const rodada of rodadas) {
+          const { data: partidas } = await supabase
+            .from('partidas')
+            .select('id, api_team_home_id, api_team_away_id')
+            .eq('rodada_id', rodada.id)
+
+          if (!partidas) continue
+
+          const mandatoryIds = partidas
+            .filter((p: any) => userTeamIds.has(p.api_team_home_id) || userTeamIds.has(p.api_team_away_id))
+            .map((p: any) => p.id)
+
+          if (mandatoryIds.length > 0) {
+            await supabase.from('partidas').update({ is_mandatory: true }).in('id', mandatoryIds)
+          }
+        }
+      }
+    }
   } catch (e) {
     console.error('Falha ao recalcular partidas obrigatórias:', e)
   }

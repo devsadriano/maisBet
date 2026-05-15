@@ -19,6 +19,7 @@ export interface Round {
   multiplicador?: number
   required_extra_games?: number
   created_at: string
+  organizador?: { nome: string } | null
 }
 
 /** Round com partidas embutidas — resultado do join usado em useBets.ts */

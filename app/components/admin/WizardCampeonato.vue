@@ -290,12 +290,13 @@ const selectLeague = async (leagueParam: any) => {
        form.value.scoring_system_id = def ? def.id : props.sistemas[0].id
     }
 
-    // Busca detalhes mais pesados (Datas)
+    // Busca detalhes mais pesados (Datas e Rodadas)
     try {
         const { league: details }: any = await $fetch(`/api/admin/wizard/league/${leagueParam.code}`)
         
         if (details.startDate) form.value.start_date = details.startDate
         if (details.endDate) form.value.end_date = details.endDate
+        if (details.suggestedMax) form.value.max_rodadas = details.suggestedMax
         
         if (details.startDate) {
             form.value.season = parseInt(details.startDate.slice(0,4))

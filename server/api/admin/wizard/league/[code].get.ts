@@ -21,6 +21,16 @@ export default defineEventHandler(async (event) => {
 
     const data = await response.json()
 
+    let suggestedMax = 38
+    if (data.seasons && data.seasons.length > 0) {
+      const pastSeason = data.seasons.find((s: any) => s.winner !== null || new Date(s.endDate) < new Date())
+      if (pastSeason && pastSeason.currentMatchday) {
+        suggestedMax = pastSeason.currentMatchday
+      } else if (data.currentSeason?.currentMatchday) {
+        suggestedMax = data.currentSeason.currentMatchday
+      }
+    }
+
     return {
       success: true,
       league: {
@@ -32,6 +42,7 @@ export default defineEventHandler(async (event) => {
         startDate: data.currentSeason?.startDate,
         endDate: data.currentSeason?.endDate,
         currentMatchday: data.currentSeason?.currentMatchday,
+        suggestedMax: suggestedMax,
         area: {
             name: data.area?.name,
             flag: data.area?.flag

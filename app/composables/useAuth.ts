@@ -39,11 +39,9 @@ export const useAuth = () => {
     })
   }
 
-  // Busca o perfil público sempre que o UUID do Auth mudar
-  watch(user, async (newUser) => {
-    // useSupabaseUser() retorna JwtPayload — o UUID está em 'sub', não 'id'
-    const uid = newUser?.sub
-    if (newUser && uid) {
+  const fetchProfile = async () => {
+    const uid = user.value?.sub || user.value?.id
+    if (user.value && uid) {
       profileLoaded.value = false
       const { data, error } = await supabase
         .from('usuarios')
@@ -52,18 +50,17 @@ export const useAuth = () => {
         .single()
         
       if (error) {
-        // Fallback: se o perfil não existe (PGRST116), tenta criar manualmente.
         if (error.code === 'PGRST116') {
-          const emailStr = (newUser as any).email || ''
+          const emailStr = (user.value as any).email || ''
           const fallbackName = emailStr.split('@')[0] || 'Jogador'
           
-          const { data: newData } = await (supabase
+          const { data: newData } = await supabase
             .from('usuarios')
             .insert({
               id: uid,
               email: emailStr,
               nome: fallbackName
-            } as any) as any)
+            } as any)
             .select('*')
             .single()
             
@@ -79,7 +76,14 @@ export const useAuth = () => {
       profile.value = null
       profileLoaded.value = false
     }
-  }, { immediate: true })
+  }
+
+  // Busca o perfil público sempre que o UUID do Auth mudar (no cliente)
+  watch(user, async (newUser, oldUser) => {
+    if (newUser?.id !== oldUser?.id) {
+       await fetchProfile()
+    }
+  }, { immediate: false })
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
@@ -129,6 +133,7 @@ export const useAuth = () => {
     profile,
     profileLoaded,
     waitForProfile,
+    fetchProfile,
     isAdmin,
     userStatus,
     login,

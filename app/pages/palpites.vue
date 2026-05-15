@@ -76,7 +76,9 @@
                     Aguardando Organizador
                   </h2>
                   <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-4">
-                    A Rodada {{ rodada.numero_rodada }} está aguardando o organizador escolher as partidas extras. Volte mais tarde!
+                    A Rodada {{ rodada.numero_rodada }} está aguardando o organizador 
+                    <span v-if="rodada.organizador?.nome" class="font-bold text-white">{{ rodada.organizador.nome }}</span>
+                    escolher as partidas extras. Volte mais tarde!
                   </p>
                   <div v-if="rodada.organizer_deadline" class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-full">
                     <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
@@ -206,13 +208,18 @@ const { campeonatoAtivo } = useCampeonato()
 
 const isOrganizerModalOpen = ref(false)
 
-onMounted(() => {
-    // Redireciona admins para o painel
+// Blocagem de SSR para a página de palpites
+await useAsyncData('init-palpites', async () => {
     if (profile.value?.is_admin === true) {
-      navigateTo('/admin')
-      return
+      if (process.server) {
+        return navigateTo('/admin')
+      } else {
+        navigateTo('/admin')
+        return true
+      }
     }
-    fetchInitialData()
+    await fetchInitialData()
+    return true
 })
 
 const groupedMatches = computed(() => {

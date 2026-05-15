@@ -264,8 +264,10 @@ const enterBolao = (id: string) => {
     router.push('/palpites')
 }
 
-onMounted(() => {
-  fetchPendingRequests()
+// Fetch on server-side to avoid layout shift
+await useAsyncData('pending-requests', async () => {
+  await fetchPendingRequests()
+  return true
 })
 
 // SEO
