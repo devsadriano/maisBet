@@ -248,7 +248,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import BaseToast from '~/components/ui/BaseToast.vue'
 
-const { profile, user, isAdmin, logout, fetchProfile } = useAuth()
+const { profile, user, isAdmin, logout, fetchProfile, waitForProfile } = useAuth()
 const { isDark, toggleTheme, initTheme } = useTheme()
 const { campeonatos, campeonatoAtivo, currentAcesso, fetchCampeonatos, selecionarCampeonato } = useCampeonato()
 const { pendingCount: adminPendingCount, fetchPendingCount: fetchAdminPendingCount } = useSolicitacoes()
@@ -260,10 +260,13 @@ onMounted(() => {
 // Blocagem de SSR: Carrega tudo antes de enviar o HTML
 await useAsyncData('init-layout', async () => {
   if (user.value) {
-    if (!profile.value) {
+    const profileJaCarregado = !!profile.value
+    if (!profileJaCarregado) {
       await fetchProfile()
     }
-    await fetchCampeonatos()
+    // Força refetch dos campeonatos quando o perfil foi recém-carregado,
+    // garantindo que isAdmin já está correto na hora da query.
+    await fetchCampeonatos(!profileJaCarregado)
     if (isAdmin.value) {
       await fetchAdminPendingCount()
     }
@@ -274,7 +277,11 @@ await useAsyncData('init-layout', async () => {
 // Watch para caso o usuário mude via auth (ex: logout, troca de conta no cliente)
 watch(user, async (newUser, oldUser) => {
   if (newUser && (!oldUser || newUser.id !== oldUser.id)) {
-    await fetchCampeonatos()
+    // Aguarda o perfil estar pronto (o useAuth já disparou o fetch via seu próprio watch)
+    // garantindo que isAdmin está correto ANTES de buscar os campeonatos
+    await waitForProfile()
+    // Força novo fetch pois o papel do usuário pode ter mudado
+    await fetchCampeonatos(true)
     if (isAdmin.value) {
       await fetchAdminPendingCount()
     }
