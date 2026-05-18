@@ -14,6 +14,7 @@ export const useAuth = () => {
   // Flag que indica se o perfil já foi carregado do banco
   // CRITICAL: Sem isso, o middleware assume 'ativo' antes do perfil carregar
   const profileLoaded = useState<boolean>('user-profile-loaded', () => false)
+  const profileLoading = useState<boolean>('user-profile-loading', () => false)
   
   const isAdmin = computed(() => profile.value?.is_admin === true)
 
@@ -25,23 +26,10 @@ export const useAuth = () => {
     return profile.value?.status ?? 'pendente' // se não tem perfil, assume pendente (seguro)
   })
 
-  // Retorna uma promise que resolve quando o perfil terminar de carregar.
-  // O middleware usa isso para ESPERAR o perfil antes de decidir redirecionar.
-  const waitForProfile = (): Promise<void> => {
-    if (profileLoaded.value) return Promise.resolve()
-    return new Promise((resolve) => {
-      const stop = watch(profileLoaded, (loaded) => {
-        if (loaded) {
-          stop()
-          resolve()
-        }
-      })
-    })
-  }
-
   const fetchProfile = async () => {
     const uid = user.value?.sub || user.value?.id
     if (user.value && uid) {
+      profileLoading.value = true
       profileLoaded.value = false
       const { data, error } = await supabase
         .from('usuarios')
@@ -72,10 +60,34 @@ export const useAuth = () => {
         profile.value = data as unknown as Usuario
       }
       profileLoaded.value = true
+      profileLoading.value = false
     } else {
       profile.value = null
       profileLoaded.value = false
+      profileLoading.value = false
     }
+  }
+
+  // Retorna uma promise que resolve quando o perfil terminar de carregar.
+  // O middleware usa isso para ESPERAR o perfil antes de decidir redirecionar.
+  const waitForProfile = async (): Promise<void> => {
+    if (profileLoaded.value) return Promise.resolve()
+    
+    // Se temos um usuário mas não está carregando, inicia o carregamento agora!
+    // Isso previne que o servidor (SSR) ou cliente fiquem travados aguardando infinitamente.
+    if (user.value && !profileLoading.value) {
+      await fetchProfile()
+      return Promise.resolve()
+    }
+
+    return new Promise((resolve) => {
+      const stop = watch(profileLoaded, (loaded) => {
+        if (loaded) {
+          stop()
+          resolve()
+        }
+      })
+    })
   }
 
   // Busca o perfil público sempre que o UUID do Auth mudar (no cliente)
