@@ -1079,13 +1079,13 @@ const filteredMonitorUsers = computed(() => {
 const copyReminderText = (user: any) => {
   const total = sortedMatches.value.length
   const faltam = total - user.palpites_count
-  const msg = `Fala ${user.nome.split(' ')[0]}! Passando para lembrar de dar seus palpites na Rodada ${rodada.value?.numero_rodada} do bolão ${campeonatoAtivo.value?.nome || ''}. Faltam ${faltam} jogo(s) para você palpitar! Acesse: https://maisbet.app/`
+  const msg = `Fala ${user.nome.split(' ')[0]}! Passando para lembrar de dar seus palpites na Rodada ${rodada.value?.numero_rodada} do bolão ${campeonatoAtivo.value?.nome || ''}. Faltam ${faltam} jogo(s) para você palpitar! Acesse: https://mais-bet.vercel.app/`
   
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(msg)
-    toast.success(`Lembrete para ${user.nome.split(' ')[0]} copiado!`)
+     navigator.clipboard.writeText(msg)
+     toast.success(`Lembrete para ${user.nome.split(' ')[0]} copiado!`)
   } else {
-    toast.error('Não foi possível copiar para a área de transferência.')
+     toast.error('Não foi possível copiar para a área de transferência.')
   }
 }
 
@@ -1105,7 +1105,7 @@ const getWhatsAppLink = (user: any) => {
   }
   
   const text = encodeURIComponent(
-    `Fala ${user.nome.split(' ')[0]}! Passando para lembrar de dar seus palpites na Rodada ${rodada.value?.numero_rodada} do bolão ${campeonatoAtivo.value?.nome || ''}. Faltam ${faltam} jogo(s) para você palpitar! Jogue agora: https://maisbet.app/`
+    `Fala ${user.nome.split(' ')[0]}! Passando para lembrar de dar seus palpites na Rodada ${rodada.value?.numero_rodada} do bolão ${campeonatoAtivo.value?.nome || ''}. Faltam ${faltam} jogo(s) para você palpitar! Jogue agora: https://mais-bet.vercel.app/`
   )
   
   return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`
