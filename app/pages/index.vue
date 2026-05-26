@@ -1,53 +1,394 @@
 <template>
   <div class="space-y-12 pb-20 animate-fade-in">
     
-    <!-- 1. PAINEL DO ADMINISTRADOR (Simplificado e focado) -->
-    <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-      <div class="md:col-span-12">
-        <BaseCard variant="pitch" class="h-full">
-          <div v-if="profile" class="space-y-10">
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <!-- 1. PAINEL DO ADMINISTRADOR -->
+    <template v-if="isAdmin">
+      <!-- 1.1 ADMIN COM BOLÃO ATIVO -->
+      <div v-if="campeonatoAtivo" class="space-y-8 animate-fade-in">
+        
+        <!-- Central do Admin (Hero Card com Info do Bolão e Seletor) -->
+        <BaseCard variant="pitch" class="p-6 md:p-8">
+          <div v-if="profile" class="space-y-6">
+            
+            <!-- Banner Topo com Boas-Vindas, Nome do Bolão e Seletor -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
               <div>
                 <h1 class="text-2xl md:text-3xl font-bebas tracking-tight text-gray-900 dark:text-white mb-1">
-                  E AÍ, <span class="text-danger-400">{{ profile.nome.split(' ')[0] }}</span>!
+                  PAINEL DO ADMINISTRADOR: <span class="text-danger-400">{{ campeonatoAtivo.nome }}</span>
                 </h1>
                 <div class="flex items-center gap-2">
                   <div class="h-1.5 w-1.5 rounded-full animate-pulse bg-danger-500"></div>
                   <p class="text-[9px] font-black uppercase tracking-widest text-danger-400">
-                    Status: Administrador Plataforma
+                    Modo de Gerenciamento Ativo
                   </p>
                 </div>
               </div>
+
+              <!-- Seletor de Campeonato Ativo + Botão de Sair -->
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-white/40">Trocar Bolão:</span>
+                <select 
+                  v-model="selectedCampId" 
+                  @change="selecionarCampeonato(selectedCampId)"
+                  class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-danger-500 cursor-pointer"
+                >
+                  <option 
+                    v-for="camp in activeUserCamps" 
+                    :key="camp.id" 
+                    :value="camp.id"
+                    class="bg-[#1e1e1e] text-white"
+                  >
+                    {{ camp.nome }}{{ camp.apelido_grupo ? ` (${camp.apelido_grupo})` : '' }}
+                  </option>
+                </select>
+
+                <button 
+                  @click="selecionarCampeonato('')"
+                  class="text-xs px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 font-bold rounded-xl transition-all border border-white/10"
+                >
+                  Sair do Bolão
+                </button>
+              </div>
             </div>
 
-            <!-- Dashboard Overview Display -->
-            <div class="bg-white/[0.03] border border-danger-500/20 p-10 rounded-[2.5rem] flex flex-col sm:flex-row items-center gap-10 relative overflow-hidden group/admin hover:bg-danger-500/5 transition-all">
-              <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-danger-500/20 rounded-full blur-[80px] opacity-0 group-hover/admin:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-              
-               <div class="relative group/shield shrink-0">
-                 <div class="w-24 h-24 rounded-full bg-danger-500/10 flex items-center justify-center border border-danger-500/30 text-4xl font-bebas text-danger-400 shadow-inner">
-                    A
-                 </div>
+            <!-- Progresso da Rodada Atual -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02] border border-white/5 p-6 rounded-2xl">
+              <!-- Barra de Progresso do Campeonato -->
+              <div class="w-full md:w-1/2 space-y-2">
+                <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  <span>Progresso do Torneio</span>
+                  <span v-if="rodada && campeonatoAtivo.max_rodadas">Rodada {{ rodada.numero_rodada }} de {{ campeonatoAtivo.max_rodadas }}</span>
+                </div>
+                <div v-if="rodada && campeonatoAtivo.max_rodadas" class="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
+                  <div 
+                    class="bg-gradient-to-r from-danger-500 to-amber-500 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
+                    :style="{ width: `${(rodada.numero_rodada / campeonatoAtivo.max_rodadas) * 100}%` }"
+                  />
+                </div>
+                <div v-else class="text-xs text-gray-500 font-bold uppercase tracking-wide">Sem rodada ativa configurada</div>
               </div>
 
-              <div class="flex-1 text-center sm:text-left relative z-10 space-y-2">
-                <NuxtLink to="/admin" class="inline-flex items-center gap-2 px-3 py-1 bg-danger-500/10 rounded-full border border-danger-500/20 mb-2 hover:bg-danger-500/30 transition-colors">
-                  <span class="text-[9px] font-black uppercase tracking-widest text-danger-400">Master Control</span>
-                </NuxtLink>
-                <h3 class="text-3xl font-bebas text-gray-900 dark:text-white tracking-[0.1em] group-hover/admin:text-danger-400 transition-colors">GERENCIAR BOLÕES</h3>
-                <p class="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-500 dark:text-white/50 mt-2 flex items-center justify-center sm:justify-start gap-2">
-                   Crie ou edite novos campeonatos para a rede.
-                </p>
+              <!-- Prazo / Status da Rodada -->
+              <div v-if="rodada" class="w-full md:w-auto shrink-0 flex items-center gap-3 bg-danger-500/10 border border-danger-500/20 rounded-full px-5 py-2.5 shadow-inner">
+                <div class="w-2 h-2 rounded-full bg-danger-500 animate-pulse"></div>
+                <span class="text-[11px] font-black uppercase tracking-widest text-danger-400">
+                  Rodada {{ rodada.numero_rodada }} - {{ locked ? 'Fechada' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
+                </span>
               </div>
             </div>
+
           </div>
           <div v-else class="animate-pulse space-y-6 py-4">
              <div class="h-10 bg-white/5 rounded-xl w-1/2"></div>
              <div class="h-32 bg-white/5 rounded-[2rem]"></div>
           </div>
         </BaseCard>
+
+        <!-- Dashboard Central Grid do Admin -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fade-in-up">
+          
+          <!-- Coluna Esquerda: Monitoramento de Palpites (8/12) -->
+          <div class="lg:col-span-8 space-y-6">
+            <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl p-6 md:p-8 space-y-6">
+              
+              <!-- Cabeçalho do Monitoramento -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
+                <div>
+                  <h3 class="font-bebas text-2xl text-white tracking-wider flex items-center gap-2">
+                    📊 Monitoramento de Palpites
+                    <button 
+                      @click="fetchAdminMonitorData" 
+                      :disabled="adminMonitorLoading"
+                      class="text-gray-400 hover:text-white transition-all text-sm p-1.5 hover:bg-white/5 rounded-lg"
+                      title="Atualizar dados"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': adminMonitorLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18v3" />
+                      </svg>
+                    </button>
+                  </h3>
+                  <p class="text-xs text-gray-400 mt-1">Gerencie a participação dos usuários nesta rodada.</p>
+                </div>
+
+                <!-- Filtros de Status -->
+                <div class="flex items-center bg-black/40 rounded-xl p-1 border border-white/5 shrink-0">
+                  <button 
+                    @click="statusFilter = 'all'"
+                    class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                    :class="statusFilter === 'all' ? 'bg-danger-500 text-white' : 'text-gray-400 hover:text-white'"
+                  >
+                    Todos
+                  </button>
+                  <button 
+                    @click="statusFilter = 'completed'"
+                    class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                    :class="statusFilter === 'completed' ? 'bg-danger-500 text-white' : 'text-gray-400 hover:text-white'"
+                  >
+                    Completos
+                  </button>
+                  <button 
+                    @click="statusFilter = 'pending'"
+                    class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                    :class="statusFilter === 'pending' ? 'bg-danger-500 text-white' : 'text-gray-400 hover:text-white'"
+                  >
+                    Pendentes
+                  </button>
+                </div>
+              </div>
+
+              <!-- Campo de Busca -->
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </span>
+                <input 
+                  v-model="searchQuery"
+                  type="text" 
+                  placeholder="Buscar participante pelo nome ou e-mail..."
+                  class="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-xs font-bold text-white placeholder-gray-500 outline-none focus:border-danger-500 transition-all shadow-inner"
+                />
+              </div>
+
+              <!-- Estados do Monitor -->
+              <div v-if="adminMonitorLoading" class="py-16 text-center space-y-4">
+                <div class="w-10 h-10 border-3 border-danger-500/20 border-t-danger-500 rounded-full animate-spin mx-auto"></div>
+                <p class="text-danger-400 font-bebas text-lg tracking-wider animate-pulse">Buscando participação dos jogadores...</p>
+              </div>
+
+              <div v-else-if="adminMonitorError" class="p-8 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
+                <p class="text-sm font-bold text-red-400">{{ adminMonitorError }}</p>
+                <button @click="fetchAdminMonitorData" class="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-200 text-xs font-bold rounded-lg transition-colors border border-red-500/30">
+                  Tentar novamente
+                </button>
+              </div>
+
+              <div v-else-if="sortedMatches.length === 0" class="py-16 text-center space-y-3">
+                <span class="text-4xl block">📅</span>
+                <h4 class="text-lg font-bebas text-gray-400 tracking-wider">SEM JOGOS NA RODADA</h4>
+                <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+                  Esta rodada ativa não possui nenhuma partida configurada no momento.
+                </p>
+              </div>
+
+              <div v-else-if="filteredMonitorUsers.length === 0" class="py-16 text-center space-y-3">
+                <span class="text-4xl block">🔍</span>
+                <h4 class="text-lg font-bebas text-gray-400 tracking-wider">NENHUM RESULTADO</h4>
+                <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+                  Nenhum participante atende aos filtros selecionados.
+                </p>
+              </div>
+
+              <!-- Lista de Usuários Monitorados -->
+              <div v-else class="divide-y divide-white/5 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
+                <div 
+                  v-for="item in filteredMonitorUsers" 
+                  :key="item.id"
+                  class="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
+                >
+                  <!-- Infos do Jogador -->
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-bebas text-lg text-white font-bold uppercase select-none">
+                      {{ item.nome.charAt(0) }}
+                    </div>
+                    <div>
+                      <h5 class="text-xs font-black uppercase text-white tracking-wider flex items-center gap-2">
+                        {{ item.nome }}
+                        <span class="text-[9px] font-bold text-gray-500 normal-case">({{ item.time_nome }})</span>
+                      </h5>
+                      <p class="text-[10px] text-gray-500 truncate max-w-[200px] sm:max-w-none">{{ item.email }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Progresso de Palpites -->
+                  <div class="flex flex-col sm:items-end gap-1.5 flex-grow sm:flex-none sm:min-w-[150px]">
+                    <div class="flex justify-between sm:justify-end items-center gap-2 text-[10px] font-bold">
+                      <span 
+                        class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider"
+                        :class="item.palpites_count === sortedMatches.length 
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                          : item.palpites_count > 0 
+                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                          : 'bg-red-500/10 text-red-400 border border-red-500/20'"
+                      >
+                        {{ item.palpites_count === sortedMatches.length 
+                          ? 'Completo' 
+                          : item.palpites_count > 0 
+                          ? 'Incompleto' 
+                          : 'Pendente' }}
+                      </span>
+                      <span class="text-white">{{ item.palpites_count }} de {{ sortedMatches.length }} palpites</span>
+                    </div>
+                    <div class="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+                      <div 
+                        class="h-full rounded-full transition-all duration-300"
+                        :class="item.palpites_count === sortedMatches.length ? 'bg-emerald-400' : 'bg-danger-400'"
+                        :style="{ width: `${(item.palpites_count / sortedMatches.length) * 100}%` }"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Botões de Ação para cobrar -->
+                  <div class="flex items-center gap-2">
+                    <!-- WhatsApp Cobrança (Apenas se tiver palpites pendentes) -->
+                    <a 
+                      v-if="item.palpites_count < sortedMatches.length && item.telefone"
+                      :href="getWhatsAppLink(item)"
+                      target="_blank"
+                      class="p-2 bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl transition-all hover:scale-105 shrink-0 flex items-center justify-center"
+                      title="Cobrar via WhatsApp"
+                    >
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.448 4.75 1.45 5.5.003 9.975-4.475 9.978-9.982.001-2.67-1.03-5.183-2.9-7.058C16.545 1.7 14.053.67 11.98.67c-5.5 0-9.978 4.477-9.98 9.983-.001 1.848.48 3.655 1.396 5.23L2.38 21.6l5.728-1.503-1.46.857zm12.353-8.868c-.328-.164-1.94-.96-2.24-1.07-.3-.11-.52-.164-.74.164-.22.328-.85 1.07-1.04 1.29-.19.22-.38.246-.71.082-.33-.164-1.393-.512-2.653-1.636-1-.893-1.676-2-1.874-2.33-.197-.328-.02-.505.143-.67.147-.148.33-.383.493-.574.165-.19.22-.328.328-.547.11-.22.055-.41-.027-.574-.082-.164-.74-1.78-.102-2.16.22-.22.44-.246.66-.246.22 0 .44 0 .66.028.22.028.5.11.76.438.26.328 1 2.44 1.09 2.63.09.19.09.356 0 .52-.09.164-.19.328-.328.493-.164.164-.328.328-.493.438-.19.164-.38.356-.164.71.218.356.97 1.6 2.08 2.585 1.43 1.275 2.63 1.67 3.01 1.86.38.19.6.164.82-.082.22-.246.96-1.07 1.2-1.42.24-.356.5-.3.82-.136.328.164 2.08 1.01 2.44 1.176.356.164.6.246.68.383.082.137.082.8-.246 1.12z"/>
+                      </svg>
+                    </a>
+                    <!-- Copiar Lembrete -->
+                    <button 
+                      v-if="item.palpites_count < sortedMatches.length"
+                      @click="copyReminderText(item)"
+                      class="p-2 bg-white/5 border border-white/10 text-gray-400 hover:text-white rounded-xl transition-all hover:scale-105 shrink-0 flex items-center justify-center"
+                      title="Copiar Lembrete de Cobrança"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 4h6m-6 4h6m-6 4h6" />
+                      </svg>
+                    </button>
+                    <!-- Completo Feedback -->
+                    <div 
+                      v-else 
+                      class="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center"
+                      title="Palpites concluídos"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Atalhos do Painel (4/12) -->
+          <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 md:p-8 space-y-6">
+              <div>
+                <h3 class="font-bebas text-2xl text-white tracking-wider">Atalhos Administrativos</h3>
+                <p class="text-xs text-gray-400 mt-1">Gerencie os módulos da plataforma.</p>
+              </div>
+
+              <div class="grid grid-cols-1 gap-3">
+                <!-- Gerenciar Rodadas -->
+                <NuxtLink to="/admin/rodadas" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-danger-500/50 transition-all group">
+                  <div class="w-10 h-10 rounded-xl bg-danger-500/15 border border-danger-500/20 text-danger-400 flex items-center justify-center group-hover:bg-danger-500 group-hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="text-xs font-black uppercase text-white tracking-wider block">Gestão de Rodadas</span>
+                    <span class="text-[10px] text-gray-500">Prazos e partidas da rodada</span>
+                  </div>
+                </NuxtLink>
+
+                <!-- Gestão de Campeonatos -->
+                <NuxtLink to="/admin/campeonatos" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-danger-500/50 transition-all group">
+                  <div class="w-10 h-10 rounded-xl bg-danger-500/15 border border-danger-500/20 text-danger-400 flex items-center justify-center group-hover:bg-danger-500 group-hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="text-xs font-black uppercase text-white tracking-wider block">Campeonatos</span>
+                    <span class="text-[10px] text-gray-500">Ativação, regras e criação</span>
+                  </div>
+                </NuxtLink>
+
+                <!-- Acesso e Convidados -->
+                <NuxtLink to="/admin/emails" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-danger-500/50 transition-all group">
+                  <div class="w-10 h-10 rounded-xl bg-danger-500/15 border border-danger-500/20 text-danger-400 flex items-center justify-center group-hover:bg-danger-500 group-hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="text-xs font-black uppercase text-white tracking-wider block">Acesso & Convidados</span>
+                    <span class="text-[10px] text-gray-500">Lista VIP de e-mails autorizados</span>
+                  </div>
+                </NuxtLink>
+
+                <!-- Central de Pedidos -->
+                <NuxtLink to="/admin/solicitacoes" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-danger-500/50 transition-all group">
+                  <div class="w-10 h-10 rounded-xl bg-danger-500/15 border border-danger-500/20 text-danger-400 flex items-center justify-center group-hover:bg-danger-500 group-hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="text-xs font-black uppercase text-white tracking-wider block">Central de Pedidos</span>
+                    <span class="text-[10px] text-gray-500">Análise de solicitações de entrada</span>
+                  </div>
+                </NuxtLink>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
       </div>
-    </div>
+
+      <!-- 1.2 ADMIN SEM BOLÃO ATIVO (LOBBY) -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+        <div class="md:col-span-12">
+          <BaseCard variant="pitch" class="h-full">
+            <div v-if="profile" class="space-y-10">
+              <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                  <h1 class="text-2xl md:text-3xl font-bebas tracking-tight text-gray-900 dark:text-white mb-1">
+                    E AÍ, <span class="text-danger-400">{{ profile.nome.split(' ')[0] }}</span>!
+                  </h1>
+                  <div class="flex items-center gap-2">
+                    <div class="h-1.5 w-1.5 rounded-full animate-pulse bg-danger-500"></div>
+                    <p class="text-[9px] font-black uppercase tracking-widest text-danger-400">
+                      Status: Administrador Plataforma
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dashboard Overview Display -->
+              <div class="bg-white/[0.03] border border-danger-500/20 p-10 rounded-[2.5rem] flex flex-col sm:flex-row items-center gap-10 relative overflow-hidden group/admin hover:bg-danger-500/5 transition-all">
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-danger-500/20 rounded-full blur-[80px] opacity-0 group-hover/admin:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+                
+                 <div class="relative group/shield shrink-0">
+                   <div class="w-24 h-24 rounded-full bg-danger-500/10 flex items-center justify-center border border-danger-500/30 text-4xl font-bebas text-danger-400 shadow-inner">
+                      A
+                   </div>
+                </div>
+
+                <div class="flex-1 text-center sm:text-left relative z-10 space-y-2">
+                  <NuxtLink to="/admin" class="inline-flex items-center gap-2 px-3 py-1 bg-danger-500/10 rounded-full border border-danger-500/20 mb-2 hover:bg-danger-500/30 transition-colors">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-danger-400">Master Control</span>
+                  </NuxtLink>
+                  <h3 class="text-3xl font-bebas text-gray-900 dark:text-white tracking-[0.1em] group-hover/admin:text-danger-400 transition-colors">GERENCIAR BOLÕES</h3>
+                  <p class="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-500 dark:text-white/50 mt-2 flex items-center justify-center sm:justify-start gap-2">
+                     Crie ou edite novos campeonatos para a rede.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div v-else class="animate-pulse space-y-6 py-4">
+               <div class="h-10 bg-white/5 rounded-xl w-1/2"></div>
+               <div class="h-32 bg-white/5 rounded-[2rem]"></div>
+            </div>
+          </BaseCard>
+        </div>
+      </div>
+    </template>
 
     <!-- 2. PAINEL DO JOGADOR (Novo Dashboard Vivo e Engajador) -->
     <div v-else class="space-y-8">
@@ -84,7 +425,7 @@
                   :value="camp.id"
                   class="bg-[#1e1e1e] text-white"
                 >
-                  {{ camp.nome }}
+                  {{ camp.nome }}{{ camp.apelido_grupo ? ` (${camp.apelido_grupo})` : '' }}
                 </option>
               </select>
             </div>
@@ -351,7 +692,7 @@
     </div>
 
     <!-- HUB DE BOLÕES (Lobby) -->
-    <div class="space-y-6">
+    <div v-if="!campeonatoAtivo || !isAdmin" class="space-y-6">
        <div class="flex items-center gap-4 border-b border-gray-200 dark:border-white/10 pb-4">
           <div class="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-2xl shadow-lg">🏆</div>
           <div>
@@ -618,30 +959,190 @@ const handleRequestBolao = async (camp: any) => {
   }
 }
 
+// --- Módulo de Monitoramento do Administrador ---
+const adminMonitorLoading = ref(false)
+const adminMonitorError = ref<string | null>(null)
+const adminMonitorUsers = ref<Array<{
+  id: string
+  nome: string
+  email: string
+  telefone: string | null
+  time_nome: string | null
+  palpites_count: number
+}>>([])
+
+const searchQuery = ref('')
+const statusFilter = ref<'all' | 'pending' | 'completed'>('all')
+
+const fetchAdminMonitorData = async () => {
+  if (!campeonatoAtivo.value || !rodada.value) {
+    adminMonitorUsers.value = []
+    return
+  }
+
+  adminMonitorLoading.value = true
+  adminMonitorError.value = null
+
+  try {
+    // 1. Buscar os emails dos participantes que possuem acesso a este campeonato
+    const { data: acessos, error: acessosErr } = await supabase
+      .from('campeonato_acessos')
+      .select('email, time_id, times(nome)')
+      .eq('campeonato_id', campeonatoAtivo.value.id)
+
+    if (acessosErr) throw acessosErr
+    if (!acessos || acessos.length === 0) {
+      adminMonitorUsers.value = []
+      return
+    }
+
+    const emailsList = acessos.map(a => a.email.toLowerCase())
+
+    // 2. Buscar usuários correspondentes (apenas não-admins)
+    const { data: users, error: usersErr } = await supabase
+      .from('usuarios')
+      .select('id, nome, email, telefone')
+      .eq('is_admin', false)
+
+    if (usersErr) throw usersErr
+
+    // Filtrar apenas usuários válidos para este campeonato
+    const authorizedUsers = (users || []).filter(u => emailsList.includes(u.email.toLowerCase()))
+
+    if (authorizedUsers.length === 0) {
+      adminMonitorUsers.value = []
+      return
+    }
+
+    // 3. Buscar palpites feitos para as partidas da rodada ativa
+    const matchIds = sortedMatches.value.map(m => m.id)
+    let palpites: any[] = []
+
+    if (matchIds.length > 0) {
+      const { data: palpitesData, error: palpitesErr } = await supabase
+        .from('palpites')
+        .select('usuario_id, partida_id')
+        .in('partida_id', matchIds)
+
+      if (palpitesErr) throw palpitesErr
+      palpites = palpitesData || []
+    }
+
+    // 4. Mapear dados finais para monitoramento
+    adminMonitorUsers.value = authorizedUsers.map(user => {
+      const userAcesso = acessos.find(a => a.email.toLowerCase() === user.email.toLowerCase())
+      const userPalpites = palpites.filter(p => p.usuario_id === user.id)
+
+      return {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        telefone: user.telefone,
+        time_nome: (userAcesso?.times as any)?.nome || 'Sem Time',
+        palpites_count: userPalpites.length
+      }
+    })
+  } catch (err: any) {
+    console.error('Erro ao buscar dados de monitoramento:', err)
+    adminMonitorError.value = err.message || 'Erro ao carregar dados de monitoramento.'
+  } finally {
+    adminMonitorLoading.value = false
+  }
+}
+
+// Filtragem computada dos usuários monitorados
+const filteredMonitorUsers = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  const filter = statusFilter.value
+  const totalMatches = sortedMatches.value.length
+
+  return adminMonitorUsers.value.filter(user => {
+    // Filtro de Busca
+    const matchesSearch = !query || 
+      user.nome.toLowerCase().includes(query) || 
+      user.email.toLowerCase().includes(query)
+
+    if (!matchesSearch) return false
+
+    // Filtro de Status
+    if (filter === 'completed') {
+      return user.palpites_count === totalMatches
+    } else if (filter === 'pending') {
+      return user.palpites_count < totalMatches
+    }
+
+    return true
+  })
+})
+
+// Função para copiar texto do lembrete
+const copyReminderText = (user: any) => {
+  const total = sortedMatches.value.length
+  const faltam = total - user.palpites_count
+  const msg = `Fala ${user.nome.split(' ')[0]}! Passando para lembrar de dar seus palpites na Rodada ${rodada.value?.numero_rodada} do bolão ${campeonatoAtivo.value?.nome || ''}. Faltam ${faltam} jogo(s) para você palpitar! Acesse: https://maisbet.app/`
+  
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(msg)
+    toast.success(`Lembrete para ${user.nome.split(' ')[0]} copiado!`)
+  } else {
+    toast.error('Não foi possível copiar para a área de transferência.')
+  }
+}
+
+// Função para gerar link do WhatsApp
+const getWhatsAppLink = (user: any) => {
+  if (!user.telefone) return '#'
+  
+  const total = sortedMatches.value.length
+  const faltam = total - user.palpites_count
+  
+  // Limpar formatação do telefone mantendo apenas números
+  let cleanPhone = user.telefone.replace(/\D/g, '')
+  
+  // Se não começar com DDI (55) e tiver celular nacional, adiciona 55
+  if (cleanPhone.length >= 10 && cleanPhone.length <= 11 && !cleanPhone.startsWith('55')) {
+    cleanPhone = '55' + cleanPhone
+  }
+  
+  const text = encodeURIComponent(
+    `Fala ${user.nome.split(' ')[0]}! Passando para lembrar de dar seus palpites na Rodada ${rodada.value?.numero_rodada} do bolão ${campeonatoAtivo.value?.nome || ''}. Faltam ${faltam} jogo(s) para você palpitar! Jogue agora: https://maisbet.app/`
+  )
+  
+  return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${text}`
+}
+
 const enterBolao = (id: string) => {
     selecionarCampeonato(id)
-    router.push('/palpites')
+    if (!isAdmin.value) {
+      router.push('/palpites')
+    }
 }
 
 // Sincronizar dados do cliente ao montar ou ao alterar campeonato ativo
 onMounted(async () => {
   initActiveCampeonato()
-  if (campeonatoAtivo.value && !isAdmin.value) {
+  if (campeonatoAtivo.value) {
     selectedCampId.value = campeonatoAtivo.value.id
     await Promise.all([
       fetchRanking(),
       fetchInitialData()
     ])
+    if (isAdmin.value) {
+      await fetchAdminMonitorData()
+    }
   }
 })
 
 watch(campeonatoAtivo, async (newCamp) => {
-  if (process.client && newCamp && !isAdmin.value) {
+  if (process.client && newCamp) {
     selectedCampId.value = newCamp.id
     await Promise.all([
       fetchRanking(),
       fetchInitialData()
     ])
+    if (isAdmin.value) {
+      await fetchAdminMonitorData()
+    }
   }
 }, { immediate: true })
 
