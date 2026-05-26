@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
       .not('time_id', 'is', null)
 
     const userTeamIds = new Set(
-      acessosData?.map((a: any) => a.times?.api_team_id).filter(Boolean) || []
+      acessosData?.map((a: any) => Array.isArray(a.times) ? a.times[0]?.api_team_id : a.times?.api_team_id).filter(Boolean) || []
     )
 
     let mandatoryMatchesCount = 0

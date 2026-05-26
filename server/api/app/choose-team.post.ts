@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
         .not('time_id', 'is', null)
 
       const userTeamIds = new Set(
-        acessos?.map((a: any) => a.times?.api_team_id).filter(Boolean) || []
+        acessos?.map((a: any) => Array.isArray(a.times) ? a.times[0]?.api_team_id : a.times?.api_team_id).filter(Boolean) || []
       )
 
       if (userTeamIds.size > 0) {

@@ -106,16 +106,16 @@ const viewUser = computed(() =>
       </div>
 
       <!-- Table -->
-      <div class="overflow-x-auto hide-scrollbar flex-1">
+      <div class="overflow-x-auto flex-1 custom-scrollbar">
         <table class="w-full text-left border-collapse min-w-full">
-          <thead class="sticky top-0 bg-pitch-900 z-10">
+          <thead class="sticky top-0 bg-pitch-900 z-30">
             <tr>
-              <th class="px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 w-40">Jogo</th>
-              <th class="px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-white/40">Placar Real</th>
+              <th class="sticky left-0 z-20 bg-pitch-900 px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 w-40">Jogo</th>
+              <th class="sticky left-40 z-20 bg-pitch-900 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-white/40 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5">Placar Real</th>
               <th 
                 v-for="u in activeUsers" 
                 :key="u.usuario_id"
-                class="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-center max-w-[100px]"
+                class="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-center min-w-[90px] max-w-[100px]"
                 :class="u.usuario_id === currentUserId ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-white/40'"
               >
                 {{ u.nome.split(' ')[0] }}
@@ -129,7 +129,7 @@ const viewUser = computed(() =>
               class="hover:bg-white/[0.03] transition-colors group"
             >
               <!-- Match Name -->
-              <td class="px-5 py-3.5">
+              <td class="sticky left-0 z-10 bg-[#fbfbfb] dark:bg-pitch-900 group-hover:bg-gray-100 dark:group-hover:bg-[#1a1a1a] px-5 py-3.5 transition-colors">
                 <div class="flex items-center gap-2 text-sm font-semibold leading-none">
                   <span class="text-gray-800 dark:text-white/90 whitespace-nowrap">{{ abbrev(match.time_casa) }}</span>
                   <span class="text-gray-400 dark:text-white/30 text-xs">x</span>
@@ -138,7 +138,7 @@ const viewUser = computed(() =>
               </td>
 
               <!-- Real Score -->
-              <td class="px-4 py-3.5">
+              <td class="sticky left-40 z-10 bg-[#fbfbfb] dark:bg-pitch-900 group-hover:bg-gray-100 dark:group-hover:bg-[#1a1a1a] px-4 py-3.5 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5 transition-colors">
                 <div class="flex items-center gap-1">
                   <span v-if="match.status === 'finalizado'" class="font-bebas text-base text-brand-600 dark:text-brand-400 leading-none pt-0.5">
                     {{ match.gols_casa }} × {{ match.gols_fora }}
@@ -171,13 +171,13 @@ const viewUser = computed(() =>
           </tbody>
 
           <!-- Footer: SOMA -->
-          <tfoot>
-            <tr class="border-t-2 border-brand-500/20 bg-brand-500/5">
-              <td class="px-5 py-4 font-bebas text-xl text-brand-600 dark:text-brand-400 tracking-widest uppercase">
+          <tfoot class="sticky bottom-0 z-20">
+            <tr class="border-t-2 border-brand-500/20 bg-brand-500/5 backdrop-blur-md">
+              <td class="sticky left-0 z-10 bg-[#fbfbfb] dark:bg-pitch-900 px-5 py-4 font-bebas text-xl text-brand-600 dark:text-brand-400 tracking-widest uppercase">
                 <span class="text-[9px] font-sans font-black text-brand-600/50 dark:text-white/20 block leading-none mb-0.5">Total</span>
                 SOMA
               </td>
-              <td></td>
+              <td class="sticky left-40 z-10 bg-[#fbfbfb] dark:bg-pitch-900 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5"></td>
               <td 
                 v-for="u in activeUsers" 
                 :key="u.usuario_id"
@@ -195,6 +195,20 @@ const viewUser = computed(() =>
 </template>
 
 <style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

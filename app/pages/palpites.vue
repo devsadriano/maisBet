@@ -249,7 +249,11 @@ const handleSave = async () => {
     if (result && result.success) {
         toastSuccess('🎯 Palpites salvos com sucesso! Boa sorte!')
     } else if (result) {
-        toastError('Erro ao salvar: ' + result.message)
+        let msg = result.message || ''
+        if (msg.includes('row-level security') || msg.includes('policy')) {
+          msg = 'Aguarde a escolha do organizador! A rodada ainda não está aberta para palpitar.'
+        }
+        toastError('Erro ao salvar: ' + msg)
     }
 }
 

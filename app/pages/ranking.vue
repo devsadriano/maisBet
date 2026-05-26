@@ -85,7 +85,7 @@
             />
           </div>
 
-          <div class="min-w-0 overflow-x-auto">
+          <div class="min-w-0">
             <RankingMatrixTable 
               :active-users="activeUsers"
               :matches="matches"

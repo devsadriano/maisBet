@@ -46,13 +46,13 @@ export default defineEventHandler(async (event) => {
     .not('time_id', 'is', null)
 
   const userTeamIds = new Set(
-    acessosData?.map((a: any) => a.times?.api_team_id).filter(Boolean) || []
+    acessosData?.map((a: any) => Array.isArray(a.times) ? a.times[0]?.api_team_id : a.times?.api_team_id).filter(Boolean) || []
   )
 
-  // Buscar partidas da rodada para contar confrontos
+  // Buscar partidas da rodada para contar confrontos e marcar obrigatórios depois
   const { data: partidasRodada } = await supabase
     .from('partidas')
-    .select('api_team_home_id, api_team_away_id')
+    .select('id, api_team_home_id, api_team_away_id')
     .eq('rodada_id', rodada_id)
 
   let confrontations = 0
@@ -80,19 +80,7 @@ export default defineEventHandler(async (event) => {
         .filter(Boolean)
 
       if (mandatoryIds.length > 0) {
-        // Need to get the actual IDs from partidas table
-        const { data: partidasComId } = await supabase
-          .from('partidas')
-          .select('id, api_team_home_id, api_team_away_id')
-          .eq('rodada_id', rodada_id)
-
-        const mandatoryMatchIds = partidasComId
-          ?.filter((p: any) => userTeamIds.has(p.api_team_home_id) || userTeamIds.has(p.api_team_away_id))
-          .map((p: any) => p.id) || []
-
-        if (mandatoryMatchIds.length > 0) {
-          await supabase.from('partidas').update({ is_mandatory: true }).in('id', mandatoryMatchIds)
-        }
+        await supabase.from('partidas').update({ is_mandatory: true }).in('id', mandatoryIds)
       }
     }
 

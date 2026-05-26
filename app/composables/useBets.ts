@@ -119,16 +119,28 @@ export const useBets = () => {
         // O cast na chamada upsert abaixo é restrito ao bug de inferência do SupabaseClient.
         type PalpiteInsert = Database['public']['Tables']['palpites']['Insert']
         
-        const payloads: PalpiteInsert[] = Object.keys(bets.value).map(pId => {
-            const entry = bets.value[pId]
-            return {
-                ...(entry?.id ? { id: entry.id } : {}),
-                usuario_id: currentProfile.id,
-                partida_id: pId,
-                gols_casa_bet: entry?.gols_casa_bet || 0,
-                gols_fora_bet: entry?.gols_fora_bet || 0
-            }
-        })
+        const payloads: PalpiteInsert[] = Object.keys(bets.value)
+            .filter(pId => {
+                const partida = rodada.value?.partidas.find((p: any) => p.id === pId)
+                if (!partida) return false
+                // Apenas permite salvar se a partida estiver no futuro (não iniciada)
+                return new Date(partida.data_partida).getTime() > new Date().getTime()
+            })
+            .map(pId => {
+                const entry = bets.value[pId]
+                return {
+                    ...(entry?.id ? { id: entry.id } : {}),
+                    usuario_id: currentProfile.id,
+                    partida_id: pId,
+                    gols_casa_bet: entry?.gols_casa_bet || 0,
+                    gols_fora_bet: entry?.gols_fora_bet || 0
+                }
+            })
+
+        if (payloads.length === 0) {
+            salvando.value = false
+            return { success: true }
+        }
 
         try {
             const { error } = await (supabase.from('palpites') as any)
