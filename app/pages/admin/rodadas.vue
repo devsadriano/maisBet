@@ -459,7 +459,10 @@ async function fetchCronStatus() {
 
 // Watch championship selection
 watch(selectedChampionshipId, () => {
+    pendingOrganizer.value = {}
+    pendingStatus.value = {}
     fetchRodadas()
+    fetchUsuarios()
 })
 
 // -- State Menu Dropdowns --
@@ -611,8 +614,47 @@ async function fetchRodadas() {
 }
 
 async function fetchUsuarios() {
-  const { data } = await supabase.from('usuarios').select('id, nome').order('nome')
-  if (data) usuarios.value = data
+  if (!selectedChampionshipId.value) {
+    usuarios.value = []
+    return
+  }
+
+  try {
+    // 1. Buscar os emails dos participantes com acesso a este campeonato
+    const { data: acessos } = await supabase
+      .from('campeonato_acessos')
+      .select('email')
+      .eq('campeonato_id', selectedChampionshipId.value)
+
+    if (acessos && acessos.length > 0) {
+      const emailsList = acessos.map(a => a.email.toLowerCase())
+      
+      // 2. Buscar usuários correspondentes
+      const { data: users } = await supabase
+        .from('usuarios')
+        .select('id, nome, email, is_admin')
+        .in('email', emailsList)
+        .order('nome')
+
+      if (users) {
+        usuarios.value = users
+        return
+      }
+    }
+
+    // Fallback: se não houver acessos registrados para o campeonato, 
+    // busca todos os usuários do sistema (como o banco de dados faz)
+    const { data: allUsers } = await supabase
+      .from('usuarios')
+      .select('id, nome, email, is_admin')
+      .order('nome')
+
+    if (allUsers) {
+      usuarios.value = allUsers
+    }
+  } catch (err) {
+    console.error('Erro ao buscar usuários do campeonato:', err)
+  }
 }
 
 onMounted(async () => {
@@ -620,7 +662,6 @@ onMounted(async () => {
   if (!selectedChampionshipId.value) {
     loading.value = false
   }
-  await fetchUsuarios()
   fetchCronStatus()
 })
 
