@@ -228,7 +228,7 @@
             </div>
 
             <!-- Grid de Confrontos -->
-            <div v-else-if="quickMatches.length > 0" class="divide-y divide-white/5">
+            <div v-else-if="quickMatches.length > 0" class="divide-y divide-white/5 max-h-[550px] overflow-y-auto pr-1">
               <BetMatchCard 
                 v-for="jogo in quickMatches" 
                 :key="jogo.id"
@@ -555,12 +555,11 @@ const isPalpitesFechados = computed(() => {
   return !rodada.value || (rodada.value.status !== 'aberta' && rodada.value.status !== 'aguardando_escolha')
 })
 
-// Próximos 3 confrontos pendentes/não iniciados da rodada
+// Todos os confrontos pendentes/não iniciados da rodada
 const quickMatches = computed(() => {
   if (!sortedMatches.value) return []
   return sortedMatches.value
     .filter(m => new Date(m.data_partida).getTime() > new Date().getTime())
-    .slice(0, 3)
 })
 
 // Salvar palpites rápidos diretamente da tela inicial
