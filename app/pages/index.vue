@@ -94,19 +94,19 @@
               <!-- Cabeçalho do Monitoramento -->
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
                 <div>
-                  <h3 class="font-bebas text-2xl text-white tracking-wider flex items-center gap-2">
-                    📊 Monitoramento de Palpites
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-bebas text-2xl text-white tracking-wider">📊 Monitoramento de Palpites</h3>
                     <button 
                       @click="fetchAdminMonitorData" 
                       :disabled="adminMonitorLoading"
-                      class="text-gray-400 hover:text-white transition-all text-sm p-1.5 hover:bg-white/5 rounded-lg"
+                      class="text-gray-400 hover:text-white transition-all p-1 hover:bg-white/5 rounded-lg flex items-center justify-center shrink-0"
                       title="Atualizar dados"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': adminMonitorLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18v3" />
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="{ 'animate-spin': adminMonitorLoading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                       </svg>
                     </button>
-                  </h3>
+                  </div>
                   <p class="text-xs text-gray-400 mt-1">Gerencie a participação dos usuários nesta rodada.</p>
                 </div>
 
@@ -227,19 +227,17 @@
                         :style="{ width: `${(item.palpites_count / sortedMatches.length) * 100}%` }"
                       />
                     </div>
-                  </div>
-
-                  <!-- Botões de Ação para cobrar -->
+                      <!-- Botões de Ação para cobrar -->
                   <div class="flex items-center gap-2">
                     <!-- WhatsApp Cobrança (Apenas se tiver palpites pendentes) -->
                     <a 
                       v-if="item.palpites_count < sortedMatches.length && item.telefone"
                       :href="getWhatsAppLink(item)"
                       target="_blank"
-                      class="p-2 bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-xl transition-all hover:scale-105 shrink-0 flex items-center justify-center"
+                      class="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 hover:border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-full transition-all hover:scale-105 shrink-0 flex items-center justify-center"
                       title="Cobrar via WhatsApp"
                     >
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.18 1.448 4.75 1.45 5.5.003 9.975-4.475 9.978-9.982.001-2.67-1.03-5.183-2.9-7.058C16.545 1.7 14.053.67 11.98.67c-5.5 0-9.978 4.477-9.98 9.983-.001 1.848.48 3.655 1.396 5.23L2.38 21.6l5.728-1.503-1.46.857zm12.353-8.868c-.328-.164-1.94-.96-2.24-1.07-.3-.11-.52-.164-.74.164-.22.328-.85 1.07-1.04 1.29-.19.22-.38.246-.71.082-.33-.164-1.393-.512-2.653-1.636-1-.893-1.676-2-1.874-2.33-.197-.328-.02-.505.143-.67.147-.148.33-.383.493-.574.165-.19.22-.328.328-.547.11-.22.055-.41-.027-.574-.082-.164-.74-1.78-.102-2.16.22-.22.44-.246.66-.246.22 0 .44 0 .66.028.22.028.5.11.76.438.26.328 1 2.44 1.09 2.63.09.19.09.356 0 .52-.09.164-.19.328-.328.493-.164.164-.328.328-.493.438-.19.164-.38.356-.164.71.218.356.97 1.6 2.08 2.585 1.43 1.275 2.63 1.67 3.01 1.86.38.19.6.164.82-.082.22-.246.96-1.07 1.2-1.42.24-.356.5-.3.82-.136.328.164 2.08 1.01 2.44 1.176.356.164.6.246.68.383.082.137.082.8-.246 1.12z"/>
                       </svg>
                     </a>
@@ -247,23 +245,24 @@
                     <button 
                       v-if="item.palpites_count < sortedMatches.length"
                       @click="copyReminderText(item)"
-                      class="p-2 bg-white/5 border border-white/10 text-gray-400 hover:text-white rounded-xl transition-all hover:scale-105 shrink-0 flex items-center justify-center"
+                      class="w-10 h-10 bg-white/5 border border-white/10 hover:border-white/20 text-gray-400 hover:text-white rounded-full transition-all hover:scale-105 shrink-0 flex items-center justify-center"
                       title="Copiar Lembrete de Cobrança"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-5 4h6m-6 4h6m-6 4h6" />
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
                     </button>
                     <!-- Completo Feedback -->
                     <div 
                       v-else 
-                      class="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center"
+                      class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0"
                       title="Palpites concluídos"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
+                  </div>
                   </div>
                 </div>
               </div>
@@ -1138,14 +1137,18 @@ onMounted(async () => {
 })
 
 watch(campeonatoAtivo, async (newCamp) => {
-  if (process.client && newCamp) {
-    selectedCampId.value = newCamp.id
-    await Promise.all([
-      fetchRanking(),
-      fetchInitialData()
-    ])
-    if (isAdmin.value) {
-      await fetchAdminMonitorData()
+  if (process.client) {
+    if (newCamp) {
+      selectedCampId.value = newCamp.id
+      await Promise.all([
+        fetchRanking(),
+        fetchInitialData()
+      ])
+      if (isAdmin.value) {
+        await fetchAdminMonitorData()
+      }
+    } else {
+      selectedCampId.value = ''
     }
   }
 }, { immediate: true })

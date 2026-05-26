@@ -126,6 +126,15 @@ export const useCampeonato = () => {
   }
 
   const selecionarCampeonato = (id: string) => {
+    if (!id) {
+      campeonatoAtivo.value = null
+      currentAcesso.value = null
+      if (process.client) {
+         localStorage.removeItem('bolao_ativo_id')
+      }
+      return
+    }
+
     const target = campeonatos.value.find(c => c.id === id)
     if (target) {
       campeonatoAtivo.value = target
