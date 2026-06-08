@@ -32,8 +32,18 @@
           <p class="text-xs text-gray-500">
             Criado em: {{ new Date(camp.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
           </p>
-          <div class="mt-4 p-3 bg-black/20 rounded-lg text-xs text-gray-300">
-            Regras de Box: <span class="font-bold text-[var(--brand)]">{{ camp.scoring_systems?.nome || 'Padrão' }}</span>
+          <div class="mt-4 p-3 bg-black/20 rounded-lg text-xs text-gray-300 flex items-center justify-between gap-2">
+            <span>Regras de Box: <span class="font-bold text-[var(--brand)]">{{ camp.scoring_systems?.nome || 'Padrão' }}</span></span>
+            <button
+              @click="toggleFormato(camp)"
+              :title="'Formato atual: ' + (camp.formato || 'liga') + ' — clique para alternar'"
+              class="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded border transition-colors shrink-0"
+              :class="camp.formato === 'copa'
+                ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30'
+                : 'bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30'"
+            >
+              {{ camp.formato === 'copa' ? '🌍 Copa' : '🏟️ Liga' }}
+            </button>
           </div>
         </div>
         
@@ -135,6 +145,20 @@ const deletarBolao = async (id: string) => {
     if(!confirm('Excluir Campeonato? Irreversível.')) return
     await supabase.from('campeonatos').delete().eq('id', id)
     fetchDados()
+}
+
+const toggleFormato = async (camp: any) => {
+  const novoFormato = camp.formato === 'copa' ? 'liga' : 'copa'
+  const { error } = await supabase
+    .from('campeonatos')
+    .update({ formato: novoFormato })
+    .eq('id', camp.id)
+  if (!error) {
+    camp.formato = novoFormato
+    toast.success(`Formato de "${camp.nome}" alterado para ${novoFormato === 'copa' ? '🌍 Copa' : '🏟️ Liga'}`)
+  } else {
+    toast.error('Erro ao atualizar formato: ' + error.message)
+  }
 }
 
 const iniciarBolao = async (id: string) => {

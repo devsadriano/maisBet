@@ -828,7 +828,7 @@ const router = useRouter()
 const toast = useToast()
 
 const isAdmin = computed(() => profile.value?.is_admin === true)
-const { campeonatos, campeonatoAtivo, selecionarCampeonato } = useCampeonato()
+const { campeonatos, campeonatoAtivo, selecionarCampeonato, isCopaAtivo } = useCampeonato()
 const { solicitarAcessoBolao } = useSolicitacoes()
 
 // Composables de dados do Dashboard
@@ -888,7 +888,7 @@ const userAproveitamento = computed(() => {
 
 // Status auxiliares de rodada
 const isAguardandoEscolha = computed(() => {
-  return rodada.value?.status === 'aguardando_escolha' && campeonatoAtivo.value?.formato !== 'copa'
+  return rodada.value?.status === 'aguardando_escolha' && !isCopaAtivo.value
 })
 
 const isPalpitesFechados = computed(() => {

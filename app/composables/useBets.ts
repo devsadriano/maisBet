@@ -17,7 +17,7 @@ interface BetEntry {
 export const useBets = () => {
     const supabase = useSupabaseClient<Database>()
     const { profile } = useAuth()
-    const { campeonatoAtivo } = useCampeonato()
+    const { campeonatoAtivo, isCopaAtivo } = useCampeonato()
     
     const rodada = ref<RoundWithMatches | null>(null)
     const loading = ref(true)
@@ -55,7 +55,7 @@ export const useBets = () => {
             rodada.value = r as unknown as RoundWithMatches
 
             // Show mandatory + extra games. If none are flagged, show ALL games (e.g. World Cup format)
-            const isCopa = campeonatoAtivo.value?.formato === 'copa'
+            const isCopa = isCopaAtivo.value
             const hasFlags = rodada.value.partidas.some((p: Match) => p.is_mandatory || p.is_extra)
             const validMatches = (hasFlags && !isCopa)
               ? rodada.value.partidas.filter((p: Match) => p.is_mandatory || p.is_extra)
@@ -176,7 +176,7 @@ export const useBets = () => {
     const sortedMatches = computed(() => {
         const currentRound = rodada.value
         if (!currentRound?.partidas) return []
-        const isCopa = campeonatoAtivo.value?.formato === 'copa'
+        const isCopa = isCopaAtivo.value
         const hasFlags = currentRound.partidas.some(p => p.is_mandatory || p.is_extra)
         const filtered = (hasFlags && !isCopa)
           ? currentRound.partidas.filter(p => p.is_mandatory || p.is_extra)

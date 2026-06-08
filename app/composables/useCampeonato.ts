@@ -25,6 +25,27 @@ export const useCampeonato = () => {
     return campeonatoAtivo.value.scoring_system.regras
   })
 
+  // Helper centralizado para detectar se o campeonato ativo é formato Copa
+  const isCopaAtivo = computed(() => {
+    if (!campeonatoAtivo.value) return false
+    
+    // Campo formato explícito
+    if (campeonatoAtivo.value.formato === 'copa') return true
+    if (campeonatoAtivo.value.formato === 'liga') return false
+
+    // Fallbacks (API code ou palavras-chave no nome)
+    const COPA_CODES = ['WC', 'EC', 'CAF', 'AFC', 'CONC', 'OFC', 'CAN', 'CLI', 'CWC']
+    const COPA_NAME_KEYWORDS = ['world cup', 'copa do mundo', 'copa mundial', 'copa america', 'eurocopa', 'nations cup', 'african cup', 'gold cup', 'continental']
+
+    const code = (campeonatoAtivo.value.api_competition_code || '').toUpperCase()
+    if (code && COPA_CODES.some(c => code === c || code.startsWith(c))) return true
+
+    const nome = (campeonatoAtivo.value.nome || '').toLowerCase()
+    if (COPA_NAME_KEYWORDS.some(k => nome.includes(k))) return true
+
+    return false
+  })
+
   const fetchCampeonatos = async (force = false) => {
     // Evita refetch se já temos dados para a UI ficar mais rápida
     if (campeonatos.value.length > 0 && !force) return
@@ -163,6 +184,7 @@ export const useCampeonato = () => {
     campeonatoAtivo,
     currentAcesso,
     scoringSystem,
+    isCopaAtivo,
     loading,
     fetchCampeonatos,
     selecionarCampeonato,

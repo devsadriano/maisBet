@@ -159,66 +159,73 @@
           <!-- Col 1: Organizador -->
           <div class="p-6">
             <div class="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-3">Organizador</div>
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center font-bebas text-lg text-brand-400 shrink-0">
-                {{ r.organizador?.nome?.[0]?.toUpperCase() || '?' }}
-              </div>
-              <div>
-                <div class="text-white font-semibold text-sm leading-tight">{{ r.organizador?.nome || 'Não definido' }}</div>
-                <span v-if="isAtrasado(r)" class="text-[9px] text-red-400 font-black uppercase tracking-widest animate-pulse">⚠️ Prazo Esgotado</span>
-                <span v-else class="text-[10px] text-gray-500">Organizador(a)</span>
-              </div>
+            <div v-if="isCopaSelected" class="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 text-center text-xs">
+              <span class="text-xl mb-1 block">🌍</span>
+              <p class="text-amber-400 font-black uppercase tracking-wider text-[10px]">Formato Copa</p>
+              <p class="text-gray-400 mt-1 leading-normal">Sem organizador. Todos os jogos entram para palpite automaticamente.</p>
             </div>
-            <!-- Trocar Organizador Customizado -->
-            <div v-if="r.status === 'aguardando_escolha' || r.status === 'aberta'" class="mt-4 relative z-50">
-              <div class="flex items-center gap-2">
-                <button 
-                  @click="toggleDropdown('org-' + r.id)"
-                  class="flex-1 min-w-0 flex items-center justify-between bg-white/5 border border-white/10 text-gray-400 text-xs rounded-xl px-3 py-2.5 outline-none hover:border-brand-500/50 hover:bg-white/[0.08] transition-all text-left group"
-                >
-                  <span class="truncate" :class="pendingOrganizer[r.id] ? 'text-brand-400 font-bold' : ''">
-                    {{ getPendingOrgName(r.id) || '🔄 Trocar Organizador...' }}
-                  </span>
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:text-brand-400" :class="openDropdown === 'org-' + r.id ? 'rotate-180 text-brand-400' : ''" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </button>
-                <button 
-                  v-if="pendingOrganizer[r.id] && pendingOrganizer[r.id] !== r.organizer_id"
-                  @click="confirmUpdateOrganizer(r.id, pendingOrganizer[r.id] || '')"
-                  class="bg-brand-500 hover:bg-brand-400 text-white font-bold text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-brand-500/20 active:scale-95 shrink-0"
-                >
-                  Salvar
-                </button>
-              </div>
-
-              <!-- Menu Suspenso Organizador -->
-              <div v-if="openDropdown === 'org-' + r.id" class="absolute left-0 w-full mt-2 bg-pitch-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden py-2 animate-fade-in-up max-h-48 overflow-y-auto hide-scrollbar z-50">
-                <div class="px-3 pb-1 mb-1 border-b border-white/5 text-[9px] uppercase font-black text-gray-500 tracking-widest">
-                  Escolha na lista
+            <template v-else>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center font-bebas text-lg text-brand-400 shrink-0">
+                  {{ r.organizador?.nome?.[0]?.toUpperCase() || '?' }}
                 </div>
-                <button 
-                  class="w-full text-left px-3 py-2 text-xs text-gray-400 hover:text-white hover:bg-white/5"
-                  @click="pendingOrganizer[r.id] = ''; toggleDropdown('org-' + r.id)"
-                >
-                  <span class="opacity-50 font-mono">-- Cancelar Troca --</span>
-                </button>
-                <button 
-                  v-for="u in usuarios" :key="u.id" 
-                  :disabled="u.id === r.organizer_id"
-                  class="w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors flex items-center justify-between"
-                  :class="[
-                    u.id === r.organizer_id ? 'text-gray-400 cursor-not-allowed bg-black/20' : 'text-white', 
-                    pendingOrganizer[r.id] === u.id ? 'bg-brand-500/10 text-brand-400 font-bold' : ''
-                  ]"
-                  @click="pendingOrganizer[r.id] = u.id; toggleDropdown('org-' + r.id)"
-                >
-                  <span class="truncate max-w-[124px]">{{ u.nome }}</span>
-                  <span v-if="u.id === r.organizer_id" class="text-[9px] font-bold uppercase tracking-widest text-gray-500">Atual</span>
-                  <span v-if="pendingOrganizer[r.id] === u.id" class="text-brand-400 text-[10px] uppercase font-bold tracking-widest">✔ Sel</span>
-                </button>
+                <div>
+                  <div class="text-white font-semibold text-sm leading-tight">{{ r.organizador?.nome || 'Não definido' }}</div>
+                  <span v-if="isAtrasado(r)" class="text-[9px] text-red-400 font-black uppercase tracking-widest animate-pulse">⚠️ Prazo Esgotado</span>
+                  <span v-else class="text-[10px] text-gray-500">Organizador(a)</span>
+                </div>
               </div>
-            </div>
+              <!-- Trocar Organizador Customizado -->
+              <div v-if="r.status === 'aguardando_escolha' || r.status === 'aberta'" class="mt-4 relative z-50">
+                <div class="flex items-center gap-2">
+                  <button 
+                    @click="toggleDropdown('org-' + r.id)"
+                    class="flex-1 min-w-0 flex items-center justify-between bg-white/5 border border-white/10 text-gray-400 text-xs rounded-xl px-3 py-2.5 outline-none hover:border-brand-500/50 hover:bg-white/[0.08] transition-all text-left group"
+                  >
+                    <span class="truncate" :class="pendingOrganizer[r.id] ? 'text-brand-400 font-bold' : ''">
+                      {{ getPendingOrgName(r.id) || '🔄 Trocar Organizador...' }}
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:text-brand-400" :class="openDropdown === 'org-' + r.id ? 'rotate-180 text-brand-400' : ''" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                  <button 
+                    v-if="pendingOrganizer[r.id] && pendingOrganizer[r.id] !== r.organizer_id"
+                    @click="confirmUpdateOrganizer(r.id, pendingOrganizer[r.id] || '')"
+                    class="bg-brand-500 hover:bg-brand-400 text-white font-bold text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-brand-500/20 active:scale-95 shrink-0"
+                  >
+                    Salvar
+                  </button>
+                </div>
+
+                <!-- Menu Suspenso Organizador -->
+                <div v-if="openDropdown === 'org-' + r.id" class="absolute left-0 w-full mt-2 bg-pitch-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden py-2 animate-fade-in-up max-h-48 overflow-y-auto hide-scrollbar z-50">
+                  <div class="px-3 pb-1 mb-1 border-b border-white/5 text-[9px] uppercase font-black text-gray-500 tracking-widest">
+                    Escolha na lista
+                  </div>
+                  <button 
+                    class="w-full text-left px-3 py-2 text-xs text-gray-400 hover:text-white hover:bg-white/5"
+                    @click="pendingOrganizer[r.id] = ''; toggleDropdown('org-' + r.id)"
+                  >
+                    <span class="opacity-50 font-mono">-- Cancelar Troca --</span>
+                  </button>
+                  <button 
+                    v-for="u in usuarios" :key="u.id" 
+                    :disabled="u.id === r.organizer_id"
+                    class="w-full text-left px-3 py-2 text-xs hover:bg-white/5 transition-colors flex items-center justify-between"
+                    :class="[
+                      u.id === r.organizer_id ? 'text-gray-400 cursor-not-allowed bg-black/20' : 'text-white', 
+                      pendingOrganizer[r.id] === u.id ? 'bg-brand-500/10 text-brand-400 font-bold' : ''
+                    ]"
+                    @click="pendingOrganizer[r.id] = u.id; toggleDropdown('org-' + r.id)"
+                  >
+                    <span class="truncate max-w-[124px]">{{ u.nome }}</span>
+                    <span v-if="u.id === r.organizer_id" class="text-[9px] font-bold uppercase tracking-widest text-gray-500">Atual</span>
+                    <span v-if="pendingOrganizer[r.id] === u.id" class="text-brand-400 text-[10px] uppercase font-bold tracking-widest">✔ Sel</span>
+                  </button>
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- Col 2: Prazos -->
@@ -226,7 +233,7 @@
             <div class="text-[10px] uppercase font-black tracking-[0.2em] text-gray-500 mb-3">Prazos de Controle</div>
             <div class="space-y-3">
               <!-- Organizador Deadline -->
-              <div class="flex items-start gap-3 p-3 rounded-xl bg-black/20 border border-white/5" :class="isAtrasado(r) ? 'border-red-500/20 bg-red-500/5' : ''">
+              <div v-if="!isCopaSelected" class="flex items-start gap-3 p-3 rounded-xl bg-black/20 border border-white/5" :class="isAtrasado(r) ? 'border-red-500/20 bg-red-500/5' : ''">
                 <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" :class="isAtrasado(r) ? 'bg-red-500/20' : 'bg-white/5'">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" :class="isAtrasado(r) ? 'text-red-400' : 'text-gray-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -288,7 +295,7 @@
                     <span class="opacity-50 font-mono">-- Desfazer --</span>
                   </button>
                   <button 
-                    v-for="s in statusOptions" :key="s.value"
+                    v-for="s in filteredStatusOptions" :key="s.value"
                     class="w-full text-left px-4 py-2 text-xs hover:bg-white/5 transition-colors flex items-center justify-between"
                     :class="[
                        s.value === r.status ? 'text-gray-400 bg-black/20 cursor-not-allowed' : 'text-white',
@@ -402,6 +409,34 @@ const selectedChampionship = computed(() => {
 
 const selectedCompetitionCode = computed(() => {
   return selectedChampionship.value?.api_competition_code || ''
+})
+
+// Auto-detecta se o campeonato selecionado na administração é formato Copa
+const isCopaSelected = computed(() => {
+  const camp = selectedChampionship.value
+  if (!camp) return false
+  
+  if (camp.formato === 'copa') return true
+  if (camp.formato === 'liga') return false
+
+  // Fallbacks
+  const COPA_CODES = ['WC', 'EC', 'CAF', 'AFC', 'CONC', 'OFC', 'CAN', 'CLI', 'CWC']
+  const COPA_NAME_KEYWORDS = ['world cup', 'copa do mundo', 'copa mundial', 'copa america', 'eurocopa', 'nations cup', 'african cup', 'gold cup', 'continental']
+
+  const code = (camp.api_competition_code || '').toUpperCase()
+  if (code && COPA_CODES.some(c => code === c || code.startsWith(c))) return true
+
+  const nome = (camp.nome || '').toLowerCase()
+  if (COPA_NAME_KEYWORDS.some(k => nome.includes(k))) return true
+
+  return false
+})
+
+const filteredStatusOptions = computed(() => {
+  if (isCopaSelected.value) {
+    return statusOptions.filter(o => o.value !== 'aguardando_escolha')
+  }
+  return statusOptions
 })
 
 const rodadas = ref<any[]>([])

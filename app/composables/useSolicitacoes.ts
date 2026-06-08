@@ -44,7 +44,7 @@ export const useSolicitacoes = () => {
     loading.value = true
     let query = supabase
       .from('solicitacoes')
-      .select('*, campeonato:campeonatos(id, nome, logo_url)')
+      .select('*, campeonato:campeonatos(id, nome, logo_url, apelido_grupo)')
       .order('created_at', { ascending: false })
 
     if (statusFilter && statusFilter !== 'todas') {

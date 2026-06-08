@@ -48,7 +48,7 @@
       </div>
 
       <!-- Aguardando Escolha State (LIGA ONLY) -->
-      <div v-else-if="rodada && rodada.status === 'aguardando_escolha' && campeonatoAtivo.formato !== 'copa'" class="animate-fade-in-up">
+      <div v-else-if="rodada && rodada.status === 'aguardando_escolha' && !isCopa" class="animate-fade-in-up">
         <BaseCard class="text-center">
             <div class="py-10">
                 <!-- Organizer View -->
@@ -114,7 +114,7 @@
         </BetHeader>
 
         <!-- Special Bets (Copa Only) -->
-        <div v-if="campeonatoAtivo.formato === 'copa'" class="animate-fade-in-up">
+        <div v-if="isCopa" class="animate-fade-in-up">
           <SpecialBetsCard :campeonato-id="campeonatoAtivo.id" :is-locked="locked" />
         </div>
 
@@ -130,7 +130,7 @@
                     🔥 RODADA COM PESO {{ rodada.multiplicador }}x! Todos os pontos desta rodada serão multiplicados.
                   </span>
                   <span class="text-orange-400 font-bold text-[11px] uppercase tracking-wider mt-2 block">
-                    Cuidado: Os palpites encerram exatamente {{ campeonatoAtivo.formato === 'copa' && (rodada.fase !== 'grupos' && rodada.numero_rodada > 3) ? '2 horas' : '1 hora' }} antes do primeiro jogo. Jogue agora!
+                    Cuidado: Os palpites encerram exatamente {{ isCopa && (rodada.fase !== 'grupos' && rodada.numero_rodada > 3) ? '2 horas' : '1 hora' }} antes do primeiro jogo. Jogue agora!
                   </span>
               </p>
             </div>
@@ -141,7 +141,7 @@
           <div v-for="(matchesNoGrupo, nomeGrupo) in groupedMatches" :key="nomeGrupo" class="bg-white/[0.04] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
             
             <!-- Group Header (only shown if copa and we have actual groups) -->
-            <div v-if="campeonatoAtivo.formato === 'copa' && nomeGrupo !== 'Mata-Mata'" class="bg-white/5 py-4 px-6 text-center border-b border-white/10 relative overflow-hidden">
+            <div v-if="isCopa && nomeGrupo !== 'Mata-Mata'" class="bg-white/5 py-4 px-6 text-center border-b border-white/10 relative overflow-hidden">
               <div class="absolute inset-0 bg-gradient-to-r from-brand-600/20 to-transparent mix-blend-overlay"></div>
               <h3 class="text-sm font-black uppercase tracking-[0.2em] text-white relative z-10">{{ nomeGrupo }}</h3>
             </div>
@@ -204,7 +204,8 @@ const {
 } = useBets()
 
 const { profile } = useAuth()
-const { campeonatoAtivo } = useCampeonato()
+const { campeonatoAtivo, isCopaAtivo } = useCampeonato()
+const isCopa = isCopaAtivo
 
 const isOrganizerModalOpen = ref(false)
 
@@ -225,7 +226,7 @@ await useAsyncData('init-palpites', async () => {
 const groupedMatches = computed(() => {
   if (!sortedMatches.value) return {}
   
-  if (campeonatoAtivo.value?.formato === 'copa') {
+  if (isCopa.value) {
     const groups: Record<string, typeof sortedMatches.value> = {}
     sortedMatches.value.forEach(match => {
       const g = match.grupo || 'Mata-Mata'

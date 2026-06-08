@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
   // Obter detalhes do campeonato para construir a request
   const { data: campeonato } = await supabase
     .from('campeonatos')
-    .select('api_competition_code, season, max_rodadas')
+    .select('nome, api_competition_code, season, max_rodadas, formato')
     .eq('id', campeonato_id)
     .single()
 
@@ -37,7 +37,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Campeonato não encontrado.' })
   }
 
-  const { api_competition_code, season, max_rodadas } = campeonato
+  const { nome, api_competition_code, season, max_rodadas, formato } = campeonato
+
+  // Detecção centralizada de Copa
+  const COPA_CODES = ['WC', 'EC', 'CAF', 'AFC', 'CONC', 'OFC', 'CAN', 'CLI', 'CWC']
+  const COPA_NAME_KEYWORDS = ['world cup', 'copa do mundo', 'copa mundial', 'copa america', 'eurocopa', 'nations cup', 'african cup', 'gold cup', 'continental']
+  const isCopa = formato === 'copa' || 
+    (formato !== 'liga' && (
+      COPA_CODES.some(c => api_competition_code.toUpperCase() === c || api_competition_code.toUpperCase().startsWith(c)) || 
+      COPA_NAME_KEYWORDS.some(k => (nome || '').toLowerCase().includes(k))
+    ))
 
   // Verificar idempotência baseada NESTE campeonato
   const { count: existingRounds } = await supabase
@@ -147,7 +156,7 @@ export default defineEventHandler(async (event) => {
       let mandatoryCount = 0
       const matchesProcessed = matches.map((m: any) => {
         let is_mandatory = false
-        if (matchday === max_rodadas) {
+        if (isCopa || matchday === max_rodadas) {
           is_mandatory = true
         } else if (userTeamIds.has(m.homeTeam.id) || userTeamIds.has(m.awayTeam.id)) {
           is_mandatory = true
@@ -163,7 +172,7 @@ export default defineEventHandler(async (event) => {
           confrontations++
         }
       })
-      const requiredExtras = matchday === max_rodadas
+      const requiredExtras = (isCopa || matchday === max_rodadas)
         ? 0
         : 2 + confrontations
 
@@ -172,8 +181,11 @@ export default defineEventHandler(async (event) => {
         (a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime()
       )
       const firstMatchDate = new Date(sortedMatches[0].utcDate)
-      const bettingDeadline = new Date(firstMatchDate.getTime() - 60 * 60 * 1000).toISOString()
-      const organizerDeadline = new Date(firstMatchDate.getTime() - 60 * 60 * 1000).toISOString() // Prazo organizador: se não escolher, sistema auto-seleciona
+      
+      const isCopaMataMata = isCopa && matchday > 3
+      const deadlineHours = isCopaMataMata ? 2 : 1
+      const bettingDeadline = new Date(firstMatchDate.getTime() - deadlineHours * 3600000).toISOString()
+      const organizerDeadline = new Date(firstMatchDate.getTime() - deadlineHours * 3600000).toISOString() // Prazo organizador: se não escolher, sistema auto-seleciona
 
       // Calcular organizador (apenas para rodada atual e futuras)
       let organizerId: string | null = null
@@ -252,7 +264,7 @@ export default defineEventHandler(async (event) => {
       let roundStatus: string
       if (isPastRound) {
         roundStatus = 'finalizada'
-      } else if (matchday === max_rodadas) {
+      } else if (isCopa || matchday === max_rodadas) {
         roundStatus = 'aberta'
       } else {
         roundStatus = 'aguardando_escolha'

@@ -47,6 +47,30 @@
         {{ errorMsg }}
       </div>
 
+      <!-- Filter by Campeonato -->
+      <div class="flex items-center gap-3 mb-4">
+        <label class="text-sm font-medium text-gray-400 shrink-0">Filtrar por campeonato:</label>
+        <select
+          v-model="filterCampeonatoId"
+          class="flex-1 max-w-xs px-3 py-2 bg-gray-900/50 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+        >
+          <option value="">Todos os campeonatos</option>
+          <option v-for="camp in campeonatos" :key="camp.id" :value="camp.id">
+            {{ camp.nome }}{{ camp.apelido_grupo ? ' — ' + camp.apelido_grupo : '' }}
+          </option>
+        </select>
+        <button
+          v-if="filterCampeonatoId"
+          @click="filterCampeonatoId = ''"
+          class="text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
+        >
+          ✕ Limpar
+        </button>
+        <span v-if="filterCampeonatoId" class="text-xs text-gray-500">
+          {{ filteredEmails.length }} resultado(s)
+        </span>
+      </div>
+
       <!-- Emails Table -->
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
@@ -62,12 +86,14 @@
             <tr v-if="fetching" class="border-b border-white/5">
               <td colspan="4" class="py-4 text-center text-sm text-gray-400">Carregando...</td>
             </tr>
-            <tr v-else-if="emails.length === 0" class="border-b border-white/5">
-              <td colspan="4" class="py-4 text-center text-sm text-gray-400">Nenhum e-mail autorizado.</td>
+            <tr v-else-if="filteredEmails.length === 0" class="border-b border-white/5">
+              <td colspan="4" class="py-4 text-center text-sm text-gray-400">
+                {{ filterCampeonatoId ? 'Nenhum e-mail com acesso a este campeonato.' : 'Nenhum e-mail autorizado.' }}
+              </td>
             </tr>
             <tr
               v-else
-              v-for="item in emails"
+              v-for="item in filteredEmails"
               :key="item.id"
               class="border-b border-white/5 hover:bg-white/5 transition-colors"
             >
@@ -169,7 +195,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed } from 'vue'
 
 definePageMeta({
   middleware: 'is-admin'
@@ -188,8 +214,21 @@ const successMsg = ref('')
 // Map of email -> count of bolão accesses
 const accessCountByEmail = reactive<Record<string, number>>({})
 
+// Map of email -> Set of campeonato IDs
+const accessCampsByEmail = reactive<Record<string, Set<string>>>({})
+
 // All active campeonatos
 const campeonatos = ref<any[]>([])
+
+// Filter by campeonato
+const filterCampeonatoId = ref<string>('')
+
+const filteredEmails = computed(() => {
+  if (!filterCampeonatoId.value) return emails.value
+  return emails.value.filter(item =>
+    accessCampsByEmail[item.email]?.has(filterCampeonatoId.value)
+  )
+})
 
 // Modal state
 const modalEmail = ref<{ id: string; email: string } | null>(null)
@@ -216,13 +255,17 @@ const fetchAccessCounts = async (emailList: string[]) => {
   if (!emailList.length) return
   const { data } = await supabase
     .from('campeonato_acessos')
-    .select('email')
+    .select('email, campeonato_id')
     .in('email', emailList)
 
   if (data) {
-    emailList.forEach(e => { accessCountByEmail[e] = 0 })
+    emailList.forEach(e => {
+      accessCountByEmail[e] = 0
+      accessCampsByEmail[e] = new Set()
+    })
     data.forEach((row: any) => {
       accessCountByEmail[row.email] = (accessCountByEmail[row.email] || 0) + 1
+      accessCampsByEmail[row.email]?.add(row.campeonato_id)
     })
   }
 }

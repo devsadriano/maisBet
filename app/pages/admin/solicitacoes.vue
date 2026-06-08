@@ -15,7 +15,7 @@
       <button
         v-for="tab in tabs"
         :key="tab.value"
-        @click="activeTab = tab.value"
+        @click="activeTab = tab.value; filterCampeonatoId = ''"
         class="px-4 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl transition-all border-b-2 -mb-[3px]"
         :class="activeTab === tab.value
           ? 'text-brand-400 border-brand-500 bg-brand-500/10'
@@ -28,6 +28,24 @@
       </button>
     </div>
 
+    <!-- Campeonato Filter -->
+    <div v-if="!loading" class="flex items-center gap-3">
+      <label class="text-xs font-black uppercase tracking-widest text-gray-500 shrink-0">Filtrar:</label>
+      <select
+        v-model="filterCampeonatoId"
+        class="flex-1 max-w-xs px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
+      >
+        <option value="" class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">Todos</option>
+        <option value="__sistema__" class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">🔑 Apenas Sistema</option>
+        <option v-for="camp in campeonatosNoFiltro" :key="camp.id" :value="camp.id" class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
+          ⚽ {{ camp.nome }}{{ camp.apelido_grupo ? ' — ' + camp.apelido_grupo : '' }}
+        </option>
+      </select>
+      <span v-if="filterCampeonatoId" class="text-xs text-gray-500">
+        {{ filteredList.length }} resultado(s)
+      </span>
+    </div>
+
     <!-- Loading -->
     <div v-if="loading" class="py-16 text-center text-gray-400 text-sm animate-pulse">
       Carregando solicitações...
@@ -35,7 +53,7 @@
 
     <!-- Empty State -->
     <div v-else-if="filteredList.length === 0" class="py-16 text-center space-y-4">
-      <span class="text-5xl block opacity-50">📭</span>
+      <span class="text-5xl block opacity-50">💭</span>
       <h3 class="text-xl font-bebas text-gray-500 tracking-widest">Nenhuma solicitação {{ activeTab !== 'todas' ? activeTab : '' }}</h3>
     </div>
 
@@ -82,12 +100,17 @@
           </div>
         </div>
 
-        <!-- Bolão Info (for acesso_bolao) -->
-        <div v-if="sol.tipo === 'acesso_bolao' && sol.campeonato" class="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg border border-white/5">
-          <img v-if="sol.campeonato.logo_url" :src="sol.campeonato.logo_url" class="w-5 h-5 object-contain" />
-          <span class="text-sm text-gray-300 font-medium">{{ sol.campeonato.nome }}</span>
-          <span v-if="sol.campeonato.apelido_grupo" class="text-[10px] text-amber-400 font-bold">📎 {{ sol.campeonato.apelido_grupo }}</span>
+        <!-- Bolão / Campeonato Info (for acesso_bolao) -->
+        <div v-if="sol.tipo === 'acesso_bolao'" class="flex items-center gap-3 px-4 py-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
+          <span class="text-[10px] font-black uppercase tracking-widest text-purple-400 shrink-0">⚽ Campeonato</span>
+          <div v-if="sol.campeonato" class="flex items-center gap-2 min-w-0">
+            <img v-if="sol.campeonato.logo_url" :src="sol.campeonato.logo_url" class="w-5 h-5 object-contain shrink-0" />
+            <span class="text-sm text-white font-semibold truncate">{{ sol.campeonato.nome }}</span>
+            <span v-if="sol.campeonato.apelido_grupo" class="text-[10px] text-amber-400 font-bold shrink-0">📎 {{ sol.campeonato.apelido_grupo }}</span>
+          </div>
+          <span v-else class="text-sm text-gray-500 italic">Campeonato não encontrado</span>
         </div>
+
 
         <!-- Message -->
         <div v-if="sol.mensagem" class="text-sm text-gray-400 italic bg-white/[0.02] border border-white/5 rounded-xl p-3">
@@ -255,6 +278,7 @@ const tabs = [
 const activeTab = ref('pendente')
 const allSolicitacoes = ref<Solicitacao[]>([])
 const saving = ref(false)
+const filterCampeonatoId = ref('')
 
 // Modals
 const approveTarget = ref<Solicitacao | null>(null)
@@ -265,9 +289,29 @@ const selectedBolaoIds = ref<Set<string>>(new Set())
 // Campeonatos ativos for assignment
 const campeonatos = ref<any[]>([])
 
+// Campeonatos that actually appear in the current tab's list (for filter pills)
+const campeonatosNoFiltro = computed(() => {
+  const base = activeTab.value === 'todas'
+    ? allSolicitacoes.value
+    : allSolicitacoes.value.filter(s => s.status === activeTab.value)
+
+  const seen = new Map<string, any>()
+  base.forEach(s => {
+    if (s.tipo === 'acesso_bolao' && s.campeonato && !seen.has(s.campeonato.id)) {
+      seen.set(s.campeonato.id, s.campeonato)
+    }
+  })
+  return [...seen.values()]
+})
+
 const filteredList = computed(() => {
-  if (activeTab.value === 'todas') return allSolicitacoes.value
-  return allSolicitacoes.value.filter(s => s.status === activeTab.value)
+  const byTab = activeTab.value === 'todas'
+    ? allSolicitacoes.value
+    : allSolicitacoes.value.filter(s => s.status === activeTab.value)
+
+  if (!filterCampeonatoId.value) return byTab
+  if (filterCampeonatoId.value === '__sistema__') return byTab.filter(s => s.tipo === 'acesso_sistema')
+  return byTab.filter(s => s.tipo === 'acesso_bolao' && s.campeonato?.id === filterCampeonatoId.value)
 })
 
 // ── Fetch ──

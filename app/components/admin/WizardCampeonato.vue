@@ -152,15 +152,15 @@
             <!-- Detalhes de Temporada -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 border border-white/5 bg-white/[0.01] rounded-2xl">
                 <div>
-                   <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 flex justify-between">Início <span>🏁</span></label>
+                   <label class="flex justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Início <span>🏁</span></label>
                    <input v-model="form.start_date" type="date" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-gray-300 focus:outline-none focus:border-emerald-500 text-xs">
                 </div>
                 <div>
-                   <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 flex justify-between">Fim <span>🏆</span></label>
+                   <label class="flex justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Fim <span>🏆</span></label>
                    <input v-model="form.end_date" type="date" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-gray-300 focus:outline-none focus:border-emerald-500 text-xs">
                 </div>
                 <div>
-                   <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5 flex justify-between">Rodadas Totais <span>🔢</span></label>
+                   <label class="flex justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Rodadas Totais <span>🔢</span></label>
                    <input v-model="form.max_rodadas" type="number" min="1" required class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm font-mono">
                 </div>
             </div>
@@ -171,6 +171,27 @@
               <select v-model="form.scoring_system_id" required class="w-full bg-emerald-500/5 border border-emerald-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors appearance-none shadow-[0_0_10px_rgba(16,185,129,0.05)] cursor-pointer">
                 <option v-for="sys in sistemas" :key="sys.id" :value="sys.id" class="bg-gray-900 text-white">{{ sys.nome }} - {{ sys.descricao }}</option>
               </select>
+            </div>
+
+            <!-- Formato do Campeonato -->
+            <div>
+              <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">🗂️ Formato das Regras</label>
+              <div class="grid grid-cols-2 gap-3">
+                <button type="button" @click="form.formato = 'liga'"
+                  :class="form.formato === 'liga' ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'"
+                  class="px-4 py-3 rounded-xl border transition-colors flex flex-col items-center gap-1">
+                  <span class="text-2xl">🏟️</span>
+                  <span class="text-xs font-black uppercase tracking-widest">Liga / Brasileirão</span>
+                  <span class="text-[10px] text-gray-500 text-center leading-tight">Times do coração, organizador de rodada</span>
+                </button>
+                <button type="button" @click="form.formato = 'copa'"
+                  :class="form.formato === 'copa' ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'"
+                  class="px-4 py-3 rounded-xl border transition-colors flex flex-col items-center gap-1">
+                  <span class="text-2xl">🌍</span>
+                  <span class="text-xs font-black uppercase tracking-widest">Copa / Mundial</span>
+                  <span class="text-[10px] text-gray-500 text-center leading-tight">Todos os jogos, multiplicadores de fase</span>
+                </button>
+              </div>
             </div>
 
             <!-- Premiação -->
@@ -269,7 +290,8 @@ const form = ref({
    area_flag: '',
    start_date: '',
    end_date: '',
-   detalhes_premiacao: ''
+   detalhes_premiacao: '',
+   formato: 'liga' as 'liga' | 'copa'
 })
 
 const selectLeague = async (leagueParam: any) => {
@@ -283,6 +305,11 @@ const selectLeague = async (leagueParam: any) => {
     form.value.logo_url = leagueParam.emblem
     form.value.area_name = leagueParam.area?.name
     form.value.area_flag = leagueParam.area?.flag
+
+    // Auto-detectar formato: WC = Copa do Mundo, EC = Euro, etc.
+    const copasCodes = ['WC', 'EC', 'CAF', 'AFC', 'CONC', 'OFC', 'CAN']
+    const code = (leagueParam.code || '').toUpperCase()
+    form.value.formato = copasCodes.some(c => code === c || code.startsWith(c)) ? 'copa' : 'liga'
     
     // Configura regras default se não tiver escolhido antes
     if (props.sistemas?.length > 0 && !form.value.scoring_system_id) {
@@ -338,7 +365,8 @@ const finalize = async () => {
             area_flag: form.value.area_flag || null,
             start_date: form.value.start_date || null,
             end_date: form.value.end_date || null,
-            detalhes_premiacao: form.value.detalhes_premiacao || null
+            detalhes_premiacao: form.value.detalhes_premiacao || null,
+            formato: form.value.formato
         }).select().single()
         
         if (error) {
