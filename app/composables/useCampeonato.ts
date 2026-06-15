@@ -6,7 +6,7 @@ import { useAuth } from './useAuth'
 
 export const useCampeonato = () => {
   const supabase = useSupabaseClient()
-  const { user, isAdmin } = useAuth()
+  const { user, isAdmin, waitForProfile } = useAuth()
   
   // Estado global (`useState` evita perder o estado ao navegar entre router pages no Nuxt)
   const campeonatos = useState<Campeonato[]>('lista-campeonatos', () => [])
@@ -49,6 +49,11 @@ export const useCampeonato = () => {
   const fetchCampeonatos = async (force = false) => {
     // Evita refetch se já temos dados para a UI ficar mais rápida
     if (campeonatos.value.length > 0 && !force) return
+
+    // CRITICAL FIX: Garante que o perfil (is_admin) está carregado ANTES de decidir
+    // qual query usar. Sem isso, fetchCampeonatos pode rodar com isAdmin=false para admins,
+    // carregando os dados no branch de usuário comum (race condition no mount do layout).
+    await waitForProfile()
 
     loading.value = true
     try {

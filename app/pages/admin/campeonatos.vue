@@ -34,9 +34,27 @@
           </p>
           <div class="mt-4 p-3 bg-black/20 rounded-lg text-xs text-gray-300 flex items-center justify-between gap-2">
             <span>Regras de Box: <span class="font-bold text-[var(--brand)]">{{ camp.scoring_systems?.nome || 'Padrão' }}</span></span>
+
+            <!-- Formato BLOQUEADO (campeonato já iniciado/arquivado) -->
+            <span
+              v-if="camp.status !== 'rascunho'"
+              :title="'Formato ' + (camp.formato === 'copa' ? 'Copa' : 'Liga') + ' — não pode ser alterado após o campeonato ser iniciado'"
+              class="flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded border cursor-not-allowed select-none opacity-70"
+              :class="camp.formato === 'copa'
+                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                : 'bg-blue-500/10 text-blue-400 border-blue-500/20'"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              {{ camp.formato === 'copa' ? '🌍 Copa' : '🏟️ Liga' }}
+            </span>
+
+            <!-- Formato EDITÁVEL (apenas rascunhos) -->
             <button
+              v-else
               @click="toggleFormato(camp)"
-              :title="'Formato atual: ' + (camp.formato || 'liga') + ' — clique para alternar'"
+              :title="'Formato atual: ' + (camp.formato || 'liga') + ' — clique para alternar (apenas disponível em rascunhos)'"
               class="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded border transition-colors shrink-0"
               :class="camp.formato === 'copa'
                 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30'
@@ -130,6 +148,21 @@ const onCampeonatoCriado = async (newCamp?: any) => {
    await fetchDados()
 }
 
+// Apenas disponível para rascunhos (a UI bloqueia o botão para ativo/arquivado)
+const toggleFormato = async (camp: any) => {
+  const novoFormato = camp.formato === 'copa' ? 'liga' : 'copa'
+  const { error } = await supabase
+    .from('campeonatos')
+    .update({ formato: novoFormato })
+    .eq('id', camp.id)
+  if (!error) {
+    camp.formato = novoFormato
+    toast.success(`Formato de "${camp.nome}" alterado para ${novoFormato === 'copa' ? '🌍 Copa' : '🏟️ Liga'}`)
+  } else {
+    toast.error('Erro ao atualizar formato: ' + error.message)
+  }
+}
+
 const arquivarBolao = async (id: string) => {
    if(!confirm('Tem certeza que deseja ARQUIVAR este campeonato? O layout sumirá da tela principal.')) return
    await supabase.from('campeonatos').update({ status: 'arquivado' }).eq('id', id)
@@ -147,19 +180,6 @@ const deletarBolao = async (id: string) => {
     fetchDados()
 }
 
-const toggleFormato = async (camp: any) => {
-  const novoFormato = camp.formato === 'copa' ? 'liga' : 'copa'
-  const { error } = await supabase
-    .from('campeonatos')
-    .update({ formato: novoFormato })
-    .eq('id', camp.id)
-  if (!error) {
-    camp.formato = novoFormato
-    toast.success(`Formato de "${camp.nome}" alterado para ${novoFormato === 'copa' ? '🌍 Copa' : '🏟️ Liga'}`)
-  } else {
-    toast.error('Erro ao atualizar formato: ' + error.message)
-  }
-}
 
 const iniciarBolao = async (id: string) => {
   if (!confirm('Iniciar Bolão e importar rodadas da API? Isso pode demorar 1-2 minutos devido ao Limite de Taxas.')) return

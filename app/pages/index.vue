@@ -939,6 +939,9 @@ const fetchPendingRequests = async () => {
 // Handle bolão access request
 const handleRequestBolao = async (camp: any) => {
   if (!profile.value) return
+  // Segurança: admin nunca deve criar solicitações de acesso a bolão.
+  // Isso evita gravações indevidas caso o estado seja transitório/incorreto.
+  if (isAdmin.value) return
   
   requestingBolao.value = camp.id
   try {

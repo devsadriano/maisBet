@@ -126,12 +126,17 @@ export const useSolicitacoes = () => {
     solId: string, 
     adminId: string, 
     motivo?: string,
-    userId?: string | null
+    userId?: string | null,
+    tipo?: string | null
   ) => {
     loading.value = true
     try {
-      // Update user status to 'rejeitado'
-      if (userId) {
+      // CRITICAL FIX: Só marca o usuário como 'rejeitado' se for uma solicitação de
+      // acesso ao SISTEMA (acesso_sistema). Rejeitar acesso a um BOLÃO (acesso_bolao)
+      // não deve bloquear o usuário — ele já está ativo no sistema e apenas pediu
+      // acesso a um bolão específico. Marcar como 'rejeitado' causaria redirect forçado
+      // para o login em todas as ações do usuário.
+      if (userId && tipo === 'acesso_sistema') {
         await supabase
           .from('usuarios')
           .update({ status: 'rejeitado' })

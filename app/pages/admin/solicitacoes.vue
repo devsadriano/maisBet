@@ -375,7 +375,8 @@ const confirmReject = async () => {
       rejectTarget.value.id,
       (profile.value as any).id,
       rejectReason.value || undefined,
-      rejectTarget.value.user_id
+      rejectTarget.value.user_id,
+      rejectTarget.value.tipo   // ← passa o tipo para a função decidir se altera o status
     )
     toast.success(`Solicitação de ${rejectTarget.value.nome || rejectTarget.value.email} rejeitada.`)
     rejectTarget.value = null

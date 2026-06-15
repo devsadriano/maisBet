@@ -264,9 +264,9 @@ await useAsyncData('init-layout', async () => {
     if (!profileJaCarregado) {
       await fetchProfile()
     }
-    // Força refetch dos campeonatos quando o perfil foi recém-carregado,
-    // garantindo que isAdmin já está correto na hora da query.
-    await fetchCampeonatos(!profileJaCarregado)
+    // Sempre force=true: garante que os campeonatos são recarregados com isAdmin correto.
+    // O waitForProfile() dentro de fetchCampeonatos protege contra race conditions.
+    await fetchCampeonatos(true)
     if (isAdmin.value) {
       await fetchAdminPendingCount()
     }
