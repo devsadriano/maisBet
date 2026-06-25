@@ -130,7 +130,7 @@
                     🔥 RODADA COM PESO {{ rodada.multiplicador }}x! Todos os pontos desta rodada serão multiplicados.
                   </span>
                   <span class="text-orange-400 font-bold text-[11px] uppercase tracking-wider mt-2 block">
-                    Cuidado: Os palpites encerram exatamente {{ isCopa && (rodada.fase !== 'grupos' && rodada.numero_rodada > 3) ? '2 horas' : '1 hora' }} antes do primeiro jogo. Jogue agora!
+                    Cuidado: Os palpites encerram exatamente <strong>1 hora</strong> antes do primeiro jogo. Jogue agora!
                   </span>
               </p>
             </div>

@@ -56,7 +56,7 @@ Antes da Copa começar, cada participante faz 3 palpites especiais. Os pontos b�
 
 ## 8. Prazo de Palpites
 - **Fase de Grupos:** Palpites encerram **1 hora** antes do primeiro jogo de cada rodada.
-- **Mata-Mata:** Palpites encerram **2 horas** antes do jogo (por ter apenas 1 ou 2 jogos por rodada, dá-se mais tempo de análise).
+- **Mata-Mata:** Palpites encerram **1 hora** antes do primeiro jogo de cada rodada eliminatória (Oitavas, Quartas, Semifinal, Final/3º Lugar).
 
 ## 9. Ranking
 - O ranking é calculado por campeonato. Apenas participantes autorizados para o bolão da Copa do Mundo aparecem no ranking.
@@ -73,5 +73,5 @@ Antes da Copa começar, cada participante faz 3 palpites especiais. Os pontos b�
 | Confronto direto       | +1 extra por confronto   | N/A                     |
 | Multiplicador          | Não                      | Sim (×1 a ×3)           |
 | Palpites Especiais     | Não                      | Campeão, Artilheiro, Grupos |
-| Prazo de palpites      | 1h antes                 | 1h (grupos) / 2h (mata-mata) |
+| Prazo de palpites      | 1h antes                 | 1h antes (grupos e mata-mata) |
 | Pontuação base         | 1pt resultado / 3pt cravado | Igual                 |
