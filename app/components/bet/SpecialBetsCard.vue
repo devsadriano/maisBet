@@ -8,7 +8,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
       <!-- Campeão -->
       <BaseCard class="relative overflow-hidden group">
         <div class="absolute -right-4 -top-4 w-20 h-20 bg-brand-500/5 rounded-full blur-2xl group-hover:bg-brand-500/10 transition-all"></div>

@@ -30,19 +30,19 @@
           </div>
 
           <!-- Orientação / Passos -->
-          <div class="px-6 py-4 bg-white/[0.02] border-b border-white/5 shrink-0 flex items-center justify-between gap-6">
+          <div class="px-4 sm:px-6 py-3 sm:py-4 bg-white/[0.02] border-b border-white/5 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6">
             <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold">✓</div>
+              <div class="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold shrink-0">✓</div>
               <div class="text-sm">
                 <p class="font-bold text-white leading-none">Jogos Obrigatórios</p>
                 <p class="text-[10px] text-brand-300 uppercase leading-tight">Já definidos pelo sistema</p>
               </div>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="hidden sm:block w-5 h-5 text-gray-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
             <div :class="['flex items-center gap-2 transition-opacity', extraIds.length === calculatedExtras ? 'opacity-100' : 'opacity-80']">
-              <div :class="['w-8 h-8 rounded-full flex items-center justify-center font-bold', extraIds.length === calculatedExtras ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]']">
+              <div :class="['w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0', extraIds.length === calculatedExtras ? 'bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)]']">
                 {{ extraIds.length }}/{{ calculatedExtras }}
               </div>
               <div class="text-sm">
@@ -53,7 +53,7 @@
           </div>
 
           <!-- Lista de Jogos -->
-          <div class="p-6 overflow-y-auto flex-1">
+          <div class="p-3 sm:p-6 overflow-y-auto flex-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
                 v-for="m in partidasOrdenadas"

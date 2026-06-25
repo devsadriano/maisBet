@@ -16,7 +16,7 @@ defineEmits(['update:modelValue'])
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row items-center gap-6 justify-between bg-gradient-to-r from-brand-500/10 via-white/5 to-white/5 border border-brand-500/20 p-6 rounded-[2rem] shadow-[0_0_40px_rgba(var(--brand-rgb),0.1)] animate-fade-in-up">
+  <div class="flex flex-col md:flex-row items-start md:items-center gap-4 sm:gap-6 justify-between bg-gradient-to-r from-brand-500/10 via-white/5 to-white/5 border border-brand-500/20 p-4 sm:p-6 rounded-[2rem] shadow-[0_0_40px_rgba(var(--brand-rgb),0.1)] animate-fade-in-up">
     <!-- Round Selector -->
     <div class="flex items-center gap-5 w-full md:w-auto">
       <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-brand-500/40">
@@ -29,7 +29,7 @@ defineEmits(['update:modelValue'])
         <div class="relative group cursor-pointer inline-block">
           <select 
             :value="modelValue" 
-            class="bg-transparent border-none text-4xl font-bebas text-white focus:ring-0 p-0 pr-8 cursor-pointer group-hover:text-brand-300 transition-colors capitalize appearance-none outline-none"
+            class="bg-transparent border-none text-2xl sm:text-4xl font-bebas text-white focus:ring-0 p-0 pr-8 cursor-pointer group-hover:text-brand-300 transition-colors capitalize appearance-none outline-none"
             @change="$emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
           >
             <option v-for="r in rounds" :key="r.id" :value="r.id" class="bg-pitch-800 text-white text-xl">

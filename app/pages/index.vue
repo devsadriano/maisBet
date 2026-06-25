@@ -111,7 +111,7 @@
                 </div>
 
                 <!-- Filtros de Status -->
-                <div class="flex items-center bg-black/40 rounded-xl p-1 border border-white/5 shrink-0">
+                <div class="flex flex-wrap items-center gap-1 bg-black/40 rounded-xl p-1 border border-white/5 shrink-0">
                   <button 
                     @click="statusFilter = 'all'"
                     class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
@@ -522,7 +522,7 @@
         <div class="lg:col-span-8 space-y-6">
           <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
             <!-- Header do Widget -->
-            <div class="bg-white/5 py-5 px-8 border-b border-white/10 flex justify-between items-center">
+            <div class="bg-white/5 py-4 sm:py-5 px-4 sm:px-8 border-b border-white/10 flex justify-between items-center">
               <div>
                 <h3 class="text-xl font-bebas text-white tracking-widest">⚡ PALPITES RÁPIDOS</h3>
                 <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Próximos confrontos da rodada</p>

@@ -13,7 +13,7 @@ defineProps<{
 </script>
 
 <template>
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-16 px-4 animate-fade-in-up">
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-end mb-8 md:mb-16 px-2 sm:px-4 animate-fade-in-up">
     <!-- 2nd Place -->
     <div v-if="topThree[1]" class="order-2 md:order-1 group cursor-default">
       <div class="flex flex-col items-center space-y-4 transition-transform group-hover:-translate-y-2 duration-500">

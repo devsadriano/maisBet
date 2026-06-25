@@ -57,7 +57,7 @@ const formatDate = (iso: string) => {
 
 <template>
   <div 
-    class="p-5 sm:p-6 relative transition-all duration-300 group hover:bg-white/[0.02]"
+    class="p-3 sm:p-5 md:p-6 relative transition-all duration-300 group hover:bg-white/[0.02]"
     :class="[
       match.is_mandatory ? 'border-l-4 border-l-brand-500 bg-gradient-to-r from-brand-500/[0.05] to-transparent' : 
       match.is_extra ? 'border-l-4 border-l-pitch-500 bg-gradient-to-r from-pitch-500/[0.05] to-transparent' : 
@@ -65,7 +65,7 @@ const formatDate = (iso: string) => {
     ]"
   >
     <!-- Card Header (Date & Type Badge) -->
-    <div class="flex justify-between items-center text-[10px] font-black uppercase tracking-widest pb-4 border-b border-white/5 mb-6">
+    <div class="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 text-[10px] font-black uppercase tracking-widest pb-3 border-b border-white/5 mb-4 sm:mb-6">
       <span class="text-gray-400 font-mono flex items-center gap-2">
         <span class="w-1.5 h-1.5 rounded-full bg-brand-500/40" />
         {{ formatDate(match.data_partida) }}
@@ -77,57 +77,57 @@ const formatDate = (iso: string) => {
     </div>
 
     <!-- Match Content (Teams and Inputs) -->
-    <div class="flex items-center justify-between gap-2 sm:gap-6">
+    <div class="flex items-center justify-between gap-1 sm:gap-6">
       <!-- Home Team -->
-      <div class="flex flex-col items-center flex-1 w-24 sm:w-32 group-hover:scale-105 transition-transform duration-500">
-        <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-3">
+      <div class="flex flex-col items-center flex-1 min-w-0 group-hover:scale-105 transition-transform duration-500">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mb-2 sm:mb-3">
           <img v-if="shieldHome" :src="shieldHome" class="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
-          <span v-else class="text-3xl font-bebas text-gray-700">{{ match.time_casa.charAt(0) }}</span>
+          <span v-else class="text-2xl sm:text-3xl font-bebas text-gray-700">{{ match.time_casa.charAt(0) }}</span>
         </div>
-        <span class="font-bebas text-sm sm:text-base text-white text-center tracking-wider px-1">{{ match.time_casa }}</span>
+        <span class="font-bebas text-xs sm:text-sm md:text-base text-white text-center tracking-wider px-1 truncate w-full">{{ match.time_casa }}</span>
       </div>
       
       <!-- Prediction Area -->
-      <div class="flex items-center gap-2 sm:gap-4 p-2 bg-black/40 rounded-[2.5rem] border border-white/10 shadow-inner">
+      <div class="flex items-center gap-1 sm:gap-4 p-1.5 sm:p-2 bg-black/40 rounded-[2.5rem] border border-white/10 shadow-inner shrink-0">
         <!-- Home Score Control -->
         <div class="flex flex-col items-center">
-          <button @click="handleIncrement('gols_casa_bet')" :disabled="isLocked" class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-lg disabled:opacity-20">+</button>
+          <button @click="handleIncrement('gols_casa_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">+</button>
           <input 
             type="number" min="0" max="20"
             :value="modelValue.gols_casa_bet"
             :disabled="isLocked"
             @input="updateModel('gols_casa_bet', ($event.target as HTMLInputElement).valueAsNumber)"
-            class="w-10 h-12 sm:w-12 sm:h-14 bg-transparent text-center font-bebas text-3xl sm:text-4xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
+            class="w-8 h-10 sm:w-12 sm:h-14 bg-transparent text-center font-bebas text-2xl sm:text-4xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
           />
-          <button @click="handleDecrement('gols_casa_bet')" :disabled="isLocked" class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-lg disabled:opacity-20">-</button>
+          <button @click="handleDecrement('gols_casa_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">-</button>
         </div>
 
-        <div class="text-brand-500 font-bebas text-2xl flex flex-col items-center justify-center h-full pt-1">
-          <span class="opacity-50 text-xs tracking-widest leading-none mb-1 select-none">X</span>
-          <div class="w-px h-8 bg-white/10 rounded-full" />
+        <div class="text-brand-500 font-bebas text-xl sm:text-2xl flex flex-col items-center justify-center h-full pt-1">
+          <span class="opacity-50 text-[10px] tracking-widest leading-none mb-1 select-none">X</span>
+          <div class="w-px h-6 sm:h-8 bg-white/10 rounded-full" />
         </div>
 
         <!-- Away Score Control -->
         <div class="flex flex-col items-center">
-          <button @click="handleIncrement('gols_fora_bet')" :disabled="isLocked" class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-lg disabled:opacity-20">+</button>
+          <button @click="handleIncrement('gols_fora_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">+</button>
           <input 
             type="number" min="0" max="20"
             :value="modelValue.gols_fora_bet"
             :disabled="isLocked"
             @input="updateModel('gols_fora_bet', ($event.target as HTMLInputElement).valueAsNumber)"
-            class="w-10 h-12 sm:w-12 sm:h-14 bg-transparent text-center font-bebas text-3xl sm:text-4xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
+            class="w-8 h-10 sm:w-12 sm:h-14 bg-transparent text-center font-bebas text-2xl sm:text-4xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
           />
-          <button @click="handleDecrement('gols_fora_bet')" :disabled="isLocked" class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-lg disabled:opacity-20">-</button>
+          <button @click="handleDecrement('gols_fora_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">-</button>
         </div>
       </div>
 
       <!-- Away Team -->
-      <div class="flex flex-col items-center flex-1 w-24 sm:w-32 group-hover:scale-105 transition-transform duration-500">
-        <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-3">
+      <div class="flex flex-col items-center flex-1 min-w-0 group-hover:scale-105 transition-transform duration-500">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mb-2 sm:mb-3">
           <img v-if="shieldAway" :src="shieldAway" class="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
-          <span v-else class="text-3xl font-bebas text-gray-700">{{ match.time_fora.charAt(0) }}</span>
+          <span v-else class="text-2xl sm:text-3xl font-bebas text-gray-700">{{ match.time_fora.charAt(0) }}</span>
         </div>
-        <span class="font-bebas text-sm sm:text-base text-white text-center tracking-wider px-1">{{ match.time_fora }}</span>
+        <span class="font-bebas text-xs sm:text-sm md:text-base text-white text-center tracking-wider px-1 truncate w-full">{{ match.time_fora }}</span>
       </div>
     </div>
 

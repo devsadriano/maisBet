@@ -125,14 +125,14 @@
         class="group bg-white/[0.04] border border-white/10 rounded-3xl transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06]"
       >
         <!-- Card Top Bar: Round number + status badge -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/[0.02] rounded-t-3xl">
-          <div class="flex items-center gap-4">
+        <div class="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5 bg-white/[0.02] rounded-t-3xl gap-2">
+          <div class="flex items-center gap-2 sm:gap-4 min-w-0">
             <!-- Round number chip -->
-            <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500/20 to-brand-600/10 border border-brand-500/20 shadow-inner">
-              <span class="font-bebas text-3xl text-brand-400 leading-none pt-1">#{{ r.numero_rodada }}</span>
+            <div class="flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-brand-500/20 to-brand-600/10 border border-brand-500/20 shadow-inner shrink-0">
+              <span class="font-bebas text-xl sm:text-3xl text-brand-400 leading-none pt-1">#{{ r.numero_rodada }}</span>
             </div>
-            <div>
-              <div class="text-white font-bold text-lg leading-tight flex items-center gap-3">
+            <div class="min-w-0">
+              <div class="text-white font-bold text-sm sm:text-lg leading-tight flex flex-wrap items-center gap-2">
                 Rodada {{ r.numero_rodada }}
                 <!-- Status Text Indicator -->
                 <div :class="statusClass(r.status)" class="flex items-center gap-1.5 text-[9px] uppercase font-black tracking-widest mt-0.5">
@@ -140,16 +140,16 @@
                   {{ formatStatus(r.status) }}
                 </div>
               </div>
-              <div class="text-brand-400 text-xs font-bold mt-1">
+              <div class="text-brand-400 text-xs font-bold mt-0.5">
                 {{ counts[r.id] || 0 }} palpitante(s)
               </div>
             </div>
           </div>
           
           <!-- Ver Partidas Primary Button -->
-          <button @click="openMatchesModal(r)" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-brand-500/50 hover:bg-white/10 transition-all text-gray-300 hover:text-white font-semibold text-xs tracking-wide active:scale-95 group">
+          <button @click="openMatchesModal(r)" class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:border-brand-500/50 hover:bg-white/10 transition-all text-gray-300 hover:text-white font-semibold text-xs tracking-wide active:scale-95 group shrink-0">
              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-brand-400 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-             Ver Partidas
+             <span class="hidden sm:inline">Ver Partidas</span>
           </button>
         </div>
 
@@ -341,25 +341,24 @@
             </div>
             
             <div v-else class="space-y-3">
-              <div v-for="match in roundMatches" :key="match.id" class="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span v-if="match.is_mandatory" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-gray-500/20 text-gray-300">Obrigatório</span>
-                    <span v-if="match.is_extra" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-brand-500/20 text-brand-400 border border-brand-500/30">Extra (Org)</span>
-                    <span v-if="!match.is_mandatory && !match.is_extra" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-white/5 text-gray-500">Regular</span>
-                    <span class="text-[10px] text-gray-500 uppercase">{{ formatDateTime(match.data_partida) }}</span>
-                  </div>
-                  <div class="font-semibold text-white/90 text-sm flex items-center gap-3">
-                    <span class="text-right w-28 truncate" :title="match.time_casa">{{ match.time_casa }}</span>
-                    <div class="flex items-center justify-center bg-black/40 px-3 py-1 rounded font-bebas tracking-wider text-brand-400">
+              <div v-for="match in roundMatches" :key="match.id" class="p-3 sm:p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                  <span v-if="match.is_mandatory" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-gray-500/20 text-gray-300">Obrigatório</span>
+                  <span v-if="match.is_extra" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-brand-500/20 text-brand-400 border border-brand-500/30">Extra (Org)</span>
+                  <span v-if="!match.is_mandatory && !match.is_extra" class="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-white/5 text-gray-500">Regular</span>
+                  <span class="text-[10px] text-gray-500 uppercase">{{ formatDateTime(match.data_partida) }}</span>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="font-semibold text-white/90 text-sm flex items-center gap-2 flex-1 min-w-0">
+                    <span class="truncate text-right flex-1" :title="match.time_casa">{{ match.time_casa }}</span>
+                    <div class="flex items-center justify-center bg-black/40 px-2 sm:px-3 py-1 rounded font-bebas tracking-wider text-brand-400 shrink-0">
                       {{ match.gols_casa !== null ? match.gols_casa : '-' }} x {{ match.gols_fora !== null ? match.gols_fora : '-' }}
                     </div>
-                    <span class="w-28 truncate" :title="match.time_fora">{{ match.time_fora }}</span>
+                    <span class="truncate flex-1" :title="match.time_fora">{{ match.time_fora }}</span>
                   </div>
-                </div>
-                
-                <div class="text-xs font-medium px-2 py-1 rounded bg-black/40 border border-white/5" :class="match.status === 'finalizado' ? 'text-emerald-400' : 'text-gray-400'">
-                  {{ match.status }}
+                  <div class="text-xs font-medium px-2 py-1 rounded bg-black/40 border border-white/5 shrink-0" :class="match.status === 'finalizado' ? 'text-emerald-400' : 'text-gray-400'">
+                    {{ match.status }}
+                  </div>
                 </div>
               </div>
             </div>
