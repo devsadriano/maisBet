@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useState } from '#app'
 import { useSupabaseClient } from '#imports'
 import type { Campeonato } from '~~/shared/types/Campeonato'
@@ -64,13 +64,13 @@ export const useCampeonato = () => {
       if (isAdmin.value) {
           // Administradores enxergam todos os bolões ativos normalmente
           query = supabase
-            .from('campeonatos')
-            .select(`
-              *,
-              scoring_system:scoring_systems(*)
-            `)
-            .eq('status', 'ativo')
-            .order('created_at', { ascending: false })
+             .from('campeonatos')
+             .select(`
+               *,
+               scoring_system:scoring_systems(*)
+             `)
+             .eq('status', 'ativo')
+             .order('created_at', { ascending: false })
       } else {
           // Jogadores veem TODOS os bolões ativos, mas com metadados de acesso
           const userEmail = user.value?.email || '';
@@ -125,23 +125,38 @@ export const useCampeonato = () => {
         }
         
         if (campeonatos.value.length > 0) {
-          if (savedId) {
-             const persistido = campeonatos.value.find(c => c.id === savedId)
-             if (persistido) {
-                campeonatoAtivo.value = persistido
-                // @ts-ignore
-                if (persistido.user_acesso) {
-                   // @ts-ignore
-                   currentAcesso.value = persistido.user_acesso
-                }
-             } else {
-                campeonatoAtivo.value = null
-             }
+          let target = savedId ? campeonatos.value.find(c => c.id === savedId) : null
+          
+          // CRITICAL FIX: Removida a guarda process.client — o SSR também precisa selecionar
+          // um campeonato padrão para que campeonatoAtivo seja não-nulo no payload de hidratação.
+          // Sem isso, campeonatoAtivo chegava como null no cliente, causando flash do lobby
+          // com todos os bolões exibindo "SEM ACESSO" antes da re-hidratação do cliente.
+          if (!target) {
+            if (isAdmin.value) {
+              target = campeonatos.value[0]
+            } else {
+              // @ts-ignore
+              target = campeonatos.value.find(c => c.user_acesso) || campeonatos.value[0]
+            }
+          }
+
+          if (target) {
+            campeonatoAtivo.value = target
+            // @ts-ignore
+            if (target.user_acesso) {
+               // @ts-ignore
+               currentAcesso.value = target.user_acesso
+            }
+            if (process.client) {
+               localStorage.setItem('bolao_ativo_id', target.id)
+            }
           } else {
-             campeonatoAtivo.value = null
+            campeonatoAtivo.value = null
+            currentAcesso.value = null
           }
         } else {
           campeonatoAtivo.value = null
+          currentAcesso.value = null
         }
       }
     } catch (err: any) {
@@ -182,6 +197,42 @@ export const useCampeonato = () => {
     if (process.client) {
        localStorage.removeItem('bolao_ativo_id')
     }
+  }
+
+  // Restaura o bolão ativo do localStorage no cliente caso tenha sido hidratado como null pelo SSR.
+  // CRITICAL FIX: O watcher agora é async e aguarda o perfil (waitForProfile) antes de tomar
+  // decisões baseadas em isAdmin, prevenindo race conditions durante a hidratação do cliente.
+  if (process.client) {
+    watch(campeonatos, async (newCamps) => {
+      if (newCamps.length > 0 && !campeonatoAtivo.value) {
+        // Aguarda o perfil carregar antes de tomar decisões baseadas em isAdmin,
+        // prevenindo race conditions durante a hidratação do cliente.
+        await waitForProfile()
+
+        const savedId = localStorage.getItem('bolao_ativo_id')
+        let target = savedId ? newCamps.find(c => c.id === savedId) : null
+        
+        // Se não encontrou pelo ID salvo, tenta selecionar o primeiro com acesso ativo (para jogadores) ou o primeiro da lista (para admin)
+        if (!target) {
+          if (isAdmin.value) {
+            target = newCamps[0]
+          } else {
+            // @ts-ignore
+            target = newCamps.find(c => c.user_acesso) || newCamps[0]
+          }
+        }
+        
+        if (target) {
+          campeonatoAtivo.value = target
+          // @ts-ignore
+          if (target.user_acesso) {
+            // @ts-ignore
+            currentAcesso.value = target.user_acesso
+          }
+          localStorage.setItem('bolao_ativo_id', target.id)
+        }
+      }
+    }, { immediate: true })
   }
 
   return {

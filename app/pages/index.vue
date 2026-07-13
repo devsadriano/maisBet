@@ -25,29 +25,22 @@
               </div>
 
               <!-- Seletor de Campeonato Ativo + Botão de Sair -->
-              <div class="flex flex-wrap items-center gap-3">
-                <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-white/40">Trocar Bolão:</span>
-                <select 
-                  v-model="selectedCampId" 
-                  @change="selecionarCampeonato(selectedCampId)"
-                  class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-danger-500 cursor-pointer"
-                >
-                  <option 
-                    v-for="camp in activeUserCamps" 
-                    :key="camp.id" 
-                    :value="camp.id"
-                    class="bg-[#1e1e1e] text-white"
+              <div class="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto min-w-0">
+                <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-white/40 shrink-0">Trocar Bolão:</span>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto min-w-0">
+                  <BaseSelect
+                    v-model="selectedCampId"
+                    :options="activeUserCamps.map(c => ({ value: c.id, label: c.nome + (c.apelido_grupo ? ` (${c.apelido_grupo})` : '') }))"
+                    @change="selecionarCampeonato"
+                    variant="danger"
+                  />
+                  <button 
+                    @click="selecionarCampeonato('')"
+                    class="text-xs px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-xl transition-all active:scale-95 text-center shrink-0 w-full sm:w-auto font-bold"
                   >
-                    {{ camp.nome }}{{ camp.apelido_grupo ? ` (${camp.apelido_grupo})` : '' }}
-                  </option>
-                </select>
-
-                <button 
-                  @click="selecionarCampeonato('')"
-                  class="text-xs px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 font-bold rounded-xl transition-all border border-white/10"
-                >
-                  Sair do Bolão
-                </button>
+                    Sair do Bolão
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -411,22 +404,14 @@
             </div>
 
             <!-- Seletor de Campeonato Ativo -->
-            <div v-if="activeUserCamps.length > 1" class="flex items-center gap-3">
-              <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-white/40">Visualizar Bolão:</span>
-              <select 
-                v-model="selectedCampId" 
-                @change="selecionarCampeonato(selectedCampId)"
-                class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-brand-500 cursor-pointer"
-              >
-                <option 
-                  v-for="camp in activeUserCamps" 
-                  :key="camp.id" 
-                  :value="camp.id"
-                  class="bg-[#1e1e1e] text-white"
-                >
-                  {{ camp.nome }}{{ camp.apelido_grupo ? ` (${camp.apelido_grupo})` : '' }}
-                </option>
-              </select>
+            <div v-if="activeUserCamps.length > 1" class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto min-w-0">
+              <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-white/40 shrink-0">Visualizar Bolão:</span>
+              <BaseSelect
+                v-model="selectedCampId"
+                :options="activeUserCamps.map(c => ({ value: c.id, label: c.nome + (c.apelido_grupo ? ` (${c.apelido_grupo})` : '') }))"
+                @change="selecionarCampeonato"
+                variant="brand"
+              />
             </div>
           </div>
 
@@ -527,7 +512,7 @@
                 <h3 class="text-xl font-bebas text-white tracking-widest">⚡ PALPITES RÁPIDOS</h3>
                 <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Próximos confrontos da rodada</p>
               </div>
-              <span v-if="rodada" class="text-[9px] font-black uppercase tracking-widest bg-brand-500/10 text-brand-400 border border-brand-500/20 px-3 py-1 rounded-full">
+              <span v-if="rodada" class="text-[9px] font-black uppercase tracking-widest bg-brand-500/10 text-brand-400 border border-brand-500/20 px-3 py-1 rounded-full whitespace-nowrap shrink-0">
                 Rodada {{ rodada.numero_rodada }}
               </span>
             </div>
@@ -679,7 +664,7 @@
               </template>
               
               <!-- Link Geral -->
-              <NuxtLink to="/ranking" class="block w-full text-center py-3.5 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-all">
+              <NuxtLink to="/ranking" class="block w-full text-center py-3.5 bg-brand-500/10 hover:bg-brand-500/20 active:scale-[0.98] rounded-2xl border border-brand-500/20 hover:border-brand-500/40 text-[10px] font-black uppercase tracking-[0.2em] text-brand-400 hover:text-brand-300 transition-all shadow-[0_0_20px_rgba(34,197,94,0.05)]">
                 Ver Classificação Completa →
               </NuxtLink>
             </div>
@@ -691,7 +676,9 @@
     </div>
 
     <!-- HUB DE BOLÕES (Lobby) -->
-    <div v-if="!campeonatoAtivo || !isAdmin" class="space-y-6">
+    <!-- CRITICAL FIX: profileLoaded garante que o lobby só renderiza após o perfil estar pronto,
+         evitando o flash de "SEM ACESSO" em todos os bolões durante a hidratação do cliente. -->
+    <div v-if="profileLoaded && (!campeonatoAtivo || !isAdmin)" class="space-y-6">
        <div class="flex items-center gap-4 border-b border-gray-200 dark:border-white/10 pb-4">
           <div class="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-2xl shadow-lg">🏆</div>
           <div>
@@ -778,9 +765,9 @@
              <!-- Action Bar -->
              <!-- Has Access: Enter -->
              <div v-if="isAdmin || hasAccess(camp)" 
-                  class="w-full bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 py-4 px-8 flex justify-between items-center z-10 group-hover:bg-brand-500 group-hover:border-brand-500 transition-colors duration-300 cursor-pointer">
-                 <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 group-hover:text-white transition-colors">Acessar Bolão</span>
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  class="w-full bg-brand-500/10 dark:bg-brand-500/10 border-t border-brand-500/20 py-4 px-8 flex justify-between items-center z-10 group-hover:bg-brand-600 dark:group-hover:bg-brand-500 transition-colors duration-300 cursor-pointer">
+                 <span class="text-xs font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400 group-hover:text-white transition-colors">Acessar Bolão</span>
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-500 dark:text-brand-400 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                  </svg>
              </div>
@@ -795,11 +782,11 @@
              <button v-else
                   @click.stop="handleRequestBolao(camp)"
                   :disabled="requestingBolao === camp.id"
-                  class="w-full bg-gray-50 dark:bg-black/20 border-t border-gray-100 dark:border-white/5 py-4 px-8 flex justify-between items-center z-10 hover:bg-amber-500 hover:border-amber-500 transition-colors duration-300 cursor-pointer disabled:opacity-50">
-                 <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400 hover:text-white transition-colors">
+                  class="w-full bg-amber-500/10 dark:bg-amber-500/10 border-t border-amber-500/20 py-4 px-8 flex justify-between items-center z-10 hover:bg-amber-600 dark:hover:bg-amber-500 group transition-colors duration-300 cursor-pointer disabled:opacity-50">
+                 <span class="text-xs font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400 group-hover:text-white transition-colors">
                    {{ requestingBolao === camp.id ? 'Enviando...' : 'Solicitar Acesso' }}
                  </span>
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500 dark:text-amber-400 group-hover:text-white group-hover:scale-110 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                  </svg>
              </button>
@@ -816,13 +803,14 @@ import { useRouter } from 'vue-router'
 
 // Base UI
 import BaseCard from '@/components/ui/BaseCard.vue'
+import BaseSelect from '~/components/ui/BaseSelect.vue'
 import BetMatchCard from '~/components/bet/BetMatchCard.vue'
 
 // Composables
 import { useRanking } from '~/composables/useRanking'
 import { useBets } from '~/composables/useBets'
 
-const { profile, user } = useAuth()
+const { profile, user, profileLoaded } = useAuth()
 const supabase = useSupabaseClient<any>()
 const router = useRouter()
 const toast = useToast()
