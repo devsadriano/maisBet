@@ -81,7 +81,8 @@
           <div class="min-w-0">
             <RankingMatchesPanel 
               :matches="matches" 
-              :loading="loadingRound" 
+              :loading="loadingRound"
+              :round-ranking="roundRanking"
             />
           </div>
 

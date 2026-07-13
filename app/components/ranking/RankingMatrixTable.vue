@@ -60,9 +60,9 @@ const getUserTotalForRound = (userId: string) => {
 }
 
 const abbrev = (name: string) =>
-  name.replace(/^(S\.C\.|Atlético|Sport Club|Esporte Clube|Clube de Regatas|Clube)\s*/i, '')
+  name.replace(/^(S\.C\.|S\.E\.|Atlético|Sport Club|Esporte Clube|Clube de Regatas|Clube|Associação|Sociedade)\s*/i, '')
     .trim()
-    .substring(0, 12)
+    .substring(0, 16)
 
 // For single-user view: show the current user's results first
 const viewUser = computed(() =>
@@ -107,18 +107,18 @@ const viewUser = computed(() =>
 
       <!-- Table -->
       <div class="overflow-x-auto flex-1 custom-scrollbar -mx-0">
-        <table class="text-left border-collapse min-w-[600px] w-full">
+        <table class="text-left border-collapse min-w-full table-fixed">
           <thead class="sticky top-0 bg-pitch-900 z-30">
             <tr>
-              <th class="sticky left-0 z-20 bg-pitch-900 px-3 sm:px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 w-32 sm:w-40">Jogo</th>
-              <th class="sticky left-32 sm:left-40 z-20 bg-pitch-900 px-3 sm:px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-white/40 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5">Placar</th>
+              <th class="sticky left-0 z-20 bg-pitch-900 px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-brand-600 dark:text-brand-500 w-[160px] min-w-[160px] max-w-[160px]">Jogo</th>
+              <th class="sticky left-[160px] z-20 bg-pitch-900 px-2 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-white/40 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5 w-[80px] min-w-[80px] max-w-[80px] text-center">Placar</th>
               <th 
                 v-for="u in activeUsers" 
                 :key="u.usuario_id"
-                class="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-center min-w-[90px] max-w-[100px]"
+                class="px-3 py-3 text-[10px] font-black uppercase tracking-wide text-center w-[90px] sm:w-[110px] min-w-[90px] sm:min-w-[110px] max-w-[90px] sm:max-w-[110px]"
                 :class="u.usuario_id === currentUserId ? 'text-brand-600 dark:text-brand-400' : 'text-gray-500 dark:text-white/40'"
               >
-                {{ u.nome.split(' ')[0] }}
+                <div class="truncate px-1">{{ u.nome.split(' ')[0] }}</div>
               </th>
             </tr>
           </thead>
@@ -128,21 +128,23 @@ const viewUser = computed(() =>
               :key="match.id"
               class="hover:bg-white/[0.03] transition-colors group"
             >
-              <!-- Match Name -->
-              <td class="sticky left-0 z-10 bg-[#fbfbfb] dark:bg-pitch-900 group-hover:bg-gray-100 dark:group-hover:bg-[#1a1a1a] px-3 sm:px-5 py-3.5 transition-colors w-32 sm:w-40">
-                <div class="flex items-center gap-1 text-xs sm:text-sm font-semibold leading-none">
-                  <span class="text-gray-800 dark:text-white/90 whitespace-nowrap">{{ abbrev(match.time_casa) }}</span>
-                  <span class="text-gray-400 dark:text-white/30 text-[10px]">x</span>
-                  <span class="text-gray-800 dark:text-white/90 whitespace-nowrap">{{ abbrev(match.time_fora) }}</span>
+              <!-- Match Name - Stacked Layout -->
+              <td class="sticky left-0 z-10 bg-[#fbfbfb] dark:bg-pitch-900 group-hover:bg-gray-100 dark:group-hover:bg-[#1a1a1a] px-4 py-2.5 transition-colors w-[160px] min-w-[160px] max-w-[160px]">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-gray-800 dark:text-white/90 text-xs font-bold leading-snug truncate">{{ abbrev(match.time_casa) }}</span>
+                  <span class="text-gray-400 dark:text-white/25 text-[8px] font-black uppercase tracking-widest leading-none">vs</span>
+                  <span class="text-gray-600 dark:text-white/60 text-xs font-semibold leading-snug truncate">{{ abbrev(match.time_fora) }}</span>
                 </div>
               </td>
 
               <!-- Real Score -->
-              <td class="sticky left-32 sm:left-40 z-10 bg-[#fbfbfb] dark:bg-pitch-900 group-hover:bg-gray-100 dark:group-hover:bg-[#1a1a1a] px-3 sm:px-4 py-3.5 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5 transition-colors">
-                <div class="flex items-center gap-1">
-                  <span v-if="match.status === 'finalizado'" class="font-bebas text-base text-brand-600 dark:text-brand-400 leading-none pt-0.5">
-                    {{ match.gols_casa }} × {{ match.gols_fora }}
-                  </span>
+              <td class="sticky left-[160px] z-10 bg-[#fbfbfb] dark:bg-pitch-900 group-hover:bg-gray-100 dark:group-hover:bg-[#1a1a1a] px-2 py-3 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5 transition-colors w-[80px] min-w-[80px] max-w-[80px]">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-center items-center gap-0.5 sm:gap-1.5 font-bebas text-sm sm:text-base leading-tight sm:leading-none">
+                  <template v-if="match.status === 'finalizado'">
+                    <span class="text-brand-600 dark:text-brand-400">{{ match.gols_casa }}</span>
+                    <span class="text-gray-400 dark:text-white/20 text-[10px] hidden sm:inline">×</span>
+                    <span class="text-brand-600 dark:text-brand-400">{{ match.gols_fora }}</span>
+                  </template>
                   <span v-else class="text-gray-400 dark:text-white/20 text-xs italic">—</span>
                 </div>
               </td>
@@ -156,8 +158,10 @@ const viewUser = computed(() =>
               >
                 <div class="flex flex-col items-center gap-1">
                   <!-- Palpite -->
-                  <div v-if="getEntry(u.usuario_id, match.id)" class="text-gray-500 dark:text-white/40 text-[10px] font-mono whitespace-nowrap">
-                    {{ getEntry(u.usuario_id, match.id)?.palpite_casa ?? '?' }} × {{ getEntry(u.usuario_id, match.id)?.palpite_fora ?? '?' }}
+                  <div v-if="getEntry(u.usuario_id, match.id)" class="text-gray-500 dark:text-white/40 text-[10px] font-mono flex flex-col sm:flex-row sm:gap-0.5 items-center leading-tight sm:leading-none">
+                    <span>{{ getEntry(u.usuario_id, match.id)?.palpite_casa ?? '?' }}</span>
+                    <span class="hidden sm:inline">×</span>
+                    <span>{{ getEntry(u.usuario_id, match.id)?.palpite_fora ?? '?' }}</span>
                   </div>
                   <div v-else class="text-gray-300 dark:text-white/10 text-[10px]">—</div>
                   
@@ -173,15 +177,15 @@ const viewUser = computed(() =>
           <!-- Footer: SOMA -->
           <tfoot class="sticky bottom-0 z-20">
             <tr class="border-t-2 border-brand-500/20 bg-brand-500/5 backdrop-blur-md">
-              <td class="sticky left-0 z-10 bg-[#fbfbfb] dark:bg-pitch-900 px-3 sm:px-5 py-4 font-bebas text-lg sm:text-xl text-brand-600 dark:text-brand-400 tracking-widest uppercase w-32 sm:w-40">
+              <td class="sticky left-0 z-10 bg-[#fbfbfb] dark:bg-pitch-900 px-4 py-3 font-bebas text-lg sm:text-xl text-brand-600 dark:text-brand-400 tracking-widest uppercase w-[160px] min-w-[160px] max-w-[160px]">
                 <span class="text-[9px] font-sans font-black text-brand-600/50 dark:text-white/20 block leading-none mb-0.5">Total</span>
                 SOMA
               </td>
-              <td class="sticky left-32 sm:left-40 z-10 bg-[#fbfbfb] dark:bg-pitch-900 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5"></td>
+              <td class="sticky left-[160px] z-10 bg-[#fbfbfb] dark:bg-pitch-900 shadow-[4px_0_12px_rgba(0,0,0,0.5)] border-r border-white/5 w-[80px] min-w-[80px] max-w-[80px]"></td>
               <td 
                 v-for="u in activeUsers" 
                 :key="u.usuario_id"
-                class="px-3 py-4 text-center font-bebas text-2xl text-brand-600 dark:text-brand-400"
+                class="px-3 py-3 text-center font-bebas text-xl sm:text-2xl text-brand-600 dark:text-brand-400"
                 :class="u.usuario_id === currentUserId ? 'text-brand-700 dark:text-brand-300' : ''"
               >
                 {{ getUserTotalForRound(u.usuario_id) }}
