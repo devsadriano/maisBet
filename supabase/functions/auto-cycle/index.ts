@@ -104,6 +104,80 @@ Deno.serve(async (req: Request) => {
           }
         }
 
+        // == ETAPA 2.5: Auto-Sync Calendário / Mudanças de Data ==
+        log(`[${c.api_competition_code}] ETAPA 2.5: Auto-Sync Calendário...`)
+        const { data: activeRds } = await sb.from('rodadas')
+          .select('id, numero_rodada, status, betting_deadline, organizer_deadline')
+          .eq('campeonato_id', c.id)
+          .in('status', ['aguardando_escolha', 'aberta'])
+
+        if (activeRds && activeRds.length > 0) {
+          for (const rd of activeRds) {
+            log(`[${c.api_competition_code}] Rd ${rd.numero_rodada}: verificando alterações de calendário...`)
+            
+            // Pequeno delay para evitar rate limits
+            await new Promise(resolve => setTimeout(resolve, 2000))
+            
+            const apiRes = await fetch(
+              `https://api.football-data.org/v4/competitions/${c.api_competition_code}/matches?matchday=${rd.numero_rodada}&season=${c.season}`,
+              { headers: { 'X-Auth-Token': fdKey } }
+            )
+            if (apiRes.ok) {
+              const apiData = await apiRes.json()
+              const apiMatches = apiData.matches || []
+              
+              const { data: dbMatches } = await sb.from('partidas')
+                .select('id, api_match_id, data_partida')
+                .eq('rodada_id', rd.id)
+              
+              if (dbMatches && dbMatches.length > 0 && apiMatches.length > 0) {
+                let calendarioMudou = false
+                
+                for (const m of apiMatches) {
+                  const dbM = dbMatches.find((x: any) => x.api_match_id === m.id)
+                  if (dbM) {
+                    const apiDateStr = new Date(m.utcDate).toISOString()
+                    const dbDateStr = new Date(dbM.data_partida).toISOString()
+                    
+                    if (apiDateStr !== dbDateStr) {
+                      log(`[${c.api_competition_code}] Mudança detectada: Jogo ${m.homeTeam.shortName || m.homeTeam.name} x ${m.awayTeam.shortName || m.awayTeam.name} (${dbDateStr} -> ${apiDateStr})`)
+                      await sb.from('partidas').update({ data_partida: apiDateStr }).eq('id', dbM.id)
+                      calendarioMudou = true
+                    }
+                  }
+                }
+                
+                if (calendarioMudou) {
+                  const { data: newDbMatches } = await sb.from('partidas')
+                    .select('data_partida')
+                    .eq('rodada_id', rd.id)
+                  
+                  if (newDbMatches && newDbMatches.length > 0) {
+                    const sorted = [...newDbMatches].sort((a: any, b: any) => new Date(a.data_partida).getTime() - new Date(b.data_partida).getTime())
+                    const fmd = new Date(sorted[0].data_partida)
+                    
+                    const isCopaMataMata = c.formato === 'copa' && rd.numero_rodada > 3
+                    const deadlineHours = isCopaMataMata ? 2 : 1
+                    
+                    const bd = new Date(fmd.getTime() - deadlineHours * 3600000).toISOString()
+                    const od = new Date(fmd.getTime() - deadlineHours * 3600000).toISOString()
+                    
+                    await sb.from('rodadas').update({
+                      betting_deadline: bd,
+                      organizer_deadline: od,
+                      calendario_alterado: true
+                    }).eq('id', rd.id)
+                    
+                    log(`[${c.api_competition_code}] Prazos da Rd ${rd.numero_rodada} recalculados e Alerta ativado! Novo fechamento: ${bd}`)
+                  }
+                }
+              }
+            } else {
+              log(`[${c.api_competition_code}] ERRO API rd ${rd.numero_rodada} no sync calendário: HTTP ${apiRes.status}`)
+            }
+          }
+        }
+
         // == ETAPA 3: Transicoes de status ==
         // Regra: se o organizador não escolheu os extras até o deadline, o sistema auto-seleciona
         log(`[${c.api_competition_code}] ETAPA 3: Transicoes...`)

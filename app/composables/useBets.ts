@@ -30,6 +30,8 @@ export const useBets = () => {
 
     const fetchInitialData = async () => {
         loading.value = true
+        locked.value = false
+        if (timer) { clearInterval(timer); timer = null }
         
         // 1. Fetch Shields
         const { data: times } = await supabase.from('times').select('api_team_id, escudo_url')
@@ -44,7 +46,7 @@ export const useBets = () => {
         // 2. Fetch Active Round
         const { data: r } = await supabase
             .from('rodadas')
-            .select('id, numero_rodada, status, betting_deadline, organizer_id, organizer_deadline, required_extra_games, fase, multiplicador, partidas(*), organizador:usuarios!organizer_id(nome)')
+            .select('id, numero_rodada, status, betting_deadline, organizer_id, organizer_deadline, required_extra_games, fase, multiplicador, calendario_alterado, partidas(*), organizador:usuarios!organizer_id(nome)')
             .in('status', ['aberta', 'aguardando_escolha'])
             .eq('campeonato_id', campeonatoAtivo.value.id)
             .order('numero_rodada', { ascending: true })
@@ -90,6 +92,7 @@ export const useBets = () => {
     }
 
     const startTimer = () => {
+        if (timer) { clearInterval(timer); timer = null }
         const update = () => {
             const currentRound = rodada.value
             if (!currentRound?.betting_deadline) return

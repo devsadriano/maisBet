@@ -169,6 +169,24 @@
           </div>
         </div>
 
+        <!-- Card Alert Banner (Calendar Changed) -->
+        <div v-if="r.calendario_alterado" class="px-3 sm:px-6 py-3 bg-amber-500/10 border-b border-white/5 flex items-center justify-between gap-4 text-xs">
+          <div class="flex items-center gap-2 text-amber-400">
+            <span class="text-base shrink-0">⚠️</span>
+            <div>
+              <span class="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Alerta de Calendário</span>
+              <span class="text-gray-300">A CBF/Organização alterou datas/horários nesta rodada. O Auto-Cycle já reajustou os prazos.</span>
+            </div>
+          </div>
+          <button 
+            @click="clearRoundAlert(r)"
+            :disabled="clearingAlerts[r.id]"
+            class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-bold uppercase tracking-wider text-[10px] transition-colors shrink-0 disabled:opacity-50"
+          >
+            {{ clearingAlerts[r.id] ? 'Limpando...' : 'Entendido' }}
+          </button>
+        </div>
+
         <!-- Card Body: 3-column grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/5 px-0">
 
@@ -750,6 +768,32 @@ async function syncRound(round: any) {
     toastError(e.data?.message || 'Erro ao sincronizar rodada.')
   } finally {
     syncingRounds.value[round.id] = false
+  }
+}
+
+const clearingAlerts = ref<Record<string, boolean>>({})
+
+async function clearRoundAlert(round: any) {
+  if (clearingAlerts.value[round.id]) return
+  
+  clearingAlerts.value[round.id] = true
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Não autenticado.')
+
+    await $fetch(`/api/admin/rounds/${round.id}/clear-alert`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    })
+    toastSuccess('Alerta de alteração limpo com sucesso!')
+    await fetchRodadas()
+  } catch (e: any) {
+    console.error(e)
+    toastError(e.data?.message || 'Erro ao limpar alerta.')
+  } finally {
+    clearingAlerts.value[round.id] = false
   }
 }
 

@@ -44,6 +44,24 @@
               </div>
             </div>
 
+            <!-- ALERTA DE ALTERAÇÃO DE CALENDÁRIO (Admin) -->
+            <div v-if="rodada && rodada.calendario_alterado" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-amber-400 mb-6 animate-fade-in-up">
+              <div class="flex items-center gap-2">
+                <span class="text-base shrink-0">⚠️</span>
+                <div>
+                  <span class="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Alteração de Calendário Detectada</span>
+                  <span class="text-gray-300">A CBF/Organização alterou datas/horários nesta rodada. O Auto-Cycle já reajustou os prazos.</span>
+                </div>
+              </div>
+              <button 
+                @click="clearIndexRoundAlert"
+                :disabled="clearingIndexAlert"
+                class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-bold uppercase tracking-wider text-[10px] transition-colors shrink-0 disabled:opacity-50"
+              >
+                {{ clearingIndexAlert ? 'Limpando...' : 'Entendido' }}
+              </button>
+            </div>
+
             <!-- Progresso da Rodada Atual -->
             <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02] border border-white/5 p-6 rounded-2xl">
               <!-- Barra de Progresso do Campeonato -->
@@ -454,6 +472,15 @@
                 </div>
               </div>
 
+            </div>
+
+            <!-- ALERTA DE ALTERAÇÃO DE CALENDÁRIO (Competidor) -->
+            <div v-if="rodada && rodada.calendario_alterado" class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex items-center gap-3 text-xs text-amber-400 mb-6 animate-fade-in-up">
+              <span class="text-base shrink-0">⚠️</span>
+              <div>
+                <span class="font-bold uppercase tracking-wider block mb-0.5 text-[10px]">Mudança nos Jogos</span>
+                <span class="text-gray-300">Atenção! A organização/CBF alterou datas ou horários dos jogos desta rodada. Verifique os novos horários e fique atento ao novo prazo de palpites!</span>
+              </div>
             </div>
 
             <!-- Progresso e Alerta Regressivo -->
@@ -902,6 +929,31 @@ const handleSaveQuickBets = async () => {
       msg = 'Aguarde a escolha do organizador! A rodada ainda não está aberta para palpitar.'
     }
     toast.error('Erro ao salvar: ' + msg)
+  }
+}
+
+const clearingIndexAlert = ref(false)
+
+const clearIndexRoundAlert = async () => {
+  if (!rodada.value) return
+  clearingIndexAlert.value = true
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Não autenticado.')
+
+    await $fetch(`/api/admin/rounds/${rodada.value.id}/clear-alert`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    })
+    toast.success('Alerta de alteração limpo com sucesso!')
+    await fetchInitialData()
+  } catch (e: any) {
+    console.error(e)
+    toast.error('Erro ao limpar alerta.')
+  } finally {
+    clearingIndexAlert.value = false
   }
 }
 

@@ -18,6 +18,7 @@ export interface Round {
   fase?: string
   multiplicador?: number
   required_extra_games?: number
+  calendario_alterado?: boolean
   created_at: string
   organizador?: { nome: string } | null
 }
