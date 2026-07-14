@@ -178,19 +178,23 @@ const deletarBolao = async (id: string) => {
   if (!confirm('Excluir Campeonato? Irreversível.')) return
 
   try {
-    // 1. Deletar solicitações vinculadas
+    // 1. Deletar palpites especiais vinculados
+    const { error: errEsp } = await supabase.from('palpites_especiais').delete().eq('campeonato_id', id)
+    if (errEsp) throw errEsp
+
+    // 2. Deletar solicitações vinculadas
     const { error: errSol } = await supabase.from('solicitacoes').delete().eq('campeonato_id', id)
     if (errSol) throw errSol
 
-    // 2. Deletar acessos vinculados
+    // 3. Deletar acessos vinculados
     const { error: errAce } = await supabase.from('campeonato_acessos').delete().eq('campeonato_id', id)
     if (errAce) throw errAce
 
-    // 3. Deletar rodadas vinculadas (cascateia para partidas e palpites)
+    // 4. Deletar rodadas vinculadas (cascateia para partidas e palpites)
     const { error: errRod } = await supabase.from('rodadas').delete().eq('campeonato_id', id)
     if (errRod) throw errRod
 
-    // 4. Deletar o campeonato em si
+    // 5. Deletar o campeonato em si
     const { error: errCamp } = await supabase.from('campeonatos').delete().eq('id', id)
     if (errCamp) throw errCamp
 
