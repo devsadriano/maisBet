@@ -341,7 +341,7 @@
         <!-- Footer Info -->
         <div class="text-center px-8">
           <p class="text-[9px] text-gray-500 dark:text-gray-600 font-bold uppercase tracking-[0.4em] leading-loose">
-            Acesso restrito a usuários autorizados do sistema de bolão dinâmico PLFC. v4.1.0
+            Acesso restrito a usuários autorizados do sistema de bolão dinâmico +BET. v4.1.0
           </p>
         </div>
       </div>
