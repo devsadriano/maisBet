@@ -12,7 +12,7 @@ export interface Round {
   campeonato_id: string
   numero_rodada: number
   status: RoundStatus
-  organizer_id: string
+  organizer_id: string | null
   organizer_deadline: string   // ISO 8601 — 12h antes do 1º jogo
   betting_deadline: string     // ISO 8601 — 1h antes do 1º jogo
   fase?: string

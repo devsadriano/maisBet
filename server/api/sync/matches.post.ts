@@ -125,8 +125,8 @@ export default defineEventHandler(async (event) => {
         p_campeonato_id: campeonato_id
       })
 
-      if (rpcError || !organizerId) {
-        throw createError({ statusCode: 500, message: `Erro ao sortear organizador para a rodada: ${rpcError?.message || 'Nenhum usuário cadastrado'}` })
+      if (rpcError) {
+        console.warn(`[sync/matches] Erro no RPC get_organizer_for_round: ${rpcError.message}`)
       }
 
       const { data: newRodada, error: rodadaError } = await supabase
@@ -135,7 +135,7 @@ export default defineEventHandler(async (event) => {
           numero_rodada: matchday,
           campeonato_id: campeonato_id,
           status: matchday === max_rodadas ? 'aberta' : 'aguardando_escolha',
-          organizer_id: organizerId,
+          organizer_id: organizerId || null,
           organizer_deadline: organizerDeadline,
           betting_deadline: bettingDeadline,
           required_extra_games: requiredExtras

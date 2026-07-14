@@ -211,7 +211,7 @@ export default defineEventHandler(async (event) => {
         }
 
         if (!organizerId) {
-          console.warn(`[start-championship] Sem organizador para rodada ${matchday}, usando primeiro participante como fallback`)
+          console.warn(`[start-championship] Sem organizador para rodada ${matchday}, tentando buscar participante como fallback`)
           // Fallback: buscar qualquer participante não-admin
           const { data: fallbackUser } = await supabase
             .from('campeonato_acessos')
@@ -227,17 +227,6 @@ export default defineEventHandler(async (event) => {
               .single()
             organizerId = fbUser?.id || null
           }
-        }
-
-        // Se ainda não tiver (campeonato novo sem membros), usa o admin logado
-        if (!organizerId) {
-          organizerId = adminUserId
-        }
-
-        if (!organizerId) {
-          console.error(`[start-championship] Impossível encontrar organizador para rodada ${matchday}, pulando`)
-          results.push({ round: matchday, status: 'erro_organizador', matches: 0 })
-          continue
         }
       } else {
         // Para rodadas passadas, pegar qualquer organizador válido (não é crítico)
@@ -263,17 +252,6 @@ export default defineEventHandler(async (event) => {
               .single()
             organizerId = fbUser?.id || null
           }
-        }
-
-        // Se ainda não tiver (campeonato novo sem membros), usa o admin logado
-        if (!organizerId) {
-          organizerId = adminUserId
-        }
-
-        if (!organizerId) {
-          console.error(`[start-championship] Sem organizador mesmo com fallback para rodada passada ${matchday}, pulando`)
-          results.push({ round: matchday, status: 'erro_organizador', matches: 0 })
-          continue
         }
       }
 

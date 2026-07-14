@@ -328,7 +328,7 @@ export type Database = {
           multiplicador: number | null
           numero_rodada: number
           organizer_deadline: string | null
-          organizer_id: string
+          organizer_id: string | null
           required_extra_games: number
           status: string
         }
@@ -341,7 +341,7 @@ export type Database = {
           multiplicador?: number | null
           numero_rodada: number
           organizer_deadline?: string | null
-          organizer_id: string
+          organizer_id?: string | null
           required_extra_games?: number
           status?: string
         }
@@ -354,7 +354,7 @@ export type Database = {
           multiplicador?: number | null
           numero_rodada?: number
           organizer_deadline?: string | null
-          organizer_id?: string
+          organizer_id?: string | null
           required_extra_games?: number
           status?: string
         }

@@ -19,6 +19,43 @@ O limite de pontos que o apostador pode ganhar em cada jogo de cada rodada é, n
 - **2º Colocado (Vice-Campeão):** No final do campeonato brasileiro, o segundo colocado **não pagará o churrasco**.
 - **O Mestre Churrasqueiro:** O último e o penúltimo classificado no ranking geral serão os responsáveis por **assar a carne** no dia do churrasco.
 
-## Observações Gerais
-1. Como no grupo temos participantes São-Paulinos, Flamenguistas, Santistas, Palmeirenses e Corintianos, esses jogos são obrigatórios, além da obrigatoriedade de mais dois jogos extras (totalizando o volume padrão da rodada).
-2. Conforme a regra 1, em caso de confronto direto entre esses times, o organizador da rodada em questão terá o direito de escolher mais jogos extras para preencher a tabela.
+
+## 4. Rodízio do Organizador de Rodadas
+
+Em cada rodada do campeonato, um participante é escolhido automaticamente pelo sistema para ser o **Organizador** daquela rodada. Ele será responsável por escolher os jogos extras (conforme a Regra 1).
+
+### Como funciona a ordem de rodízio?
+
+O sistema garante que a responsabilidade de organizar seja distribuída de forma **justa e automática** entre todos os participantes. A ordem segue três critérios simples, aplicados um após o outro:
+
+1. **Quem organizou menos vezes vai primeiro** — o sistema sempre escolhe o participante que ainda organizou menos rodadas no campeonato.
+2. **Em caso de empate, vai quem faz mais tempo que organizou** — se dois ou mais participantes têm o mesmo número de rodadas organizadas, é escolhido quem passou mais tempo sem essa responsabilidade.
+3. **Se ainda houver empate, vai em ordem alfabética** — critério final de desempate pelo nome.
+
+> Nenhum participante organiza uma segunda vez antes que todos os outros tenham organizado ao menos uma.
+
+---
+
+### O que acontece quando entram novos participantes no meio do campeonato?
+
+Participantes que entram depois que o campeonato já começou são tratados como **prioridade** na fila, pois nunca organizaram nenhuma rodada. O sistema os coloca automaticamente à frente de quem já teve essa responsabilidade, garantindo equilíbrio.
+
+#### Exemplo:
+
+- Campeonato tem 5 participantes. Cada um organiza uma rodada (rodadas 1 a 5).
+- Na rodada 6, entram 3 participantes novos. Como eles nunca organizaram, eles organizam primeiro as rodadas 6, 7 e 8.
+- Na rodada 9, o ciclo volta para os participantes mais antigos, que agora estão todos empatados novamente.
+
+---
+
+### Por que o sistema funciona assim?
+
+Quando um campeonato é criado, ainda não há participantes inscritos. Para evitar qualquer erro ou atribuição incorreta de responsabilidade, o sistema **deixa o cargo de organizador em aberto** até que os participantes se cadastrem.
+
+Assim que o primeiro participante é aprovado, o sistema distribui automaticamente os turnos de organização entre todos os inscritos. A cada novo participante aprovado, essa distribuição é recalculada e atualizada sem precisar de nenhuma ação manual.
+
+#### Garantias do sistema
+
+- Somente **participantes inscritos no campeonato** podem ser escolhidos como organizador.
+- O rodízio é **automático e recalculado** sempre que a lista de participantes muda.
+- **Ninguém organiza duas vezes antes que todos tenham organizado ao menos uma vez.**
