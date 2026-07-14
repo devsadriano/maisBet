@@ -178,28 +178,26 @@ const deletarBolao = async (id: string) => {
   if (!confirm('Excluir Campeonato? Irreversível.')) return
 
   try {
-    // 1. Deletar palpites especiais vinculados
-    const { error: errEsp } = await supabase.from('palpites_especiais').delete().eq('campeonato_id', id)
-    if (errEsp) throw errEsp
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Sessão expirada. Faça login novamente.')
 
-    // 2. Deletar solicitações vinculadas
-    const { error: errSol } = await supabase.from('solicitacoes').delete().eq('campeonato_id', id)
-    if (errSol) throw errSol
+    const response = await fetch('/api/admin/delete-championship', {
+      method: 'POST',
+      headers: { 
+         'Authorization': `Bearer ${session.access_token}`,
+         'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ campeonato_id: id })
+    })
 
-    // 3. Deletar acessos vinculados
-    const { error: errAce } = await supabase.from('campeonato_acessos').delete().eq('campeonato_id', id)
-    if (errAce) throw errAce
+    const result = await response.json()
 
-    // 4. Deletar rodadas vinculadas (cascateia para partidas e palpites)
-    const { error: errRod } = await supabase.from('rodadas').delete().eq('campeonato_id', id)
-    if (errRod) throw errRod
-
-    // 5. Deletar o campeonato em si
-    const { error: errCamp } = await supabase.from('campeonatos').delete().eq('id', id)
-    if (errCamp) throw errCamp
-
-    toast.success('Campeonato excluído com sucesso!')
-    await fetchDados()
+    if (response.ok && result.success) {
+      toast.success('Campeonato excluído com sucesso!')
+      await fetchDados()
+    } else {
+      throw new Error(result.message || 'Erro ao deletar o campeonato.')
+    }
   } catch (error: any) {
     console.error('Erro ao deletar campeonato:', error)
     toast.error('Erro ao deletar: ' + (error.message || error))
