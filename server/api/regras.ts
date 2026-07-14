@@ -1,6 +1,109 @@
 import fs from 'fs'
 import path from 'path'
-import { defineEventHandler, getQuery, createError } from 'h3'
+import { defineEventHandler, getQuery } from 'h3'
+
+const REGRAS_BET = `# +BET — Regras Universais do Bolão
+
+Abaixo estão descritas as regras definitivas do sistema de bolão:
+
+## 1. Composição da Rodada (Quais jogos entram?)
+- Não são todos os jogos da rodada que entram na aposta. O critério é que tenha o **jogo do time de cada apostador mais dois jogos extras**.
+- Em cada rodada, um apostador ("organizador") elege os jogos extras. O critério de rodízio é automático, definido pelo sistema. **Se o organizador não escolher até 1 hora antes do primeiro jogo da rodada, o sistema seleciona automaticamente de forma aleatória.**
+- Em cada rodada, um membro do grupo construirá a tabela de aposta de cada rodada. A pontuação deve ser auditável, mas sem uso de papel/nada impresso.
+- **Confronto Direto:** No caso de uma rodada ter confrontos diretos entre os times dos apostadores, o número de jogos obrigatórios diminui. Nesses casos, aumentará um jogo extra (o organizador da rodada poderá escolher outros jogos extras para compensar, ou o sistema fará isso automaticamente).
+
+## 2. Pontuação
+O limite de pontos que o apostador pode ganhar em cada jogo de cada rodada é, no máximo, **três pontos**:
+- **RESULTADO CORRETO (1 ponto):** Para cada resultado acertado (quem vence ou empate, independente do placar), o apostador ganha um ponto (1 pt).
+- **PLACAR CRAVADO (3 pontos):** Para cada placar acertado (ou seja, o resultado cravado exato da partida), o apostador ganha três pontos (3 pts). 
+
+## 3. Premiações (Fim do Campeonato Brasileiro)
+- **1º Colocado (Campeão Geral):** O apostador com o maior número de pontos ganhará do grupo de apostadores **uma camiseta oficial** do seu clube (ou duas do mercado paralelo). O valor do prêmio será dividido IGUALMENTE pelos apostadores que não ficaram em primeiro lugar na classificação.
+- **A Entrega do Prêmio:** A camiseta (ou as camisetas) do vencedor será entregue em um **churrasco de premiação**, que será marcado de acordo com a disponibilidade da agenda de TODOS os apostadores.
+- **2º Colocado (Vice-Campeão):** No final do campeonato brasileiro, o segundo colocado **não pagará o churrasco**.
+- **O Mestre Churrasqueiro:** O último e o penúltimo classificado no ranking geral serão os responsáveis por **assar a carne** no dia do churrasco.
+
+## Observações Gerais
+1. Como no grupo temos participantes São-Paulinos, Flamenguistas, Santistas, Palmeirenses e Corintianos, esses jogos são obrigatórios, além da obrigatoriedade de mais dois jogos extras (totalizando o volume padrão da rodada).
+2. Conforme a regra 1, em caso de confronto direto entre esses times, o organizador da rodada em questão terá o direito de escolher mais jogos extras para preencher a tabela.`
+
+const REGRAS_COPA = `# +BET — Regras do Bolão da Copa do Mundo
+
+Abaixo estão descritas as regras do bolão para campeonatos no formato Copa do Mundo (FIFA World Cup e similares):
+
+## 1. Composição da Rodada (Quais jogos entram?)
+- **Todos os jogos da rodada entram na aposta.** Diferente do formato Brasileirão, não existe filtro de jogos obrigatórios ou extras.
+- Cada rodada corresponde a um matchday da fase de grupos ou eliminatórias. Todos os jogos disponíveis na rodada ficam abertos para palpite.
+- **Não há a figura do Organizador** para selecionar jogos extras — o sistema importa automaticamente todos os jogos e todos ficam disponíveis.
+
+## 2. Fases do Campeonato
+- **Fase de Grupos:** Todos os jogos de todas as rodadas da fase de grupos ficam disponíveis para palpite de uma só vez. O participante pode fazer seus palpites antecipadamente para qualquer jogo da fase de grupos.
+- **Mata-Mata (Oitavas, Quartas, Semifinal, Final):** Os jogos do mata-mata serão abertos **conforme o campeonato for desenrolando**. À medida que as classificações forem definidas e os confrontos do mata-mata confirmados, os palpites para cada fase eliminatória serão liberados progressivamente pelo sistema.
+
+## 3. Time do Coração
+- Cada participante pode escolher uma **seleção nacional** como seu "Time do Coração" ao entrar no bolão.
+- A seleção escolhida aparece como escudo no ranking ao lado do nome do participante.
+
+## 4. Pontuação Base
+O sistema de pontuação base segue o mesmo padrão:
+- **RESULTADO CORRETO (1 ponto):** Para cada resultado acertado (quem vence ou empate, independente do placar), o apostador ganha um ponto (1 pt).
+- **PLACAR CRAVADO (3 pontos):** Para cada placar acertado (resultado exato da partida), o apostador ganha três pontos (3 pts).
+
+## 5. Peso Crescente no Mata-Mata
+Os pontos ganhos em cada jogo são multiplicados de acordo com a fase eliminatória:
+
+| Fase           | Multiplicador | Exemplo: Cravado (3pts) |
+|---------------|---------------|-------------------------|
+| Fase de Grupos | ×1.0          | 3 pontos                |
+| Oitavas de Final| ×1.0         | 3 pontos                |
+| Quartas de Final| ×1.5         | 4.5 pontos              |
+| Semifinal      | ×2.0          | 6 pontos                |
+| Final / 3º Lugar| ×3.0         | 9 pontos                |
+
+> Isso valoriza os jogos decisivos do torneio e premia quem acerta nos momentos cruciais.
+
+## 6. Palpites Especiais (Bônus)
+Antes da Copa começar, cada participante faz 3 palpites especiais. Os pontos bônus são somados ao ranking final:
+
+### 6.1 Campeão do Torneio (+10 pontos)
+- Cada participante aposta qual seleção será a **campeã da Copa do Mundo**.
+- Se acertar, ganha **+10 pontos** de bônus no ranking geral.
+
+### 6.2 Artilheiro da Copa (+5 pontos)
+- Cada participante aposta qual jogador será o **artilheiro** (maior goleador) do torneio.
+- Se acertar, ganha **+5 pontos** de bônus no ranking geral.
+
+### 6.3 Melhor Seleção do Grupo (+3 pontos por grupo)
+- Antes da fase de grupos, cada participante aposta qual seleção terminará em **1º lugar** de cada grupo (A a H).
+- Para cada grupo acertado, ganha **+3 pontos** de bônus.
+- Acertando todos os 8 grupos = **+24 pontos** de bônus potencial.
+
+## 7. Palpite de Classificação no Mata-Mata (+1 ponto)
+- Além do placar, o participante aposta **quem avança de fase** em cada jogo eliminatório.
+- Se o jogo for para prorrogação/pênaltis e o participante acertar o classificado (mas errar o placar), ganha **+1 ponto** bônus.
+- Este bônus é independente da pontuação do placar.
+
+## 8. Prazo de Palpites
+- **Fase de Grupos:** Palpites encerram **1 hora** antes do primeiro jogo de cada rodada.
+- **Mata-Mata:** Palpites encerram **1 hora** antes do primeiro jogo de cada rodada eliminatória (Oitavas, Quartas, Semifinal, Final/3º Lugar).
+
+## 9. Ranking
+- O ranking é calculado por campeonato. Apenas participantes autorizados para o bolão da Copa do Mundo aparecem no ranking.
+- Critérios de desempate (em ordem): **Pontos DESC > Cravados DESC > Acertos Parciais DESC > Nome ASC**.
+- Os pontos de Palpites Especiais (Seção 6 e 7) são somados ao total geral.
+
+## Diferenças em relação ao Brasileirão (\`regras_bet.md\`)
+
+| Aspecto                 | Brasileirão              | Copa do Mundo           |
+|------------------------|--------------------------|-------------------------|
+| Jogos por rodada       | Obrigatórios + 2 extras  | Todos os jogos          |
+| Organizador            | Sim (escolhe extras)     | Não (automático)        |
+| Time do Coração        | Clube brasileiro         | Seleção nacional        |
+| Confronto direto       | +1 extra por confronto   | N/A                     |
+| Multiplicador          | Não                      | Sim (×1 a ×3)           |
+| Palpites Especiais     | Não                      | Campeão, Artilheiro, Grupos |
+| Prazo de palpites      | 1h antes                 | 1h antes (grupos e mata-mata) |
+| Pontuação base         | 1pt resultado / 3pt cravado | Igual                 |`
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -10,13 +113,16 @@ export default defineEventHandler(async (event) => {
   const filePath = path.join(process.cwd(), '.github', 'instructions', fileName)
   
   try {
-    const content = await fs.promises.readFile(filePath, 'utf-8')
-    return { content }
+    if (fs.existsSync(filePath)) {
+      const content = await fs.promises.readFile(filePath, 'utf-8')
+      return { content }
+    }
   } catch (error: any) {
-    console.error('Error reading rules file:', error)
-    throw createError({
-      statusCode: 404,
-      statusMessage: `Rules file not found: ${fileName}. Ensure it exists in .github/instructions/`,
-    })
+    console.error('Error reading rules file from disk:', error)
+  }
+
+  // Fallback to inline rules
+  return {
+    content: isCopa ? REGRAS_COPA : REGRAS_BET
   }
 })
