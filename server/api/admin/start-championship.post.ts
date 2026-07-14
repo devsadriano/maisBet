@@ -1,4 +1,4 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/server'
 import { requireAdmin } from '../../utils/requireAdmin'
 
 /**
@@ -13,6 +13,15 @@ export default defineEventHandler(async (event) => {
   await requireAdmin(event)
 
   const supabase = await serverSupabaseServiceRole<any>(event)
+  const client = await serverSupabaseClient(event)
+  
+  let adminUserId: string | null = null
+  try {
+    const { data: { user } } = await client.auth.getUser()
+    adminUserId = user?.id || null
+  } catch (err) {
+    console.warn('[start-championship] Não foi possível obter o ID do admin para fallback:', err)
+  }
 
   const FOOTBALL_DATA_KEY = process.env.FOOTBALL_DATA_KEY
   if (!FOOTBALL_DATA_KEY) {
@@ -220,6 +229,11 @@ export default defineEventHandler(async (event) => {
           }
         }
 
+        // Se ainda não tiver (campeonato novo sem membros), usa o admin logado
+        if (!organizerId) {
+          organizerId = adminUserId
+        }
+
         if (!organizerId) {
           console.error(`[start-championship] Impossível encontrar organizador para rodada ${matchday}, pulando`)
           results.push({ round: matchday, status: 'erro_organizador', matches: 0 })
@@ -249,6 +263,11 @@ export default defineEventHandler(async (event) => {
               .single()
             organizerId = fbUser?.id || null
           }
+        }
+
+        // Se ainda não tiver (campeonato novo sem membros), usa o admin logado
+        if (!organizerId) {
+          organizerId = adminUserId
         }
 
         if (!organizerId) {
