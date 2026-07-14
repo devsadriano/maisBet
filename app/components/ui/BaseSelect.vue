@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{
   disabled: false,
   required: false,
   variant: 'brand',
-  triggerClass: 'w-full flex items-center justify-between gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl cursor-pointer select-none transition-all duration-200'
+  triggerClass: 'w-full flex items-center justify-between gap-2 px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl cursor-pointer select-none transition-all duration-200'
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
@@ -115,7 +115,7 @@ const arrowColorClass = computed(() => {
         v-for="opt in normalizedOptions" 
         :key="opt.value"
         type="button"
-        class="w-full text-left px-4 py-2.5 text-xs font-bold transition-colors flex items-center justify-between truncate"
+        class="w-full text-left px-4 py-3 text-xs font-bold transition-colors flex items-center justify-between truncate"
         :class="opt.value === modelValue ? activeTextClass : ['text-gray-600 dark:text-gray-300', hoverClass]"
         @click.stop="selectOption(opt.value)"
       >

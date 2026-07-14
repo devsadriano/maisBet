@@ -43,7 +43,7 @@
             type="text" 
             placeholder="Ex: Vinícius Jr."
             :disabled="isLocked"
-            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all"
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 focus:bg-white/10 transition-all"
             @blur="saveBet('artilheiro')"
           />
         </div>

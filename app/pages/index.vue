@@ -36,7 +36,7 @@
                   />
                   <button 
                     @click="selecionarCampeonato('')"
-                    class="text-xs px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-xl transition-all active:scale-95 text-center shrink-0 w-full sm:w-auto font-bold"
+                    class="text-xs px-4 py-3.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-xl transition-all active:scale-95 text-center shrink-0 w-full sm:w-auto font-bold"
                   >
                     Sair do Bolão
                   </button>
