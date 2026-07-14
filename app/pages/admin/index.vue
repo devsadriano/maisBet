@@ -5,7 +5,7 @@
         <h1 class="text-3xl font-bebas tracking-wider text-white">Painel Admin</h1>
         <p class="text-sm text-gray-400 mt-1">Gerencie as configurações e módulos do +BET.</p>
       </div>
-      <NuxtLink to="/" class="text-sm px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 font-medium rounded-lg transition-colors border border-white/10">
+      <NuxtLink to="/" class="text-xs px-4 py-2 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 font-bold rounded-xl transition-all border border-brand-500/20 hover:border-brand-500/40 uppercase tracking-wider active:scale-95">
         Ir para o jogo
       </NuxtLink>
     </div>

@@ -76,6 +76,40 @@ serve(async (req) => {
     // MODO SOLICITAR (conta limitada + solicitação pendente)
     // ───────────────────────────────────────────────────────────────
     if (modo === 'solicitar') {
+      // 0. Verifica se o email já está pré-autorizado. Se estiver, cria como ativo direto.
+      const { data: autorizado } = await supabase
+        .from('email_autorizados')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (autorizado) {
+        const { data: userAuth, error: authError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { nome }
+        })
+
+        if (authError) {
+          return json({ error: authError.message }, 400)
+        }
+
+        if (userAuth?.user) {
+          await supabase.from('usuarios').upsert({
+            id: userAuth.user.id,
+            email,
+            nome,
+            status: 'ativo',
+            telefone: telefone || null,
+            cidade: cidade || null,
+            estado: estado || null,
+          }, { onConflict: 'id' })
+        }
+
+        return json({ success: true, mode: 'registrar', user: userAuth.user })
+      }
+
       // 1. Verifica se já existe solicitação pendente para esse email
       const { data: existente } = await supabase
         .from('solicitacoes')

@@ -45,9 +45,12 @@ const errorDetail = ref('')
 const goLogin = () => router.replace('/login')
 
 watch(user, (u) => {
-  if (u?.sub && status.value === 'loading') {
-    status.value = 'success'
-    setTimeout(() => router.replace('/'), 800)
+  if (u?.sub || u?.id) {
+    if (status.value === 'loading') {
+      status.value = 'success'
+      const target = route.query.type === 'recovery' ? '/alterar-senha' : '/'
+      setTimeout(() => router.replace(target), 800)
+    }
   }
 }, { immediate: true })
 
@@ -56,18 +59,51 @@ onMounted(async () => {
 
   const code = route.query.code as string | undefined
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (error) {
-      errorDetail.value = error.message
+    try {
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      if (error) {
+        // Se já houver usuário logado (ex: Nuxt resolveu via cookies no SSR/Client em paralelo)
+        if (user.value) {
+          status.value = 'success'
+          const target = route.query.type === 'recovery' ? '/alterar-senha' : '/'
+          setTimeout(() => router.replace(target), 800)
+          return
+        }
+
+        // Se for erro de code verifier (típico de navegadores diferentes)
+        if (error.message.includes('code verifier') || error.message.includes('verifier')) {
+          errorDetail.value = 'Erro de Navegador: O link foi aberto em um navegador diferente daquele onde você solicitou a recuperação. Copie o link completo do e-mail e cole no mesmo navegador (Chrome/Firefox/etc.) que você usou para fazer a solicitação.'
+        } else {
+          errorDetail.value = error.message
+        }
+        status.value = 'error'
+      } else {
+        status.value = 'success'
+        const target = route.query.type === 'recovery' ? '/alterar-senha' : '/'
+        setTimeout(() => router.replace(target), 800)
+      }
+    } catch (err: any) {
+      if (user.value) {
+        status.value = 'success'
+        const target = route.query.type === 'recovery' ? '/alterar-senha' : '/'
+        setTimeout(() => router.replace(target), 800)
+        return
+      }
+      errorDetail.value = err.message || 'Erro ao validar confirmação.'
       status.value = 'error'
-    } else {
-      status.value = 'success'
-      setTimeout(() => router.replace('/'), 800)
     }
   } else {
+    // Se não há código na URL, mas o usuário já está logado
+    if (user.value) {
+      status.value = 'success'
+      const target = route.query.type === 'recovery' ? '/alterar-senha' : '/'
+      setTimeout(() => router.replace(target), 800)
+      return
+    }
+
     setTimeout(() => {
       if (status.value === 'loading') {
-        errorDetail.value = 'Nenhum código encontrado na URL.'
+        errorDetail.value = 'Nenhum código de confirmação encontrado na URL.'
         status.value = 'error'
       }
     }, 3000)

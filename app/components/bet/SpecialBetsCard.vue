@@ -18,17 +18,14 @@
             <span class="text-[10px] font-bold text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">10 PTS</span>
           </div>
           <h4 class="text-lg font-bebas text-white tracking-widest uppercase">Grande Campeão</h4>
-          <select 
-            v-model="state.campeao" 
+          <BaseSelect
+            v-model="state.campeao"
+            :options="(availableTeams || []).map(t => t.nome)"
+            placeholder="Escolha a seleção campeã..."
             :disabled="isLocked"
-            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
             @change="saveBet('campeao')"
-          >
-            <option value="" disabled>Escolha a seleção campeã...</option>
-            <option v-for="team in availableTeams" :key="team.id" :value="team.nome" class="bg-pitch-900 text-white">
-              {{ team.nome }}
-            </option>
-          </select>
+            variant="brand"
+          />
         </div>
       </BaseCard>
 
@@ -61,17 +58,14 @@
             <span class="text-[10px] font-bold text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">5 PTS</span>
           </div>
           <h4 class="text-lg font-bebas text-white tracking-widest uppercase">Melhor do Grupo</h4>
-          <select 
-            v-model="state.melhor_grupo" 
+          <BaseSelect
+            v-model="state.melhor_grupo"
+            :options="(availableTeams || []).map(t => t.nome)"
+            placeholder="Selecione a melhor seleção..."
             :disabled="isLocked"
-            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500/50 focus:bg-white/10 transition-all appearance-none cursor-pointer"
             @change="saveBet('melhor_grupo')"
-          >
-            <option value="" disabled>Selecione a melhor seleção...</option>
-            <option v-for="team in availableTeams" :key="team.id" :value="team.nome" class="bg-pitch-900 text-white">
-              {{ team.nome }}
-            </option>
-          </select>
+            variant="amber"
+          />
         </div>
       </BaseCard>
     </div>
@@ -82,6 +76,7 @@
 import { reactive, onMounted } from 'vue'
 import { useToast } from '~/composables/useToast'
 import BaseCard from '~/components/ui/BaseCard.vue'
+import BaseSelect from '~/components/ui/BaseSelect.vue'
 
 const props = defineProps<{
   campeonatoId: string

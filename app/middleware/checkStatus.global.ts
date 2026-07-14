@@ -8,6 +8,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Se não está logado, não interfere
   if (!user.value) return
 
+  // Libera a página de alteração de senha para usuários autenticados,
+  // mas exige login para quem não estiver logado.
+  if (to.path === '/alterar-senha') {
+    return
+  }
+
   // ── SEGURANÇA CRÍTICA ──
   // Aguarda o perfil carregar do banco ANTES de tomar qualquer decisão.
   // Isso evita tanto bloquear admins quanto liberar pendentes prematuramente.

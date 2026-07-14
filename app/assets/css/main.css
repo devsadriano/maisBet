@@ -10,35 +10,38 @@
 
 /* ── LIGHT MODE (padrão) ── */
 :root {
-  --bg-base:          #f0fdf4;
+  --bg-base:          #f1f5f9;  /* slate-100 — neutro, sem verde */
   --bg-surface:       #ffffff;
-  --bg-surface-2:     #f3f4f6;
-  --bg-surface-3:     #e5e7eb;
+  --bg-surface-2:     #f8fafc;  /* slate-50 */
+  --bg-surface-3:     #e2e8f0;  /* slate-200 */
 
-  --text-primary:     #111827;
-  --text-secondary:   #374151;
-  --text-muted:       #6b7280;
-  --text-subtle:      #9ca3af;
+  --text-primary:     #0f172a;  /* slate-900 — mais contraste */
+  --text-secondary:   #334155;  /* slate-700 */
+  --text-muted:       #64748b;  /* slate-500 */
+  --text-subtle:      #94a3b8;  /* slate-400 */
 
-  --border:           rgba(0, 0, 0, 0.08);
-  --border-strong:    rgba(0, 0, 0, 0.15);
+  --border:           rgba(15, 23, 42, 0.08);
+  --border-strong:    rgba(15, 23, 42, 0.16);
 
-  --brand:            #16a34a;
-  --brand-light:      #4ade80;
-  --brand-dim:        rgba(22, 163, 74, 0.12);
-  --brand-glow:       rgba(22, 163, 74, 0.25);
+  --brand:            #15803d;  /* green-700 — mais profundo */
+  --brand-light:      #22c55e;  /* green-500 */
+  --brand-dim:        rgba(21, 128, 61, 0.10);
+  --brand-glow:       rgba(21, 128, 61, 0.20);
 
-  --gold:             #ca8a04;
-  --gold-dim:         rgba(202, 138, 4, 0.12);
+  --gold:             #b45309;  /* amber-700 */
+  --gold-dim:         rgba(180, 83, 9, 0.10);
 
-  --danger:           #dc2626;
-  --danger-dim:       rgba(220, 38, 38, 0.12);
+  --danger:           #b91c1c;  /* red-700 */
+  --danger-dim:       rgba(185, 28, 28, 0.10);
 
-  --scrollbar-track:  #e5e7eb;
-  --scrollbar-thumb:  #d1d5db;
+  --scrollbar-track:  #e2e8f0;
+  --scrollbar-thumb:  #94a3b8;
 
-  --glass-bg:         rgba(255, 255, 255, 0.65);
-  --glass-border:     rgba(0, 0, 0, 0.06);
+  --glass-bg:         rgba(255, 255, 255, 0.80);
+  --glass-border:     rgba(15, 23, 42, 0.08);
+
+  --shadow-card:      0 1px 3px rgba(15, 23, 42, 0.08), 0 4px 16px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(15, 23, 42, 0.12), 0 8px 32px rgba(15, 23, 42, 0.08);
 }
 
 /* ── DARK MODE ── */
@@ -91,6 +94,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
 /* =====================================
@@ -113,7 +117,9 @@ html {
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-base);
+  overflow-x: hidden;
 }
 
 /* Dark mode body gradient */
@@ -131,14 +137,12 @@ html.dark body {
   var(--bg-base);
 }
 
-/* Light mode body */
+/* Light mode body — gradiente sutil neutro */
 html:not(.dark) body {
-  background: radial-gradient(
-    ellipse at 20% 80%,
-    rgba(22, 163, 74, 0.06) 0%,
-    transparent 50%
-  ),
-  var(--bg-base);
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(21, 128, 61, 0.05) 0%, transparent 50%),
+    var(--bg-base);
 }
 
 /* =====================================
@@ -264,12 +268,23 @@ html:not(.dark) .text-gray-500 {
   color: #374151 !important; /* gray-700 */
 }
 
-/* Backgrounds transparentes → fundo sutil no light mode */
+/* Backgrounds transparentes → cards com fundo branco e sombra */
 html:not(.dark) .bg-white\/5,
+html:not(.dark) .bg-white\/\[0\.08\],
+html:not(.dark) .bg-white\/\[0\.07\],
 html:not(.dark) .bg-white\/\[0\.04\],
 html:not(.dark) .bg-white\/\[0\.03\],
 html:not(.dark) .bg-white\/\[0\.02\] {
   background-color: var(--bg-surface) !important;
+  box-shadow: var(--shadow-card);
+}
+
+/* Hover em cards */
+html:not(.dark) .hover\:bg-white\/10:hover,
+html:not(.dark) .hover\:bg-white\/\[0\.07\]:hover,
+html:not(.dark) .hover\:bg-white\/\[0\.08\]:hover {
+  background-color: var(--bg-surface-2) !important;
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* Bordas brancas transparentes → mais visíveis no light mode */
@@ -278,22 +293,38 @@ html:not(.dark) .border-white\/\[0\.05\] {
   border-color: var(--border) !important;
 }
 html:not(.dark) .border-white\/10 {
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(15, 23, 42, 0.09) !important;
+}
+html:not(.dark) .border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.14) !important;
 }
 
 /* bg-pitch-800/900 (dark backgrounds) → surface no light mode */
 html:not(.dark) .bg-pitch-800,
 html:not(.dark) .bg-pitch-900 {
   background-color: var(--bg-surface) !important;
+  box-shadow: var(--shadow-card);
 }
 
-/* brand-500 links no light = verde escuro */
-html:not(.dark) .text-brand-500 {
-  color: var(--brand) !important;
-}
-html:not(.dark) .text-brand-400 {
-  color: var(--brand) !important;
-}
+/* brand links no light = verde profundo */
+html:not(.dark) .text-brand-500,
+html:not(.dark) .text-brand-400,
 html:not(.dark) .text-brand-300 {
   color: var(--brand) !important;
+}
+
+/* Nav bar no light mode */
+html:not(.dark) .bg-gray-900\/95,
+html:not(.dark) .bg-gray-900\/80,
+html:not(.dark) .bg-gray-900 {
+  background-color: rgba(255,255,255,0.95) !important;
+  backdrop-filter: blur(16px);
+  border-color: rgba(15, 23, 42, 0.10) !important;
+  box-shadow: 0 -1px 0 rgba(15,23,42,0.08), 0 -4px 16px rgba(15,23,42,0.06);
+}
+
+/* Texto da nav bar no light */
+html:not(.dark) .bg-gray-900\/95 .text-gray-400,
+html:not(.dark) .bg-gray-900\/80 .text-gray-400 {
+  color: var(--text-muted) !important;
 }

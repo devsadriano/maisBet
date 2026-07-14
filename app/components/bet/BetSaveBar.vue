@@ -11,7 +11,7 @@ defineEmits(['save'])
 </script>
 
 <template>
-  <div class="fixed bottom-0 left-0 right-0 p-6 bg-pitch-950/80 backdrop-blur-xl border-t border-white/10 flex justify-center z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+  <div class="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-0 left-0 right-0 p-4 md:p-6 bg-pitch-950/80 backdrop-blur-xl border-t border-white/10 flex justify-center z-40 md:z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
     <div class="w-full max-w-sm">
       <BaseButton
         variant="brand"

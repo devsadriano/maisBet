@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full bg-[#111111] overflow-hidden rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl relative">
+  <div class="flex flex-col h-full bg-[#111111] overflow-hidden rounded-2xl sm:rounded-2xl rounded-b-none w-full max-w-2xl max-h-[85vh] sm:max-h-[90vh] shadow-2xl relative">
     <!-- Header/Close -->
     <button @click="$emit('close')" class="absolute top-4 right-4 z-50 text-gray-500 hover:text-white transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -168,9 +168,11 @@
             <!-- Scoring System -->
             <div>
               <label class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1.5">Motor de Pontuação</label>
-              <select v-model="form.scoring_system_id" required class="w-full bg-emerald-500/5 border border-emerald-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors appearance-none shadow-[0_0_10px_rgba(16,185,129,0.05)] cursor-pointer">
-                <option v-for="sys in sistemas" :key="sys.id" :value="sys.id" class="bg-gray-900 text-white">{{ sys.nome }} - {{ sys.descricao }}</option>
-              </select>
+              <BaseSelect
+                v-model="form.scoring_system_id"
+                :options="sistemas.map(sys => ({ value: sys.id, label: `${sys.nome} - ${sys.descricao}` }))"
+                variant="brand"
+              />
             </div>
 
             <!-- Formato do Campeonato -->
@@ -229,6 +231,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import BaseSelect from '~/components/ui/BaseSelect.vue'
 
 const props = defineProps<{
   sistemas: any[]

@@ -1,49 +1,50 @@
 <template>
   <div class="space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-3xl font-bebas tracking-wider text-white">Central de Pedidos</h1>
         <p class="text-sm text-gray-400 mt-1">Gerencie as solicitações de acesso ao sistema e aos bolões.</p>
       </div>
-      <NuxtLink to="/admin" class="text-sm text-brand-400 hover:text-brand-300 font-medium">
+      <NuxtLink to="/admin" class="text-xs px-4 py-2 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 font-bold rounded-xl transition-all border border-brand-500/20 hover:border-brand-500/40 uppercase tracking-wider active:scale-95 shrink-0 mt-1">
         ← Voltar
       </NuxtLink>
     </div>
 
     <!-- Tabs -->
-    <div class="flex gap-2 border-b border-white/10 pb-0.5">
+    <div class="flex flex-wrap gap-1 border-b border-white/10 pb-0.5">
       <button
         v-for="tab in tabs"
         :key="tab.value"
         @click="activeTab = tab.value; filterCampeonatoId = ''"
-        class="px-4 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl transition-all border-b-2 -mb-[3px]"
+        class="flex-1 min-w-0 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-t-xl transition-all border-b-2 -mb-[3px] whitespace-nowrap"
         :class="activeTab === tab.value
           ? 'text-brand-400 border-brand-500 bg-brand-500/10'
           : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'"
       >
         {{ tab.label }}
-        <span v-if="tab.value === 'pendente' && pendingCount > 0" class="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] inline-flex items-center justify-center">
+        <span v-if="tab.value === 'pendente' && pendingCount > 0" class="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] inline-flex items-center justify-center">
           {{ pendingCount }}
         </span>
       </button>
     </div>
 
     <!-- Campeonato Filter -->
-    <div v-if="!loading" class="flex items-center gap-3">
-      <label class="text-xs font-black uppercase tracking-widest text-gray-500 shrink-0">Filtrar:</label>
-      <select
-        v-model="filterCampeonatoId"
-        class="flex-1 max-w-xs px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
-      >
-        <option value="" class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">Todos</option>
-        <option value="__sistema__" class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">🔑 Apenas Sistema</option>
-        <option v-for="camp in campeonatosNoFiltro" :key="camp.id" :value="camp.id" class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
-          ⚽ {{ camp.nome }}{{ camp.apelido_grupo ? ' — ' + camp.apelido_grupo : '' }}
-        </option>
-      </select>
-      <span v-if="filterCampeonatoId" class="text-xs text-gray-500">
-        {{ filteredList.length }} resultado(s)
-      </span>
+    <div v-if="!loading" class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+      <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0">Filtrar:</label>
+      <div class="flex items-center gap-2 min-w-0 w-full sm:w-auto">
+        <BaseSelect
+          v-model="filterCampeonatoId"
+          :options="[
+            { value: '', label: 'Todos' },
+            { value: '__sistema__', label: '🔑 Apenas Sistema' },
+            ...campeonatosNoFiltro.map(camp => ({ value: camp.id, label: `⚽ ${camp.nome}${camp.apelido_grupo ? ' — ' + camp.apelido_grupo : ''}` }))
+          ]"
+          variant="brand"
+        />
+        <span v-if="filterCampeonatoId" class="text-xs text-gray-500 shrink-0">
+          {{ filteredList.length }} resultado(s)
+        </span>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -62,41 +63,42 @@
       <div
         v-for="sol in filteredList"
         :key="sol.id"
-        class="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4 hover:bg-white/[0.07] transition-colors"
+        class="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 space-y-4 hover:bg-white/[0.07] transition-colors overflow-hidden"
       >
         <!-- Header -->
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex items-center gap-4">
+        <div class="flex flex-col gap-3">
+          <!-- Top row: avatar + name + type badge -->
+          <div class="flex items-start gap-3">
             <!-- Avatar -->
-            <div class="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-xl font-bebas text-brand-400 shrink-0">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-brand-500/20 flex items-center justify-center text-lg sm:text-xl font-bebas text-brand-400 shrink-0">
               {{ (sol.nome || sol.email || '?').charAt(0).toUpperCase() }}
             </div>
-            <div class="min-w-0">
-              <p class="text-white font-semibold truncate">{{ sol.nome || sol.email }}</p>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="text-white font-semibold truncate max-w-[160px] sm:max-w-none">{{ sol.nome || sol.email }}</p>
+                <!-- Type Badge -->
+                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest shrink-0"
+                      :class="sol.tipo === 'acesso_sistema'
+                        ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'">
+                  {{ sol.tipo === 'acesso_sistema' ? '🔑 Sistema' : '⚽ Bolão' }}
+                </span>
+              </div>
               <p class="text-xs text-gray-400 truncate">{{ sol.email }}</p>
-              <div class="flex items-center gap-2 mt-1">
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
                 <span v-if="sol.telefone" class="text-[10px] text-gray-500">📞 {{ sol.telefone }}</span>
                 <span v-if="sol.cidade || sol.estado" class="text-[10px] text-gray-500">📍 {{ sol.cidade }}{{ sol.cidade && sol.estado ? ' - ' : '' }}{{ sol.estado }}</span>
+                <!-- Status Badge -->
+                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest"
+                      :class="{
+                        'bg-amber-500/10 text-amber-400 border border-amber-500/20': sol.status === 'pendente',
+                        'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': sol.status === 'aprovada',
+                        'bg-red-500/10 text-red-400 border border-red-500/20': sol.status === 'rejeitada',
+                      }">
+                  {{ sol.status === 'pendente' ? '🟡 Pendente' : sol.status === 'aprovada' ? '✅ Aprovada' : '❌ Rejeitada' }}
+                </span>
               </div>
             </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <!-- Type Badge -->
-            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest"
-                  :class="sol.tipo === 'acesso_sistema'
-                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                    : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'">
-              {{ sol.tipo === 'acesso_sistema' ? '🔑 Sistema' : '⚽ Bolão' }}
-            </span>
-            <!-- Status Badge -->
-            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest"
-                  :class="{
-                    'bg-amber-500/10 text-amber-400 border border-amber-500/20': sol.status === 'pendente',
-                    'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20': sol.status === 'aprovada',
-                    'bg-red-500/10 text-red-400 border border-red-500/20': sol.status === 'rejeitada',
-                  }">
-              {{ sol.status === 'pendente' ? '🟡 Pendente' : sol.status === 'aprovada' ? '✅ Aprovada' : '❌ Rejeitada' }}
-            </span>
           </div>
         </div>
 
@@ -257,6 +259,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import BaseSelect from '~/components/ui/BaseSelect.vue'
 import type { Solicitacao } from '~/composables/useSolicitacoes'
 
 definePageMeta({

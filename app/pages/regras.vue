@@ -96,7 +96,7 @@
              <span class="text-3xl">💰</span>
              <h3 class="text-2xl font-bebas text-white tracking-widest uppercase">REGRAS DA PREMIAÇÃO</h3>
            </div>
-           <p class="text-sm text-amber-100 whitespace-pre-wrap leading-relaxed">{{ campeonatoAtivo.detalhes_premiacao }}</p>
+           <p class="text-sm text-amber-100 dark:text-amber-100 whitespace-pre-wrap leading-relaxed" style="color: inherit">{{ campeonatoAtivo.detalhes_premiacao }}</p>
            <div class="pt-2">
               <span class="text-[10px] uppercase font-black tracking-widest text-amber-500">Regras oficiais configuradas pelo administrador</span>
            </div>
@@ -194,7 +194,7 @@ const parsedRulesHtml = computed(() => {
   }
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
+    const line = (lines[i] ?? '').trim()
     
     // Check for table divider or row
     if (line.startsWith('|')) {
@@ -312,5 +312,34 @@ useHead({
 }
 .rules-markdown-content :deep(tr:last-child td) {
   border-bottom: none;
+}
+
+/* ── Light mode overrides para conteúdo gerado via v-html ── */
+:root:not(.dark) .rules-markdown-content :deep(p),
+:root:not(.dark) .rules-markdown-content :deep(li span:not(.text-brand-500)),
+:root:not(.dark) .rules-markdown-content :deep(li) {
+  color: var(--text-secondary) !important;
+}
+
+:root:not(.dark) .rules-markdown-content :deep(h3) {
+  color: var(--text-primary) !important;
+}
+
+:root:not(.dark) .rules-markdown-content :deep(blockquote) {
+  color: var(--text-secondary) !important;
+  background-color: rgba(21, 128, 61, 0.06) !important;
+}
+
+:root:not(.dark) .rules-markdown-content :deep(th) {
+  color: var(--text-muted) !important;
+}
+
+:root:not(.dark) .rules-markdown-content :deep(tbody) {
+  color: var(--text-secondary) !important;
+}
+
+/* Card de premiação em modo claro */
+html:not(.dark) .text-amber-100 {
+  color: #92400e !important; /* amber-800 — legível no light */
 }
 </style>

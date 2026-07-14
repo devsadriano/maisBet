@@ -48,27 +48,30 @@
       </div>
 
       <!-- Filter by Campeonato -->
-      <div class="flex items-center gap-3 mb-4">
-        <label class="text-sm font-medium text-gray-400 shrink-0">Filtrar por campeonato:</label>
-        <select
-          v-model="filterCampeonatoId"
-          class="flex-1 max-w-xs px-3 py-2 bg-gray-900/50 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
-        >
-          <option value="">Todos os campeonatos</option>
-          <option v-for="camp in campeonatos" :key="camp.id" :value="camp.id">
-            {{ camp.nome }}{{ camp.apelido_grupo ? ' — ' + camp.apelido_grupo : '' }}
-          </option>
-        </select>
-        <button
-          v-if="filterCampeonatoId"
-          @click="filterCampeonatoId = ''"
-          class="text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
-        >
-          ✕ Limpar
-        </button>
-        <span v-if="filterCampeonatoId" class="text-xs text-gray-500">
-          {{ filteredEmails.length }} resultado(s)
-        </span>
+      <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
+        <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0">Filtrar por campeonato:</label>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto min-w-0">
+          <BaseSelect
+            v-model="filterCampeonatoId"
+            :options="[
+              { value: '', label: 'Todos os campeonatos' },
+              ...campeonatos.map(camp => ({ value: camp.id, label: camp.nome + (camp.apelido_grupo ? ' — ' + camp.apelido_grupo : '') }))
+            ]"
+            variant="brand"
+          />
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              v-if="filterCampeonatoId"
+              @click="filterCampeonatoId = ''"
+              class="text-xs text-gray-500 hover:text-white transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
+            >
+              ✕ Limpar
+            </button>
+            <span v-if="filterCampeonatoId" class="text-xs text-gray-500">
+              {{ filteredEmails.length }} resultado(s)
+            </span>
+          </div>
+        </div>
       </div>
 
       <!-- Emails Table -->
@@ -196,6 +199,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
+import BaseSelect from '~/components/ui/BaseSelect.vue'
 
 definePageMeta({
   middleware: 'is-admin'

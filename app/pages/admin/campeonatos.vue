@@ -75,10 +75,10 @@
             {{ isStarting === camp.id ? 'Baixando...' : '▶ IMPORTAR & INICIAR' }}
           </button>
           
-          <button v-if="camp.status === 'ativo'" @click="arquivarBolao(camp.id)" class="flex-1 py-2 bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors border border-white/10">
+          <button v-if="camp.status === 'ativo'" @click="arquivarBolao(camp.id)" class="flex-1 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 hover:border-amber-500/40 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95">
             Arquivar do Painel
           </button>
-          <button v-if="camp.status === 'arquivado'" @click="reativarBolao(camp.id)" class="py-2 px-4 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors border border-white/10">
+          <button v-if="camp.status === 'arquivado'" @click="reativarBolao(camp.id)" class="py-2 px-4 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 hover:border-brand-500/40 rounded-xl font-bold uppercase tracking-wider text-xs transition-colors active:scale-95">
             Reativar
           </button>
           
@@ -90,12 +90,12 @@
       
       <div v-if="campeonatos.length === 0" class="col-span-full py-16 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
         <p class="text-gray-400 mb-4 font-bold tracking-widest text-sm uppercase">Nenhum campeonato encontrado.</p>
-        <button @click="openCreateModal" class="px-6 py-2 border border-white/20 hover:border-[var(--brand)] text-gray-300 hover:text-[var(--brand)] rounded-xl transition-colors text-sm font-bold uppercase tracking-wider">Criar Primeiro Campeonato</button>
+        <button @click="openCreateModal" class="px-6 py-2 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 border border-brand-500/20 hover:border-brand-500/40 rounded-xl transition-all text-sm font-bold uppercase tracking-wider active:scale-95">Criar Primeiro Campeonato</button>
       </div>
     </div>
 
     <!-- Modal Wizard Novo Campeonato -->
-    <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div v-if="showModal" class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 pb-20 sm:pb-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <WizardCampeonato 
         @close="showModal = false" 
         @created="onCampeonatoCriado" 
