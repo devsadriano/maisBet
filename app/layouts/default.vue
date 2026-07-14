@@ -91,9 +91,10 @@
           </button>
 
           <!-- Avatar / Dropdown de usuário -->
-          <div v-if="user" class="relative group">
+          <div v-if="user" class="relative">
             <!-- Botão Avatar -->
             <button
+              @click="toggleDropdown"
               class="relative z-50 flex items-center gap-3 hover:bg-white/5 pl-2 pr-4 py-1.5 rounded-full transition-colors border border-transparent hover:border-white/10"
             >
               <div v-if="currentAcesso?.times?.escudo_url && !isAdmin" class="w-10 h-10 flex items-center justify-center p-0">
@@ -107,13 +108,16 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 transition-transform" :class="showDropdown ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             <!-- Dropdown Menu -->
-            <div class="absolute right-0 pt-2 w-56 z-50 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-out">
+            <div 
+              class="absolute right-0 pt-2 w-56 z-50 transition-all duration-200 ease-out"
+              :class="showDropdown ? 'visible opacity-100 translate-y-0' : 'invisible opacity-0 translate-y-2'"
+            >
               <div
                 class="border rounded-xl shadow-2xl py-2 transition-colors duration-300"
                 :class="isDark
@@ -285,7 +289,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import BaseToast from '~/components/ui/BaseToast.vue'
 
 const { profile, user, isAdmin, logout, fetchProfile, waitForProfile } = useAuth()
@@ -294,8 +298,22 @@ const { campeonatos, campeonatoAtivo, currentAcesso, fetchCampeonatos, seleciona
 const { pendingCount: adminPendingCount, fetchPendingCount: fetchAdminPendingCount } = useSolicitacoes()
 const route = useRoute()
 
+const showDropdown = ref(false)
+const toggleDropdown = (e: Event) => {
+  e.stopPropagation()
+  showDropdown.value = !showDropdown.value
+}
+const closeDropdown = () => {
+  showDropdown.value = false
+}
+
 onMounted(() => {
   initTheme()
+  window.addEventListener('click', closeDropdown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeDropdown)
 })
 
 // Blocagem de SSR: Carrega tudo antes de enviar o HTML
