@@ -98,7 +98,7 @@
            </div>
            <p class="text-sm text-amber-100 dark:text-amber-100 whitespace-pre-wrap leading-relaxed" style="color: inherit">{{ campeonatoAtivo.detalhes_premiacao }}</p>
            <div class="pt-2">
-              <span class="text-[10px] uppercase font-black tracking-widest text-amber-500">Regras oficiais configuradas pelo administrador</span>
+              <span class="text-[10px] uppercase font-black tracking-widest text-amber-500">Regras estabelecidas e aprovadas em comum acordo pelos participantes</span>
            </div>
          </div>
       </BaseCard>
