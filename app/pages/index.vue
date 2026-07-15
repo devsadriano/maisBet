@@ -342,6 +342,19 @@
                   </div>
                 </NuxtLink>
 
+                <!-- Organizadores das Rodadas (Admin) -->
+                <NuxtLink to="/organizadores" class="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-danger-500/50 transition-all group">
+                  <div class="w-10 h-10 rounded-xl bg-danger-500/15 border border-danger-500/20 text-danger-400 flex items-center justify-center group-hover:bg-danger-500 group-hover:text-white transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span class="text-xs font-black uppercase text-white tracking-wider block">Organizadores das Rodadas</span>
+                    <span class="text-[10px] text-gray-500">Histórico de organizadores de cada rodada</span>
+                  </div>
+                </NuxtLink>
+
               </div>
 
             </div>
@@ -484,9 +497,9 @@
             </div>
 
             <!-- Progresso e Alerta Regressivo -->
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/[0.02] border border-white/5 p-6 rounded-2xl">
+            <div class="flex flex-col gap-6 bg-white/[0.02] border border-white/5 p-6 rounded-2xl">
               <!-- Barra de Progresso -->
-              <div class="w-full md:w-1/2 space-y-2">
+              <div class="w-full space-y-2">
                 <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-gray-500">
                   <span>Progresso do Bolão: <strong class="text-white">{{ campeonatoAtivo.nome }}</strong></span>
                   <span v-if="rodada && campeonatoAtivo.max_rodadas">Rodada {{ rodada.numero_rodada }} de {{ campeonatoAtivo.max_rodadas }}</span>
@@ -501,9 +514,9 @@
               </div>
 
               <!-- Contador de Urgência (Countdown) -->
-              <div class="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 bg-brand-500/10 border border-brand-500/20 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-inner">
-                <div class="w-2 h-2 rounded-full bg-brand-500 animate-pulse shrink-0"></div>
-                <span class="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-400 whitespace-nowrap">
+              <div class="w-full flex items-center justify-center gap-2 sm:gap-3 bg-brand-500/10 border border-brand-500/25 rounded-2xl py-3 sm:py-4.5 px-3 sm:px-8 shadow-inner transition-all hover:bg-brand-500/15 max-w-full overflow-hidden">
+                <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-brand-500 animate-pulse shrink-0"></div>
+                <span class="text-[11px] sm:text-lg md:text-xl lg:text-2xl font-black uppercase tracking-wider text-brand-600 dark:text-brand-400 whitespace-nowrap font-mono">
                   {{ locked ? 'Mercado Fechado' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
                 </span>
               </div>
@@ -696,6 +709,19 @@
               </NuxtLink>
             </div>
           </div>
+
+          <!-- Card de Organizadores das Rodadas (Competidor) -->
+          <NuxtLink to="/organizadores" class="block bg-white/5 border border-white/10 rounded-[2.5rem] p-6 hover:bg-white/10 hover:border-brand-500/50 transition-all group">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400 text-xl border border-brand-500/20 shadow-inner group-hover:scale-110 transition-transform">
+                📋
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-white">Organizadores</h3>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Histórico dos organizadores das rodadas</p>
+              </div>
+            </div>
+          </NuxtLink>
         </div>
 
       </div>
