@@ -104,18 +104,18 @@
                     <td class="px-4 py-3.5">
                       <div class="flex items-center gap-3">
                         <img :src="row.team.crest" class="w-6 h-6 object-contain" :alt="row.team.name">
-                        <span class="font-bold text-sm text-gray-200 group-hover:text-white truncate max-w-[120px] sm:max-w-none">{{ row.team.name }}</span>
+                        <span class="font-bold text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white truncate max-w-[120px] sm:max-w-none">{{ row.team.name }}</span>
                       </div>
                     </td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-400">{{ row.playedGames }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-400 font-semibold">{{ row.won }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-400">{{ row.draw }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-400">{{ row.lost }}</td>
-                    <td class="px-4 py-3.5 text-center text-[10px] text-gray-500 font-mono hidden md:table-cell">{{ row.goalsFor }}:{{ row.goalsAgainst }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs font-bold" :class="row.goalDifference > 0 ? 'text-emerald-400' : row.goalDifference < 0 ? 'text-red-400' : 'text-gray-500'">
+                    <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.playedGames }}</td>
+                    <td class="px-4 py-3.5 text-center text-xs text-gray-700 dark:text-gray-300 font-bold">{{ row.won }}</td>
+                    <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.draw }}</td>
+                    <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.lost }}</td>
+                    <td class="px-4 py-3.5 text-center text-[10px] text-gray-450 dark:text-gray-500 font-mono hidden md:table-cell">{{ row.goalsFor }}:{{ row.goalsAgainst }}</td>
+                    <td class="px-4 py-3.5 text-center text-xs font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
                       {{ row.goalDifference > 0 ? '+' : '' }}{{ row.goalDifference }}
                     </td>
-                    <td class="px-4 py-3.5 text-center font-bebas text-xl text-white">{{ row.points }}</td>
+                    <td class="px-4 py-3.5 text-center font-bebas text-xl text-gray-800 dark:text-white">{{ row.points }}</td>
                     <td class="px-4 py-3.5">
                       <div class="flex items-center justify-center gap-1">
                         <div 
@@ -226,24 +226,24 @@ onMounted(() => {
 })
 
 const getRowBg = (idx: number | string) => {
-  if (activeCode.value !== 'BSA') return 'bg-white/[0.02]'
+  if (activeCode.value !== 'BSA') return 'bg-white/[0.02] dark:bg-white/[0.02]'
 
   const i = Number(idx)
   // Lógica de cores baseada na posição para o Brasileirão (0-indexed)
-  if (i < 4) return 'bg-blue-500/[0.05]'           // G4 - Libertadores
-  if (i >= 4 && i < 6) return 'bg-orange-500/[0.05]' // G6 - Pré
-  if (i >= 6 && i < 12) return 'bg-emerald-500/[0.05]' // G12 - Sula
-  if (i >= 16) return 'bg-red-500/[0.05]'         // Z4 - Rebaixamento
-  return 'bg-white/[0.02]'
+  if (i < 4) return 'bg-blue-500/[0.08] dark:bg-blue-500/[0.05]'           // G4 - Libertadores
+  if (i >= 4 && i < 6) return 'bg-orange-500/[0.08] dark:bg-orange-500/[0.05]' // G6 - Pré
+  if (i >= 6 && i < 12) return 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.05]' // G12 - Sula
+  if (i >= 16) return 'bg-red-500/[0.08] dark:bg-red-500/[0.05]'         // Z4 - Rebaixamento
+  return 'bg-white/[0.02] dark:bg-white/[0.02]'
 }
 
 const getTextColor = (idx: number | string) => {
-  if (activeCode.value !== 'BSA') return 'text-gray-400'
+  if (activeCode.value !== 'BSA') return 'text-gray-555 dark:text-gray-405'
 
   const i = Number(idx)
-  if (i < 4) return 'text-blue-400'
-  if (i >= 16) return 'text-red-400'
-  return 'text-gray-400'
+  if (i < 4) return 'text-blue-600 dark:text-blue-400'
+  if (i >= 16) return 'text-red-600 dark:text-red-400'
+  return 'text-gray-500 dark:text-gray-400'
 }
 
 const parseForm = (formStr: string) => {

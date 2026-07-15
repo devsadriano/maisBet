@@ -138,7 +138,7 @@
                 <div class="px-4 py-3 border-b mb-2" :class="isDark ? 'border-white/5' : 'border-black/5'">
                   <p class="text-sm font-semibold truncate" :class="isDark ? 'text-white' : 'text-gray-900'">{{ profile?.nome || 'Carregando...' }}</p>
                   <p v-if="isAdmin" class="text-[10px] text-[var(--brand)] uppercase tracking-wider font-bold mt-1">Administrador</p>
-                  <p v-else-if="currentAcesso?.times?.nome" class="text-xs text-gray-400 truncate mt-1">Time: <span class="text-gray-300 font-medium">{{ currentAcesso.times.nome }}</span></p>
+                  <p v-else-if="currentAcesso?.times?.nome" class="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">Time: <span class="text-gray-700 dark:text-gray-300 font-semibold">{{ currentAcesso.times.nome }}</span></p>
                 </div>
 
                 <!-- Actions -->
