@@ -103,7 +103,7 @@ export default defineEventHandler(async (event) => {
 
           if (existing) {
             await supabase.from('times')
-              .update({ escudo_url: team.crest, nome: teamName })
+              .update({ escudo_url: team.crest })
               .eq('id', existing.id)
           } else {
             await supabase.from('times')
