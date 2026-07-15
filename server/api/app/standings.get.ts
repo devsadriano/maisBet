@@ -87,6 +87,6 @@ export default defineCachedEventHandler(async (event) => {
   name: 'getStandings',
   getKey: (event) => {
     const query = getQuery(event)
-    return query.api_competition_code || 'BSA'
+    return String(query.api_competition_code || 'BSA')
   }
 })
