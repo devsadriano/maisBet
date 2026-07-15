@@ -1,7 +1,7 @@
-import { defineEventHandler, createError } from 'h3'
+import { createError } from 'h3'
 import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler(async (event) => {
+export default defineCachedEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const FOOTBALL_DATA_KEY = process.env.FOOTBALL_DATA_KEY
 
@@ -81,5 +81,12 @@ export default defineEventHandler(async (event) => {
       statusCode: 500,
       message: 'Falha interna ao processar classificação'
     })
+  }
+}, {
+  maxAge: 10 * 60, // 10 minutos
+  name: 'getStandings',
+  getKey: (event) => {
+    const query = getQuery(event)
+    return query.api_competition_code || 'BSA'
   }
 })
