@@ -437,7 +437,7 @@
           <div v-if="campeonatoAtivo" class="space-y-8 animate-fade-in-up">
             
             <!-- Grid de Resumos -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               <!-- Stat 1: Pontuação -->
               <div class="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 p-6 rounded-2xl flex items-center gap-4 transition-all group/stat">
@@ -471,6 +471,17 @@
                   </span>
                 </div>
               </div>
+
+              <!-- Stat 4: Tabela Oficial (Link) -->
+              <NuxtLink to="/tabela" class="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 p-6 rounded-2xl flex items-center gap-4 transition-all group/stat cursor-pointer hover:border-brand-500/30">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xl border border-blue-500/20 shadow-inner group-hover/stat:scale-110 transition-transform">📊</div>
+                <div>
+                  <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Tabela Oficial</span>
+                  <span class="font-bebas text-3xl text-gray-900 dark:text-white leading-none flex items-center gap-1.5">
+                    VER <span class="text-xs uppercase font-black text-brand-500 group-hover/stat:underline">TABELA</span>
+                  </span>
+                </div>
+              </NuxtLink>
 
             </div>
 

@@ -40,6 +40,16 @@
           <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
         </NuxtLink>
         <NuxtLink
+          v-if="campeonatoAtivo"
+          to="/tabela"
+          class="text-xs font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--brand)] group relative py-1"
+          :class="isDark ? 'text-gray-400' : 'text-gray-600'"
+          active-class="!text-[var(--brand)]"
+        >
+          Tabela
+          <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
+        </NuxtLink>
+        <NuxtLink
           to="/regras"
           class="text-xs font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--brand)] group relative py-1"
           :class="isDark ? 'text-gray-400' : 'text-gray-600'"
@@ -226,6 +236,18 @@
         </svg>
         <span class="text-[9px] font-bold uppercase tracking-wider">Ranking</span>
         <span v-if="route.path.startsWith('/ranking')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+          :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
+      </NuxtLink>
+
+      <!-- Tabela -->
+      <NuxtLink v-if="campeonatoAtivo" to="/tabela" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1"
+        :class="route.path.startsWith('/tabela') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <span class="text-[9px] font-bold uppercase tracking-wider">Tabela</span>
+        <span v-if="route.path.startsWith('/tabela')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
 
