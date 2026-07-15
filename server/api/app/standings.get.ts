@@ -1,4 +1,5 @@
 import { defineEventHandler, createError } from 'h3'
+import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
@@ -30,6 +31,19 @@ export default defineEventHandler(async (event) => {
 
     const data = await response.json()
     
+    // Buscar nomes customizados locais no banco de dados
+    const supabase = await serverSupabaseClient<any>(event)
+    const { data: localTimes } = await supabase
+      .from('times')
+      .select('api_team_id, nome')
+
+    const customNamesMap = new Map<number, string>()
+    if (localTimes) {
+      localTimes.forEach((t: any) => {
+        customNamesMap.set(t.api_team_id, t.nome)
+      })
+    }
+
     const totalStandings = data.standings?.filter((s:any) => s.type === 'TOTAL') || []
     
     // Retornamos agrupado, pois Copas têm múltiplos grupos, enquanto Ligas têm 1 grupo principal
@@ -38,24 +52,27 @@ export default defineEventHandler(async (event) => {
       season: data.filters.season || data.season?.startDate?.substring(0,4),
       standings: totalStandings.map((stdg: any) => ({
         group: stdg.group, // Nullable string como "GROUP_A"
-        table: stdg.table.map((item: any) => ({
-          position: item.position,
-          team: {
-            id: item.team.id,
-            name: item.team.shortName || item.team.name,
-            tla: item.team.tla,
-            crest: item.team.crest
-          },
-          playedGames: item.playedGames,
-          won: item.won,
-          draw: item.draw,
-          lost: item.lost,
-          points: item.points,
-          goalsFor: item.goalsFor,
-          goalsAgainst: item.goalsAgainst,
-          goalDifference: item.goalDifference,
-          form: item.form // Ex: W,D,L,W,W
-        }))
+        table: stdg.table.map((item: any) => {
+          const customName = customNamesMap.get(item.team.id)
+          return {
+            position: item.position,
+            team: {
+              id: item.team.id,
+              name: customName || item.team.shortName || item.team.name,
+              tla: item.team.tla,
+              crest: item.team.crest
+            },
+            playedGames: item.playedGames,
+            won: item.won,
+            draw: item.draw,
+            lost: item.lost,
+            points: item.points,
+            goalsFor: item.goalsFor,
+            goalsAgainst: item.goalsAgainst,
+            goalDifference: item.goalDifference,
+            form: item.form // Ex: W,D,L,W,W
+          }
+        })
       }))
     }
   } catch (err: any) {
