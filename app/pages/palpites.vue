@@ -60,9 +60,9 @@
                   <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-2">
                     Você foi sorteado para escolher os {{ rodada.required_extra_games }} jogos extras da Rodada {{ rodada.numero_rodada }}.
                   </p>
-                  <div v-if="rodada.organizer_deadline" class="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full mb-6">
-                    <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                    <span class="text-[11px] font-mono text-orange-400">Se não escolher até {{ formatAutoSelectTime(rodada.organizer_deadline) }}, o sistema escolherá automaticamente</span>
+                  <div v-if="rodada.organizer_deadline" class="flex items-center justify-center text-center gap-2.5 px-4 py-3 bg-orange-500/10 border border-orange-500/20 rounded-2xl mb-6 max-w-md mx-auto">
+                    <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse shrink-0"></span>
+                    <span class="text-xs font-mono text-orange-400 leading-relaxed text-center">Se não escolher até {{ formatAutoSelectTime(rodada.organizer_deadline) }}, o sistema escolherá automaticamente</span>
                   </div>
                   <div class="flex justify-center">
                       <BaseButton variant="brand" @click="isOrganizerModalOpen = true">Organizar Partidas Extras</BaseButton>
@@ -80,9 +80,9 @@
                     <span v-if="rodada.organizador?.nome" class="font-bold text-white">{{ rodada.organizador.nome }}</span>
                     escolher as partidas extras. Volte mais tarde!
                   </p>
-                  <div v-if="rodada.organizer_deadline" class="inline-flex items-center gap-2 px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
-                    <span class="text-[11px] font-mono text-brand-400">Se não escolher a tempo, o sistema seleciona automaticamente às {{ formatAutoSelectTime(rodada.organizer_deadline) }}</span>
+                  <div v-if="rodada.organizer_deadline" class="flex items-center justify-center text-center gap-2.5 px-4 py-3 bg-brand-500/10 border border-brand-500/20 rounded-2xl max-w-md mx-auto">
+                    <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse shrink-0"></span>
+                    <span class="text-xs font-mono text-brand-400 leading-relaxed text-center">Se não escolher a tempo, o sistema seleciona automaticamente às {{ formatAutoSelectTime(rodada.organizer_deadline) }}</span>
                   </div>
                 </template>
             </div>
@@ -261,10 +261,11 @@ const handleSave = async () => {
 // Helper: formata o horário da seleção automática
 const formatAutoSelectTime = (iso: string) => {
   if (!iso) return '-'
-  return new Date(iso).toLocaleString('pt-BR', {
-    weekday: 'short', day: '2-digit', month: '2-digit',
+  const raw = new Date(iso).toLocaleString('pt-BR', {
+    weekday: 'long', day: '2-digit', month: '2-digit',
     hour: '2-digit', minute: '2-digit'
   }).replace(',', ' -')
+  return raw.charAt(0).toUpperCase() + raw.slice(1)
 }
 
 // SEO
