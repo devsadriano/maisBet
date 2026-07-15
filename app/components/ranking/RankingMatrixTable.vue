@@ -132,7 +132,7 @@ const viewUser = computed(() =>
                 <div class="flex flex-col gap-0.5">
                   <span class="text-gray-800 dark:text-white/90 text-xs font-bold leading-snug truncate">{{ abbrev(match.time_casa) }}</span>
                   <span class="text-gray-400 dark:text-white/25 text-[8px] font-black uppercase tracking-widest leading-none">vs</span>
-                  <span class="text-gray-600 dark:text-white/60 text-xs font-semibold leading-snug truncate">{{ abbrev(match.time_fora) }}</span>
+                  <span class="text-gray-800 dark:text-white/90 text-xs font-bold leading-snug truncate">{{ abbrev(match.time_fora) }}</span>
                 </div>
               </td>
 
