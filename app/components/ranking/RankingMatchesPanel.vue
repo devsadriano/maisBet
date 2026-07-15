@@ -25,9 +25,8 @@ const props = defineProps<{
 }>()
 
 const abbrev = (name: string) =>
-  name.replace(/^(S\.C\.|S\.E\.|Atlético|Sport Club|Esporte Clube|Clube de Regatas|Clube|Associação|Sociedade)\s*/i, '')
+  name.replace(/^(S\.C\.|S\.E\.|Sport Club|Esporte Clube|Clube de Regatas|Clube|Associação|Sociedade)\s*/i, '')
      .trim()
-     .substring(0, 15)
 
 // Top 3 da rodada ordenado por pontuação
 const topRound = computed(() =>
@@ -67,7 +66,7 @@ const topRound = computed(() =>
         <div class="flex items-center gap-1.5 sm:gap-3">
           <!-- Home Team -->
           <div class="flex-1 flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
-            <span class="text-xs sm:text-sm font-bold text-gray-800 dark:text-white/90 group-hover:text-gray-900 dark:group-hover:text-white transition-colors text-right leading-tight truncate">
+            <span class="text-[10px] sm:text-xs md:text-sm font-bold text-gray-800 dark:text-white/90 group-hover:text-gray-900 dark:group-hover:text-white transition-colors text-right leading-tight truncate">
               {{ abbrev(match.time_casa) }}
             </span>
           </div>
@@ -87,7 +86,7 @@ const topRound = computed(() =>
 
           <!-- Away Team -->
           <div class="flex-1 flex items-center justify-start gap-1.5 sm:gap-2 min-w-0">
-            <span class="text-xs sm:text-sm font-bold text-gray-800 dark:text-white/90 group-hover:text-gray-900 dark:group-hover:text-white transition-colors leading-tight truncate">
+            <span class="text-[10px] sm:text-xs md:text-sm font-bold text-gray-800 dark:text-white/90 group-hover:text-gray-900 dark:group-hover:text-white transition-colors leading-tight truncate">
               {{ abbrev(match.time_fora) }}
             </span>
           </div>

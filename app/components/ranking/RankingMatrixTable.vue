@@ -60,9 +60,8 @@ const getUserTotalForRound = (userId: string) => {
 }
 
 const abbrev = (name: string) =>
-  name.replace(/^(S\.C\.|S\.E\.|Atlético|Sport Club|Esporte Clube|Clube de Regatas|Clube|Associação|Sociedade)\s*/i, '')
+  name.replace(/^(S\.C\.|S\.E\.|Sport Club|Esporte Clube|Clube de Regatas|Clube|Associação|Sociedade)\s*/i, '')
     .trim()
-    .substring(0, 16)
 
 // For single-user view: show the current user's results first
 const viewUser = computed(() =>
