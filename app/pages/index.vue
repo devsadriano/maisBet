@@ -805,6 +805,12 @@
                  <span class="text-xs font-black uppercase tracking-[0.2em] text-amber-500">⏳ Solicitação Pendente</span>
              </div>
 
+             <!-- Sistema Pendente: não pode solicitar bolão ainda -->
+             <div v-else-if="(profile as any)?.status === 'pendente'"
+                  class="w-full bg-gray-500/5 border-t border-gray-500/10 py-4 px-8 flex justify-between items-center z-10">
+                <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-500">⏳ Aguardando aprovação da conta</span>
+             </div>
+
              <!-- No Access: Request -->
              <button v-else
                   @click.stop="handleRequestBolao(camp)"

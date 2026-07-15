@@ -61,7 +61,6 @@ export const useSolicitacoes = () => {
     return (data || []) as Solicitacao[]
   }
 
-  // ── Approve a request ──
   const aprovarSolicitacao = async (
     sol: Solicitacao, 
     bolaoIds: string[], 
@@ -102,6 +101,34 @@ export const useSolicitacoes = () => {
           email: sol.email,
           campeonato_id: sol.campeonato_id
         }, { onConflict: 'id' })
+
+        // 4b. Auto-resolve pending acesso_sistema for the same user, if any.
+        //     Approving someone for the championship implies accepting them into the system.
+        const { data: pendingSistema } = await supabase
+          .from('solicitacoes')
+          .select('id')
+          .eq('email', sol.email)
+          .eq('tipo', 'acesso_sistema')
+          .eq('status', 'pendente')
+          .maybeSingle()
+
+        if (pendingSistema) {
+          // Add to email_autorizados
+          await supabase.from('email_autorizados').upsert(
+            { email: sol.email, nome_ref: sol.nome || undefined },
+            { onConflict: 'email' }
+          )
+
+          // Mark the sistema request as approved
+          await supabase
+            .from('solicitacoes')
+            .update({
+              status: 'aprovada',
+              admin_id: adminId,
+              resolved_at: new Date().toISOString()
+            })
+            .eq('id', pendingSistema.id)
+        }
       }
 
       // 5. Update the solicitação
