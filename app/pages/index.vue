@@ -1213,8 +1213,8 @@ watch(campeonatoAtivo, async (newCamp) => {
   }
 }, { immediate: true })
 
-// Fetch on server-side to avoid layout shift
-await useAsyncData('pending-requests', async () => {
+// Fetch on server-side to avoid layout shift, but lazy to keep navigation instant
+useLazyAsyncData('pending-requests', async () => {
   await fetchPendingRequests()
   return true
 })

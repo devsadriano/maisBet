@@ -209,8 +209,8 @@ const isCopa = isCopaAtivo
 
 const isOrganizerModalOpen = ref(false)
 
-// Blocagem de SSR para a página de palpites
-await useAsyncData('init-palpites', async () => {
+// Carregamento assíncrono não-bloqueante para navegação instantânea
+useLazyAsyncData('init-palpites', async () => {
     if (profile.value?.is_admin === true) {
       if (process.server) {
         return navigateTo('/admin')

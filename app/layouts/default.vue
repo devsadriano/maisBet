@@ -204,7 +204,7 @@
         : 'bg-white/95 border-slate-200'"
     >
       <!-- Início -->
-      <NuxtLink to="/" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1"
+      <NuxtLink to="/" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path === '/' ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -216,7 +216,7 @@
       </NuxtLink>
 
       <!-- Palpites -->
-      <NuxtLink v-if="!isAdmin" to="/palpites" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1"
+      <NuxtLink v-if="!isAdmin" to="/palpites" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/palpites') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -228,7 +228,7 @@
       </NuxtLink>
 
       <!-- Ranking -->
-      <NuxtLink to="/ranking" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1"
+      <NuxtLink to="/ranking" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/ranking') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -240,7 +240,7 @@
       </NuxtLink>
 
       <!-- Tabela -->
-      <NuxtLink v-if="campeonatoAtivo" to="/tabela" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1"
+      <NuxtLink v-if="campeonatoAtivo" to="/tabela" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/tabela') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -252,7 +252,7 @@
       </NuxtLink>
 
       <!-- Regras -->
-      <NuxtLink to="/regras" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1"
+      <NuxtLink to="/regras" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/regras') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,7 +264,7 @@
       </NuxtLink>
 
       <!-- Admin -->
-      <NuxtLink v-if="isAdmin" to="/admin" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1"
+      <NuxtLink v-if="isAdmin" to="/admin" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/admin') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <div class="relative">
@@ -282,7 +282,7 @@
       <!-- Toggle Tema Mobile -->
       <button
         @click="toggleTheme"
-        class="flex flex-col items-center gap-0.5 transition-all px-3 py-1"
+        class="flex flex-col items-center gap-0.5 transition-all px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="isDark ? 'text-gray-500' : 'text-slate-400'"
         :aria-label="isDark ? 'Modo claro' : 'Modo escuro'"
       >
