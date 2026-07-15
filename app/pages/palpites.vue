@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col relative w-full pb-32 space-y-8">
+  <div class="flex flex-col relative w-full space-y-8">
       
       <!-- Back Link -->
       <div class="flex items-center justify-between">

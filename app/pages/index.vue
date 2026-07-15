@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-12 pb-20 animate-fade-in">
+  <div class="space-y-12 animate-fade-in">
     
     <!-- 1. PAINEL DO ADMINISTRADOR -->
     <template v-if="isAdmin">

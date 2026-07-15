@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-10 pb-32 animate-fade-in relative">
+  <div class="space-y-10 animate-fade-in relative">
     
     <!-- Header -->
     <header class="flex items-center justify-between border-b border-white/5 pb-8">

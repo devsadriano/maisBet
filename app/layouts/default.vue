@@ -204,67 +204,67 @@
         : 'bg-white/95 border-slate-200'"
     >
       <!-- Início -->
-      <NuxtLink to="/" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
+      <NuxtLink to="/" class="flex flex-col items-center gap-0.5 transition-all relative px-1.5 sm:px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path === '/' ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
         </svg>
-        <span class="text-[9px] font-bold uppercase tracking-wider">Início</span>
+        <span class="font-bold uppercase tracking-wider text-[10px] leading-none" style="font-size: 10px !important;">Início</span>
         <span v-if="route.path === '/'" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
 
       <!-- Palpites -->
-      <NuxtLink v-if="!isAdmin" to="/palpites" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
+      <NuxtLink v-if="!isAdmin" to="/palpites" class="flex flex-col items-center gap-0.5 transition-all relative px-1.5 sm:px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/palpites') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
-        <span class="text-[9px] font-bold uppercase tracking-wider">Palpites</span>
+        <span class="font-bold uppercase tracking-wider text-[10px] leading-none" style="font-size: 10px !important;">Palpites</span>
         <span v-if="route.path.startsWith('/palpites')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
 
       <!-- Ranking -->
-      <NuxtLink to="/ranking" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
+      <NuxtLink to="/ranking" class="flex flex-col items-center gap-0.5 transition-all relative px-1.5 sm:px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/ranking') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
-        <span class="text-[9px] font-bold uppercase tracking-wider">Ranking</span>
+        <span class="font-bold uppercase tracking-wider text-[10px] leading-none" style="font-size: 10px !important;">Ranking</span>
         <span v-if="route.path.startsWith('/ranking')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
 
       <!-- Tabela -->
-      <NuxtLink v-if="campeonatoAtivo" to="/tabela" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
+      <NuxtLink v-if="campeonatoAtivo" to="/tabela" class="flex flex-col items-center gap-0.5 transition-all relative px-1.5 sm:px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/tabela') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
-        <span class="text-[9px] font-bold uppercase tracking-wider">Tabela</span>
+        <span class="font-bold uppercase tracking-wider text-[10px] leading-none" style="font-size: 10px !important;">Tabela</span>
         <span v-if="route.path.startsWith('/tabela')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
 
       <!-- Regras -->
-      <NuxtLink to="/regras" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
+      <NuxtLink to="/regras" class="flex flex-col items-center gap-0.5 transition-all relative px-1.5 sm:px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/regras') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477-4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
-        <span class="text-[9px] font-bold uppercase tracking-wider">Regras</span>
+        <span class="font-bold uppercase tracking-wider text-[10px] leading-none" style="font-size: 10px !important;">Regras</span>
         <span v-if="route.path.startsWith('/regras')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
 
       <!-- Admin -->
-      <NuxtLink v-if="isAdmin" to="/admin" class="flex flex-col items-center gap-0.5 transition-all relative px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
+      <NuxtLink v-if="isAdmin" to="/admin" class="flex flex-col items-center gap-0.5 transition-all relative px-1.5 sm:px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
         :class="route.path.startsWith('/admin') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
       >
         <div class="relative">
@@ -274,26 +274,10 @@
           </svg>
           <span v-if="adminPendingCount > 0" class="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">{{ adminPendingCount }}</span>
         </div>
-        <span class="text-[9px] font-bold uppercase tracking-wider">Admin</span>
+        <span class="font-bold uppercase tracking-wider text-[10px] leading-none" style="font-size: 10px !important;">Admin</span>
         <span v-if="route.path.startsWith('/admin')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
-
-      <!-- Toggle Tema Mobile -->
-      <button
-        @click="toggleTheme"
-        class="flex flex-col items-center gap-0.5 transition-all px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
-        :class="isDark ? 'text-gray-500' : 'text-slate-400'"
-        :aria-label="isDark ? 'Modo claro' : 'Modo escuro'"
-      >
-        <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
-        </svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-        </svg>
-        <span class="text-[9px] font-bold uppercase tracking-wider">Tema</span>
-      </button>
     </nav>
 
 
