@@ -13,9 +13,9 @@
         : 'bg-[rgba(240,253,244,0.85)] border-black/5'"
     >
       <!-- Logo Central/Esquerda -->
-      <NuxtLink to="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
-        <span class="text-2xl font-bebas tracking-widest text-[var(--brand)]">+</span>
-        <span class="text-2xl font-bebas tracking-widest" :class="isDark ? 'text-white' : 'text-gray-900'">BET</span>
+      <NuxtLink to="/" class="flex items-center gap-1.5 hover:opacity-80 transition-opacity cursor-pointer">
+        <span class="text-3xl sm:text-4xl font-bebas tracking-widest text-[var(--brand)]">+</span>
+        <span class="text-3xl sm:text-4xl font-bebas tracking-widest" :class="isDark ? 'text-white' : 'text-gray-900'">BET</span>
       </NuxtLink>
 
       <!-- Desktop Nav -->
@@ -105,7 +105,7 @@
             <!-- Botão Avatar -->
             <button
               @click="toggleDropdown"
-              class="relative z-50 flex items-center gap-3 hover:bg-white/5 pl-2 pr-4 py-1.5 rounded-full transition-colors border border-transparent hover:border-white/10"
+              class="relative z-50 flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 duration-100 cursor-pointer select-none"
             >
               <div v-if="currentAcesso?.times?.escudo_url && !isAdmin" class="w-10 h-10 flex items-center justify-center p-0">
                 <img :src="currentAcesso.times.escudo_url" alt="Escudo" class="w-full h-full object-contain drop-shadow-md" />
@@ -118,8 +118,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 transition-transform" :class="showDropdown ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 hover:text-white transition-transform duration-200" :class="showDropdown ? 'rotate-180 text-white' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 

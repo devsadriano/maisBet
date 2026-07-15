@@ -13,12 +13,12 @@
             <!-- Banner Topo com Boas-Vindas, Nome do Bolão e Seletor -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
               <div>
-                <h1 class="text-2xl md:text-3xl font-bebas tracking-tight text-gray-900 dark:text-white mb-1">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-bebas tracking-wide text-gray-900 dark:text-white mb-2">
                   PAINEL DO ADMINISTRADOR: <span class="text-danger-400">{{ campeonatoAtivo.nome }}</span>
                 </h1>
                 <div class="flex items-center gap-2">
-                  <div class="h-1.5 w-1.5 rounded-full animate-pulse bg-danger-500"></div>
-                  <p class="text-[9px] font-black uppercase tracking-widest text-danger-400">
+                  <div class="h-2 w-2 rounded-full animate-pulse bg-danger-500"></div>
+                  <p class="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-danger-400">
                     Modo de Gerenciamento Ativo
                   </p>
                 </div>
@@ -80,9 +80,9 @@
               </div>
 
               <!-- Prazo / Status da Rodada -->
-              <div v-if="rodada" class="w-full md:w-auto shrink-0 flex items-center gap-3 bg-danger-500/10 border border-danger-500/20 rounded-full px-5 py-2.5 shadow-inner">
-                <div class="w-2 h-2 rounded-full bg-danger-500 animate-pulse"></div>
-                <span class="text-[11px] font-black uppercase tracking-widest text-danger-400">
+              <div v-if="rodada" class="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 bg-danger-500/10 border border-danger-500/20 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-inner">
+                <div class="w-2 h-2 rounded-full bg-danger-500 animate-pulse shrink-0"></div>
+                <span class="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-danger-400 whitespace-nowrap">
                   Rodada {{ rodada.numero_rodada }} - {{ locked ? 'Fechada' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
                 </span>
               </div>
@@ -410,12 +410,12 @@
           <!-- Banner Topo com Boas-Vindas e Seletor -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
             <div>
-              <h1 class="text-2xl md:text-3xl font-bebas tracking-tight text-gray-900 dark:text-white mb-1">
+              <h1 class="text-4xl sm:text-5xl md:text-6xl font-bebas tracking-wide text-gray-900 dark:text-white mb-2">
                 E AÍ, <span class="text-brand-600 dark:text-brand-400">{{ profile.nome.split(' ')[0] }}</span>!
               </h1>
               <div class="flex items-center gap-2">
-                <div class="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-500"></div>
-                <p class="text-[9px] font-black uppercase tracking-widest text-emerald-400">
+                <div class="h-2 w-2 rounded-full animate-pulse bg-emerald-500"></div>
+                <p class="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-emerald-400">
                   Status: Competidor Ativo
                 </p>
               </div>
@@ -437,7 +437,7 @@
           <div v-if="campeonatoAtivo" class="space-y-8 animate-fade-in-up">
             
             <!-- Grid de Resumos -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               
               <!-- Stat 1: Pontuação -->
               <div class="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 p-6 rounded-2xl flex items-center gap-4 transition-all group/stat">
@@ -472,17 +472,6 @@
                 </div>
               </div>
 
-              <!-- Stat 4: Tabela Oficial (Link) -->
-              <NuxtLink to="/tabela" class="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 p-6 rounded-2xl flex items-center gap-4 transition-all group/stat cursor-pointer hover:border-brand-500/30">
-                <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 text-xl border border-blue-500/20 shadow-inner group-hover/stat:scale-110 transition-transform">📊</div>
-                <div>
-                  <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Tabela Oficial</span>
-                  <span class="font-bebas text-3xl text-gray-900 dark:text-white leading-none flex items-center gap-1.5">
-                    VER <span class="text-xs uppercase font-black text-brand-500 group-hover/stat:underline">TABELA</span>
-                  </span>
-                </div>
-              </NuxtLink>
-
             </div>
 
             <!-- ALERTA DE ALTERAÇÃO DE CALENDÁRIO (Competidor) -->
@@ -512,9 +501,9 @@
               </div>
 
               <!-- Contador de Urgência (Countdown) -->
-              <div class="w-full md:w-auto shrink-0 flex items-center gap-3 bg-brand-500/10 border border-brand-500/20 rounded-full px-5 py-2.5 shadow-inner">
-                <div class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
-                <span class="text-[11px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-400">
+              <div class="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 bg-brand-500/10 border border-brand-500/20 rounded-full px-4 py-2 sm:px-5 sm:py-2.5 shadow-inner">
+                <div class="w-2 h-2 rounded-full bg-brand-500 animate-pulse shrink-0"></div>
+                <span class="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-brand-600 dark:text-brand-400 whitespace-nowrap">
                   {{ locked ? 'Mercado Fechado' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
                 </span>
               </div>
