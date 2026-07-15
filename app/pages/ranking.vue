@@ -9,7 +9,7 @@
         <div class="flex items-center gap-3">
           <BaseBadge variant="brand" pulse>Painel Oficial</BaseBadge>
           <div class="h-1 w-1 rounded-full bg-white/20" />
-          <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Live Results Hub</p>
+          <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">Central de Resultados ao Vivo</p>
         </div>
       </div>
       
