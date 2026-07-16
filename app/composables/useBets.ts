@@ -19,16 +19,32 @@ export const useBets = () => {
     const { profile } = useAuth()
     const { campeonatoAtivo, isCopaAtivo } = useCampeonato()
     
-    const rodada = ref<RoundWithMatches | null>(null)
-    const loading = ref(true)
-    const salvando = ref(false)
-    const locked = ref(false)
-    const bets = ref<Record<string, BetEntry>>({})
-    const escudosMap = ref<Record<number, string>>({})
-    const timeRemaining = ref('')
+    const rodada = useState<RoundWithMatches | null>('bets-rodada', () => null)
+    const loading = useState<boolean>('bets-loading', () => true)
+    const salvando = useState<boolean>('bets-salvando', () => false)
+    const locked = useState<boolean>('bets-locked', () => false)
+    const bets = useState<Record<string, BetEntry>>('bets-data', () => ({}))
+    const escudosMap = useState<Record<number, string>>('bets-escudos', () => ({}))
+    const timeRemaining = useState<string>('bets-time-remaining', () => '')
+    const cachedCampId = useState<string>('bets-cached-camp-id', () => '')
     let timer: any = null
 
     const fetchInitialData = async () => {
+        if (!campeonatoAtivo.value) {
+            rodada.value = null
+            bets.value = {}
+            cachedCampId.value = ''
+            loading.value = false
+            return
+        }
+
+        // Se mudou de campeonato, limpa o cache anterior
+        if (cachedCampId.value !== campeonatoAtivo.value.id) {
+            rodada.value = null
+            bets.value = {}
+            cachedCampId.value = campeonatoAtivo.value.id
+        }
+
         loading.value = true
         locked.value = false
         if (timer) { clearInterval(timer); timer = null }
@@ -36,12 +52,6 @@ export const useBets = () => {
         // 1. Fetch Shields
         const { data: times } = await supabase.from('times').select('api_team_id, escudo_url')
         if (times) times.forEach((t: any) => escudosMap.value[t.api_team_id] = t.escudo_url)
-
-        // Se não houver campeonato selecionado (por segurança), interrompe
-        if (!campeonatoAtivo.value) {
-            loading.value = false
-            return
-        }
 
         // 2. Fetch Active Round
         const { data: r } = await supabase

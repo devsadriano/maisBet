@@ -6,20 +6,29 @@ import { useCampeonato } from './useCampeonato'
 
 export const useRanking = () => {
   const supabase = useSupabaseClient()
-  const ranking = ref<RankingEntry[]>([])
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+  const ranking = useState<RankingEntry[]>('ranking-state', () => [])
+  const loading = useState<boolean>('ranking-loading', () => false)
+  const error = useState<string | null>('ranking-error', () => null)
+  const cachedCampId = useState<string>('ranking-cached-camp-id', () => '')
 
   const fetchRanking = async () => {
+    const { campeonatoAtivo, scoringSystem } = useCampeonato()
+
+    if (!campeonatoAtivo.value) {
+      ranking.value = []
+      cachedCampId.value = ''
+      return
+    }
+
+    // Se mudou de campeonato, limpa o cache anterior para evitar misturar dados
+    if (cachedCampId.value !== campeonatoAtivo.value.id) {
+      ranking.value = []
+      cachedCampId.value = campeonatoAtivo.value.id
+    }
+
     loading.value = true
     error.value = null
     try {
-      const { campeonatoAtivo, scoringSystem } = useCampeonato()
-
-      if (!campeonatoAtivo.value) {
-        ranking.value = []
-        return
-      }
 
       // 1. Buscar todos os usuários não-admin
       const { data: usersData, error: userErr } = await supabase
