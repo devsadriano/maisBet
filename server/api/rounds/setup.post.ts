@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
     }
   })
 
-  const requiredExtras = rodada.numero_rodada === max_rodadas ? 0 : 2 + confrontations
+  const requiredExtras = rodada.numero_rodada === max_rodadas ? 0 : 1 + confrontations
 
   if (extra_match_ids.length !== requiredExtras) {
     throw createError({ statusCode: 400, message: `Obrigatório escolher exatos ${requiredExtras} jogos extras.` })

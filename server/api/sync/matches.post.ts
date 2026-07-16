@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
     })
     const requiredExtras = matchday === max_rodadas 
       ? 0 
-      : 2 + confrontations
+      : 1 + confrontations
 
     // 3. Calcular os Deadlines com base no primeiro jogo
     const sortedMatches = [...matchesProcessed].sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())

@@ -3,7 +3,7 @@
 Abaixo estão descritas as regras definitivas do sistema de bolão:
 
 ## 1. Composição da Rodada (Quais jogos entram?)
-- Não são todos os jogos da rodada que entram na aposta. O critério é que tenha o **jogo do time de cada apostador mais dois jogos extras**.
+- Não são todos os jogos da rodada que entram na aposta. O critério é que tenha o **jogo do time de cada apostador mais um jogo extra**.
 - Em cada rodada, um apostador ("organizador") elege os jogos extras. O critério de rodízio é automático, definido pelo sistema. **Se o organizador não escolher até 1 hora antes do primeiro jogo da rodada, o sistema seleciona automaticamente de forma aleatória.**
 - Em cada rodada, um membro do grupo construirá a tabela de aposta de cada rodada. A pontuação deve ser auditável, mas sem uso de papel/nada impresso.
 - **Confronto Direto:** No caso de uma rodada ter confrontos diretos entre os times dos apostadores, o número de jogos obrigatórios diminui. Nesses casos, aumentará um jogo extra (o organizador da rodada poderá escolher outros jogos extras para compensar, ou o sistema fará isso automaticamente).

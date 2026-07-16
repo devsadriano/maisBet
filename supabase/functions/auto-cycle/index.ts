@@ -233,16 +233,19 @@ Deno.serve(async (req: Request) => {
             if (res.ok) {
               const d = await res.json()
               if (d.matches && d.matches.length > 0) {
-                const { count: tp } = await sb.from('usuarios').select('*', { count: 'exact', head: true }).eq('is_admin', false)
                 const { data: uwt } = await sb.from('usuarios').select('times(api_team_id)').eq('is_admin', false).not('time_id', 'is', null)
-                const utids = new Set(uwt?.map((u: any) => u.times?.api_team_id).filter(Boolean) || [])
+                const utids = new Set(uwt?.map((u: any) => Array.isArray(u.times) ? u.times[0]?.api_team_id : u.times?.api_team_id).filter(Boolean) || [])
                 let mc = 0
+                let confrontations = 0
                 const mp = d.matches.map((m: any) => {
                   let im = c.formato === 'copa' || next === c.max_rodadas || utids.has(m.homeTeam.id) || utids.has(m.awayTeam.id)
                   if (im) mc++
+                  if (utids.has(m.homeTeam.id) && utids.has(m.awayTeam.id)) {
+                    confrontations++
+                  }
                   return { ...m, is_mandatory: im }
                 })
-                const re = (c.formato === 'copa' || next === c.max_rodadas) ? 0 : Math.max(0, (tp || 0) + 2 - mc)
+                const re = (c.formato === 'copa' || next === c.max_rodadas) ? 0 : 1 + confrontations
                 const sm = [...mp].sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
                 const fmd = new Date(sm[0].utcDate)
 

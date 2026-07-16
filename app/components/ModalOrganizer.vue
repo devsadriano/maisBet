@@ -210,7 +210,7 @@ const partidasComMandatory = computed(() => {
 // Regra: "dois jogos extras" + 1 por cada confronto direto entre times dos participantes
 const calculatedExtras = computed(() => {
   const teamIds = participantTeamApiIds.value
-  if (teamIds.size === 0) return props.rodada?.required_extra_games || 2
+  if (teamIds.size === 0) return props.rodada?.required_extra_games || 1
   
   let confrontations = 0
   for (const p of (props.rodada?.partidas || [])) {
@@ -218,7 +218,7 @@ const calculatedExtras = computed(() => {
       confrontations++
     }
   }
-  return 2 + confrontations
+  return 1 + confrontations
 })
 
 const partidasOrdenadas = computed(() => {

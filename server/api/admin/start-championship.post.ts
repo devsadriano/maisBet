@@ -183,7 +183,7 @@ export default defineEventHandler(async (event) => {
       })
       const requiredExtras = (isCopa || matchday === max_rodadas)
         ? 0
-        : 2 + confrontations
+        : 1 + confrontations
 
       // Calcular deadlines
       const sortedMatches = [...matchesProcessed].sort(
