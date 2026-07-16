@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
   // 2. Fetch all access/participants for this championship
   const { data: acessos, error: errorAcessos } = await supabase
     .from('campeonato_acessos')
-    .select('id, created_at, email, time_id, times(nome)')
+    .select('id, created_at, email, time_id, times(nome, escudo_url)')
     .eq('campeonato_id', campeonato_id)
 
   if (errorAcessos) {
@@ -70,7 +70,8 @@ export default defineEventHandler(async (event) => {
       email: a.email,
       is_admin: u.is_admin,
       created_at: a.created_at,
-      time_nome: a.times?.nome || 'Sem Time'
+      time_nome: a.times?.nome || 'Sem Time',
+      escudo_url: a.times?.escudo_url || null
     }
   }).filter((p: any) => p && !p.is_admin)
 
@@ -107,6 +108,7 @@ export default defineEventHandler(async (event) => {
         nome: p.nome,
         email: p.email,
         time_nome: p.time_nome,
+        escudo_url: p.escudo_url,
         round_count: roundCount,
         last_round: lastRound || null,
         is_organizer: round.organizer_id === p.id
@@ -135,7 +137,8 @@ export default defineEventHandler(async (event) => {
       id: organizerUser.id,
       nome: (organizerUser.is_admin || organizerUser.nome === 'ADRIANO ADMIN') ? 'Administrador' : organizerUser.nome,
       email: organizerUser.email,
-      time_nome: participants.find((p: any) => p.id === organizerUser.id)?.time_nome || 'Sem Time'
+      time_nome: participants.find((p: any) => p.id === organizerUser.id)?.time_nome || 'Sem Time',
+      escudo_url: participants.find((p: any) => p.id === organizerUser.id)?.escudo_url || null
     } : null
 
     // Rule was followed if organizer matches the top candidate (or if there is no organizer/candidates)

@@ -66,8 +66,72 @@
       </div>
 
       <!-- List of rounds -->
-      <div v-else class="space-y-4">
+      <div v-else class="space-y-6">
         
+        <!-- Warning Alert: Dynamic Rotation Explanation -->
+        <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 space-y-2 animate-fade-in-up">
+          <h4 class="text-xs font-black uppercase tracking-wider flex items-center gap-2">
+            <span>⚠️</span>
+            Aviso sobre a Fila de Organizadores (Regra Dinâmica)
+          </h4>
+          <p class="text-xs leading-relaxed text-gray-300">
+            A ordem de seleção dos organizadores é <strong>dinâmica e calculada em tempo real</strong> pelo sistema com base no histórico de rodadas organizadas:
+          </p>
+          <ul class="list-disc pl-5 text-[11px] text-gray-400 space-y-1">
+            <li><strong>Critério Principal:</strong> Quem organizou menos vezes fica no topo da fila (menor contagem de rodadas organizadas).</li>
+            <li><strong>Desempate 1:</strong> Quem organizou há mais tempo passa à frente na fila.</li>
+            <li><strong>Desempate 2 (Alfabético):</strong> Ordenação pelo nome caso os critérios anteriores sejam idênticos.</li>
+          </ul>
+          <p class="text-[11px] leading-relaxed text-amber-400 font-semibold mt-1">
+            💡 <strong>Importante:</strong> Se um novo participante entrar no campeonato no meio da temporada, ele iniciará com zero rodadas organizadas e será alocado automaticamente como o próximo na fila para as rodadas futuras ainda não abertas. Da mesma forma, alterações manuais feitas pelo administrador recalcularão o rodízio das próximas rodadas para manter a justiça no campeonato.
+          </p>
+        </div>
+
+        <!-- Upcoming Organizers Timeline -->
+        <div v-if="proximosOrganizadores.length > 0" class="space-y-4 animate-fade-in-up">
+          <h3 class="text-xs font-black uppercase tracking-wider text-gray-400 px-1 flex items-center gap-2">
+            <span>📅</span>
+            Fila de Seleção (Próximas Rodadas)
+          </h3>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div 
+              v-for="(round, idx) in proximosOrganizadores" 
+              :key="round.id"
+              class="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-brand-500/30 transition-all duration-300"
+            >
+              <!-- Badge: Index Order -->
+              <span 
+                class="absolute top-3 left-3 text-[9px] font-black border px-2 py-0.5 rounded-md"
+                :class="idx === 0 
+                  ? 'bg-brand-500/10 text-brand-400 border-brand-500/20' 
+                  : 'bg-white/5 text-gray-400 border-white/10'"
+              >
+                {{ idx === 0 ? 'Atual' : `${Number(idx) + 1}º na fila` }}
+              </span>
+
+              <!-- Round Header -->
+              <span class="font-bebas text-xl text-white tracking-widest mt-2">RODADA {{ round.numero_rodada }}</span>
+
+              <!-- Shield/Crest -->
+              <div class="my-4 w-14 h-14 flex items-center justify-center p-1 bg-black/35 rounded-full border border-white/5 shadow-inner transition-transform group-hover:scale-110 duration-300">
+                <img 
+                  v-if="round.escudo_url" 
+                  :src="round.escudo_url" 
+                  class="w-10 h-10 object-contain shrink-0" 
+                />
+                <span v-else class="text-2xl">👤</span>
+              </div>
+
+              <!-- Participant Info -->
+              <div class="space-y-1 w-full">
+                <p class="text-xs font-bold text-white uppercase tracking-wider truncate px-1">{{ round.nome || 'Definindo...' }}</p>
+                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate px-1">{{ round.time_nome || 'Sem Time' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Filter and controls -->
         <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10">
           <span class="text-xs font-bold text-gray-400">Total de rodadas: <strong class="text-white">{{ auditReport.length }}</strong></span>
@@ -243,6 +307,12 @@ const fetchReport = async () => {
       query: { campeonato_id: campeonatoAtivo.value.id }
     })
     auditReport.value = data.auditReport || []
+
+    // Auto expand the active/upcoming round (where status is 'aguardando_escolha' or 'aberta')
+    const activeRound = auditReport.value.find((r: any) => r.status === 'aguardando_escolha' || r.status === 'aberta')
+    if (activeRound) {
+      expandedRounds.value = new Set([activeRound.id])
+    }
   } catch (err) {
     console.error('Erro ao buscar organizadores:', err)
   } finally {
@@ -251,11 +321,13 @@ const fetchReport = async () => {
 }
 
 const toggleRound = (id: string) => {
-  if (expandedRounds.value.has(id)) {
-    expandedRounds.value.delete(id)
+  const newSet = new Set(expandedRounds.value)
+  if (newSet.has(id)) {
+    newSet.delete(id)
   } else {
-    expandedRounds.value.add(id)
+    newSet.add(id)
   }
+  expandedRounds.value = newSet
 }
 
 const formatDate = (dateStr: string) => {
@@ -276,6 +348,24 @@ const filteredReport = computed(() => {
     list = list.filter(r => !r.rule_followed)
   }
   return list.reverse()
+})
+
+const proximosOrganizadores = computed(() => {
+  // 1. Find the active round (first round that is 'aguardando_escolha' or 'aberta')
+  const activeRound = auditReport.value.find((r: any) => r.status === 'aguardando_escolha' || r.status === 'aberta')
+  if (!activeRound || !activeRound.candidates) return []
+
+  // 2. The candidates list in activeRound is already sorted by priority.
+  // We can map candidates to calculate future rounds they will organize.
+  return activeRound.candidates.map((c: any, index: number) => {
+    return {
+      id: c.id,
+      nome: c.nome,
+      time_nome: c.time_nome,
+      escudo_url: c.escudo_url,
+      numero_rodada: activeRound.numero_rodada + index
+    }
+  }).slice(0, 4) // Show the next 4 in queue
 })
 
 watch(() => campeonatoAtivo.value?.id, () => {
