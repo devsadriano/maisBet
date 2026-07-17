@@ -132,7 +132,7 @@ const formatDate = (iso: string) => {
     </div>
 
     <!-- Feedback de salvo -->
-    <div v-if="modelValue.id" class="absolute bottom-4 right-6 flex items-center gap-2 transition-all animate-fade-in">
+    <div v-if="modelValue.id" class="flex items-center justify-end gap-2 mt-3 pt-2 border-t border-white/5 animate-fade-in">
        <div class="w-4 h-4 rounded-full bg-brand-500 flex items-center justify-center shadow-[0_0_10px_rgba(14,165,233,0.5)]">
          <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
        </div>
