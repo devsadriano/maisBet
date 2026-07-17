@@ -27,6 +27,9 @@ export const useBets = () => {
     const escudosMap = useState<Record<number, string>>('bets-escudos', () => ({}))
     const timeRemaining = useState<string>('bets-time-remaining', () => '')
     const cachedCampId = useState<string>('bets-cached-camp-id', () => '')
+    // Estado para visualização da última rodada (modo leitura, palpites encerrados)
+    const lastClosedRound = useState<RoundWithMatches | null>('bets-last-closed-round', () => null)
+    const lastRoundBets = useState<Record<string, BetEntry>>('bets-last-round-bets', () => ({}))
     let timer: any = null
 
     const fetchInitialData = async () => {
@@ -97,8 +100,60 @@ export const useBets = () => {
             }
 
             startTimer()
+        } else {
+            // Nenhuma rodada aberta: busca última rodada para exibição em leitura
+            await fetchLastRoundBets()
         }
         loading.value = false
+    }
+
+    const fetchLastRoundBets = async () => {
+        if (!campeonatoAtivo.value || !profile.value) return
+
+        const { data: lr } = await supabase
+            .from('rodadas')
+            .select('id, numero_rodada, status, betting_deadline, organizer_id, organizer_deadline, required_extra_games, fase, multiplicador, calendario_alterado, partidas(*), organizador:usuarios!organizer_id(nome)')
+            .eq('campeonato_id', campeonatoAtivo.value.id)
+            .in('status', ['fechada', 'finalizada'])
+            .order('numero_rodada', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+
+        if (!lr) return
+
+        const isCopa = isCopaAtivo.value
+        const roundData = lr as unknown as RoundWithMatches
+        const hasFlags = roundData.partidas.some((p: Match) => p.is_mandatory || p.is_extra)
+        const validMatches = (hasFlags && !isCopa)
+          ? roundData.partidas.filter((p: Match) => p.is_mandatory || p.is_extra)
+          : roundData.partidas
+
+        // Busca somente os palpites que o usuário realmente fez
+        const { data: userBets } = await supabase
+            .from('palpites')
+            .select('id, partida_id, gols_casa_bet, gols_fora_bet')
+            .eq('usuario_id', profile.value.id)
+            .in('partida_id', validMatches.map((p: Match) => p.id))
+
+        if (!userBets || userBets.length === 0) return
+
+        // Apenas partidas que o usuário palpitou
+        const bettedIds = new Set(userBets.map((b: any) => b.partida_id))
+        const betsInit: Record<string, BetEntry> = {}
+        userBets.forEach((b: any) => {
+            betsInit[b.partida_id] = {
+                id: b.id,
+                gols_casa_bet: b.gols_casa_bet,
+                gols_fora_bet: b.gols_fora_bet
+            }
+        })
+
+        // Filtra partidas da rodada para mostrar só as que o usuário palpitou
+        lastClosedRound.value = {
+            ...roundData,
+            partidas: validMatches.filter((p: Match) => bettedIds.has(p.id))
+        }
+        lastRoundBets.value = betsInit
     }
 
     const startTimer = () => {
@@ -208,6 +263,8 @@ export const useBets = () => {
         timeRemaining,
         fetchInitialData,
         saveAllBets,
-        sortedMatches
+        sortedMatches,
+        lastClosedRound,
+        lastRoundBets
     }
 }

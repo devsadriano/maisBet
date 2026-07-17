@@ -595,12 +595,43 @@
             </div>
 
             <!-- Palpites Encerrados (Nenhuma rodada aberta ou aguardando) -->
-            <div v-else-if="isPalpitesFechados" class="p-16 text-center space-y-3">
-              <span class="text-4xl block">🔒</span>
-              <h4 class="text-lg font-bebas text-gray-400 tracking-wider">PALPITES ENCERRADOS</h4>
-              <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
-                Não há rodadas abertas para novos palpites neste bolão no momento. Acompanhe os resultados no ranking!
-              </p>
+            <div v-else-if="isPalpitesFechados" class="space-y-0">
+              <!-- Locked Message -->
+              <div class="p-10 text-center space-y-3">
+                <span class="text-4xl block">🔒</span>
+                <h4 class="text-lg font-bebas text-gray-400 tracking-wider">PALPITES ENCERRADOS</h4>
+                <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+                  Não há rodadas abertas para novos palpites neste bolão no momento. Acompanhe os resultados no ranking!
+                </p>
+              </div>
+
+              <!-- Últimos Palpites (Read-Only) -->
+              <div v-if="lastClosedRound && Object.keys(lastRoundBets).length > 0" class="border-t border-white/5">
+                <div class="px-6 py-3 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  <span class="text-[9px] font-black uppercase tracking-widest text-gray-500">Seus palpites — Rodada {{ lastClosedRound.numero_rodada }}</span>
+                </div>
+                <!-- scroll-container: pointer-events ativados para rolar, cards desabilitados individualmente -->
+                <div class="opacity-55 divide-y divide-white/5 max-h-[420px] overflow-y-auto" style="-webkit-overflow-scrolling: touch;">
+                  <div
+                    v-for="jogo in [...lastClosedRound.partidas].sort((a: any, b: any) => new Date(a.data_partida).getTime() - new Date(b.data_partida).getTime())"
+                    :key="jogo.id"
+                    class="pointer-events-none"
+                  >
+                    <BetMatchCard
+                      :match="jogo"
+                      :model-value="lastRoundBets[jogo.id] || { id: null, gols_casa_bet: 0, gols_fora_bet: 0 }"
+                      @update:model-value="() => {}"
+                      :shield-home="(jogo as any).api_team_home_id != null ? escudosMap[(jogo as any).api_team_home_id] : undefined"
+                      :shield-away="(jogo as any).api_team_away_id != null ? escudosMap[(jogo as any).api_team_away_id] : undefined"
+                      :is-locked="true"
+                    />
+                  </div>
+                </div>
+                <div class="py-3 text-center">
+                  <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest">👁 Somente visualização</span>
+                </div>
+              </div>
             </div>
 
             <!-- Grid de Confrontos -->
@@ -901,7 +932,9 @@ const {
   saveAllBets, 
   sortedMatches,
   salvando: salvandoBets,
-  locked
+  locked,
+  lastClosedRound,
+  lastRoundBets
 } = useBets()
 
 // Track pending bolão requests for the current user

@@ -34,7 +34,8 @@
       </div>
 
       <!-- Empty/Closed State -->
-      <div v-else-if="!rodada || (rodada.status !== 'aberta' && rodada.status !== 'aguardando_escolha')" class="animate-fade-in-up">
+      <div v-else-if="!rodada || (rodada.status !== 'aberta' && rodada.status !== 'aguardando_escolha')" class="space-y-8 animate-fade-in-up">
+        <!-- Locked Card -->
         <BaseCard class="text-center">
             <div class="py-10">
                 <span class="text-6xl mb-6 block drop-shadow-lg">🔒</span>
@@ -45,6 +46,44 @@
                 </div>
             </div>
         </BaseCard>
+
+        <!-- Últimos Palpites (Read-Only) -->
+        <div v-if="lastClosedRound && Object.keys(lastRoundBets).length > 0" class="space-y-4">
+          <!-- Section Header -->
+          <div class="flex items-center gap-3 px-1">
+            <div class="h-px flex-1 bg-white/5"></div>
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Seus palpites — Rodada {{ lastClosedRound.numero_rodada }}</span>
+            </div>
+            <div class="h-px flex-1 bg-white/5"></div>
+          </div>
+
+          <!-- Match Cards (locked/dimmed) -->
+          <div class="opacity-60 bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden">
+            <div class="divide-y divide-white/5">
+              <div
+                v-for="jogo in [...lastClosedRound.partidas].sort((a: any, b: any) => new Date(a.data_partida).getTime() - new Date(b.data_partida).getTime())"
+                :key="jogo.id"
+                class="pointer-events-none"
+              >
+                <BetMatchCard
+                  :match="jogo"
+                  :model-value="lastRoundBets[jogo.id] || { id: null, gols_casa_bet: 0, gols_fora_bet: 0 }"
+                  @update:model-value="() => {}"
+                  :shield-home="(jogo as any).api_team_home_id != null ? escudosMap[(jogo as any).api_team_home_id] : undefined"
+                  :shield-away="(jogo as any).api_team_away_id != null ? escudosMap[(jogo as any).api_team_away_id] : undefined"
+                  :is-locked="true"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Hint -->
+          <p class="text-center text-[10px] text-gray-500 font-bold uppercase tracking-widest pt-1">
+            👁 Somente visualização — palpites bloqueados
+          </p>
+        </div>
       </div>
 
       <!-- Aguardando Escolha State (LIGA ONLY) -->
@@ -200,7 +239,9 @@ const {
   timeRemaining, 
   fetchInitialData, 
   saveAllBets, 
-  sortedMatches 
+  sortedMatches,
+  lastClosedRound,
+  lastRoundBets
 } = useBets()
 
 const { profile } = useAuth()
