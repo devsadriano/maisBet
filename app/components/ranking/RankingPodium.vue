@@ -13,12 +13,12 @@ defineProps<{
 </script>
 
 <template>
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-end mb-8 md:mb-16 px-2 sm:px-4 animate-fade-in-up">
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-end mb-8 md:mb-16 px-2 sm:px-4 animate-fade-in-up" style="isolation: isolate;">
     <!-- 2nd Place -->
     <div v-if="topThree[1]" class="order-2 md:order-1 group cursor-default">
       <div class="flex flex-col items-center space-y-4 transition-transform group-hover:-translate-y-2 duration-500">
-        <div class="relative">
-          <div class="absolute inset-0 bg-gray-400/10 blur-3xl rounded-full scale-150 animate-pulse-glow" />
+        <div class="relative" style="transform: translateZ(0);">
+          <div class="absolute inset-0 bg-gray-400/10 rounded-full scale-150 animate-pulse-glow" style="filter: blur(32px); will-change: box-shadow; transform: translateZ(0);" />
           <div class="relative w-24 h-24 rounded-full border-4 border-gray-400/30 overflow-hidden shadow-2xl bg-pitch-800">
             <img v-if="topThree[1].escudo_url" :src="topThree[1].escudo_url" class="absolute inset-0 w-full h-full object-contain p-4 opacity-10" alt="" />
             <div class="absolute inset-0 flex items-center justify-center font-bebas text-4xl text-gray-400">
@@ -42,8 +42,8 @@ defineProps<{
     <!-- 1st Place -->
     <div v-if="topThree[0]" class="order-1 md:order-2 group cursor-default">
       <div class="flex flex-col items-center space-y-6 transition-transform group-hover:-translate-y-4 duration-500">
-        <div class="relative">
-          <div class="absolute inset-0 bg-brand-500/20 blur-[50px] rounded-full scale-150 animate-pulse-glow" />
+        <div class="relative" style="transform: translateZ(0);">
+          <div class="absolute inset-0 bg-brand-500/20 rounded-full scale-150 animate-pulse-glow" style="filter: blur(50px); will-change: box-shadow; transform: translateZ(0);" />
           <div class="relative w-32 h-32 rounded-full border-4 border-brand-500 overflow-hidden shadow-[0_0_40px_rgba(14,165,233,0.3)] bg-pitch-800 scale-110">
             <img v-if="topThree[0].escudo_url" :src="topThree[0].escudo_url" class="absolute inset-0 w-full h-full object-contain p-4 opacity-15" alt="" />
             <div class="absolute inset-0 flex items-center justify-center font-bebas text-6xl text-brand-500 drop-shadow-[0_0_10px_rgba(14,165,233,0.5)]">
@@ -67,8 +67,8 @@ defineProps<{
     <!-- 3rd Place -->
     <div v-if="topThree[2]" class="order-3 group cursor-default">
       <div class="flex flex-col items-center space-y-4 transition-transform group-hover:-translate-y-2 duration-500">
-        <div class="relative">
-          <div class="absolute inset-0 bg-orange-600/10 blur-3xl rounded-full scale-150" />
+        <div class="relative" style="transform: translateZ(0);">
+          <div class="absolute inset-0 bg-orange-600/10 rounded-full scale-150" style="filter: blur(32px); will-change: transform; transform: translateZ(0);" />
           <div class="relative w-24 h-24 rounded-full border-4 border-orange-800/30 overflow-hidden shadow-2xl bg-pitch-800">
             <img v-if="topThree[2].escudo_url" :src="topThree[2].escudo_url" class="absolute inset-0 w-full h-full object-contain p-4 opacity-10" alt="" />
             <div class="absolute inset-0 flex items-center justify-center font-bebas text-4xl text-orange-600/80">

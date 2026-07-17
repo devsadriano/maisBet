@@ -95,6 +95,9 @@ html {
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
   overflow-x: hidden;
+  /* Força rasterização consistente no scroll mobile */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 /* =====================================
@@ -120,6 +123,10 @@ body {
   min-height: 100dvh;
   background: var(--bg-base);
   overflow-x: hidden;
+  /* Scroll suave e sem glitch no iOS/Android */
+  -webkit-overflow-scrolling: touch;
+  /* Isola o contexto de stacking para evitar conflitos com sticky/blur */
+  isolation: isolate;
 }
 
 /* Dark mode body gradient */
@@ -187,7 +194,9 @@ html.dark .glass-card {
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up {
-  animation: fadeInUp 0.4s ease-out forwards;
+  animation: fadeInUp 0.4s ease-out both;
+  will-change: opacity, transform;
+  transform: translateZ(0);
 }
 
 @keyframes fadeIn {
@@ -195,7 +204,9 @@ html.dark .glass-card {
   to   { opacity: 1; }
 }
 .animate-fade-in {
-  animation: fadeIn 0.35s ease-out forwards;
+  animation: fadeIn 0.35s ease-out both;
+  will-change: opacity;
+  transform: translateZ(0);
 }
 
 @keyframes pulse-glow {
@@ -204,6 +215,7 @@ html.dark .glass-card {
 }
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+  will-change: box-shadow;
 }
 
 /* Page transitions */

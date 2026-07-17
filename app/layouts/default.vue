@@ -8,6 +8,7 @@
     <!-- Navbar Topo -->
     <header
       class="sticky top-0 z-50 backdrop-blur-md border-b px-4 h-16 flex items-center justify-between transition-colors duration-300"
+      style="will-change: transform; transform: translateZ(0);"
       :class="isDark
         ? 'bg-[rgba(13,13,13,0.85)] border-white/5'
         : 'bg-[rgba(240,253,244,0.85)] border-black/5'"

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-8" style="isolation: isolate; transform: translateZ(0);">
     <!-- Header Page -->
     <header class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
       <div class="space-y-4">
