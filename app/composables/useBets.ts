@@ -61,7 +61,7 @@ export const useBets = () => {
             .eq('campeonato_id', campeonatoAtivo.value.id)
             .order('numero_rodada', { ascending: true })
             .limit(1)
-            .single()
+            .maybeSingle()
 
         if (r) {
             rodada.value = r as unknown as RoundWithMatches

@@ -514,10 +514,21 @@
               </div>
 
               <!-- Contador de Urgência (Countdown) -->
-              <div class="w-full flex items-center justify-center gap-2 sm:gap-3 bg-brand-500/10 border border-brand-500/25 rounded-2xl py-3 sm:py-4.5 px-3 sm:px-8 shadow-inner transition-all hover:bg-brand-500/15 max-w-full overflow-hidden">
-                <div class="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-brand-500 animate-pulse shrink-0"></div>
-                <span class="text-[11px] sm:text-lg md:text-xl lg:text-2xl font-black uppercase tracking-wider text-brand-600 dark:text-brand-400 whitespace-nowrap font-mono">
-                  {{ locked ? 'Mercado Fechado' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
+              <div 
+                class="w-full flex items-center justify-center gap-2 sm:gap-3 rounded-2xl py-3 sm:py-4.5 px-3 sm:px-8 shadow-inner transition-all max-w-full overflow-hidden"
+                :class="(!rodada || locked) 
+                  ? 'bg-red-500/10 border border-red-500/25 hover:bg-red-500/15' 
+                  : 'bg-brand-500/10 border border-brand-500/25 hover:bg-brand-500/15'"
+              >
+                <div 
+                  class="w-2 h-2 sm:w-3 sm:h-3 rounded-full animate-pulse shrink-0"
+                  :class="(!rodada || locked) ? 'bg-red-500' : 'bg-brand-500'"
+                ></div>
+                <span 
+                  class="text-[11px] sm:text-lg md:text-xl lg:text-2xl font-black uppercase tracking-wider whitespace-nowrap font-mono"
+                  :class="(!rodada || locked) ? 'text-red-600 dark:text-red-400' : 'text-brand-600 dark:text-brand-400'"
+                >
+                  {{ loadingBets ? 'Calculando...' : (!rodada || locked) ? 'Mercado Fechado' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
                 </span>
               </div>
             </div>
