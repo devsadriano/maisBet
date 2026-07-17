@@ -26,7 +26,7 @@ export const useRanking = () => {
       cachedCampId.value = campeonatoAtivo.value.id
     }
 
-    loading.value = true
+    loading.value = ranking.value.length === 0
     error.value = null
     try {
 

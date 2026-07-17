@@ -194,17 +194,40 @@
               <button 
                 @click="prevRound" 
                 :disabled="selectedRound <= 1 || loadingMatches" 
-                class="text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white transition-colors"
+                class="text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white transition-colors z-10"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <span class="font-bebas text-lg text-white tracking-widest">{{ selectedRound }}ª RODADA</span>
+              
+              <!-- Clickable round text with transparent select overlay -->
+              <div class="relative flex-1 flex items-center justify-center cursor-pointer hover:bg-white/5 rounded-lg py-1 transition-all mx-2 group">
+                <span class="font-bebas text-lg text-white tracking-widest flex items-center gap-1 group-hover:text-brand-400 transition-colors">
+                  {{ selectedRound }}ª RODADA
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-hover:text-brand-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+                <select 
+                  v-model="selectedRound"
+                  class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                >
+                  <option 
+                    v-for="r in maxRounds" 
+                    :key="r" 
+                    :value="r"
+                    class="bg-[#1c1c1c] text-white font-bebas text-lg"
+                  >
+                    {{ r }}ª Rodada
+                  </option>
+                </select>
+              </div>
+
               <button 
                 @click="nextRound" 
                 :disabled="selectedRound >= maxRounds || loadingMatches" 
-                class="text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white transition-colors"
+                class="text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white transition-colors z-10"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
@@ -296,11 +319,11 @@ const supabase = useSupabaseClient()
 const { campeonatoAtivo } = useCampeonato()
 
 // Standings States
-const groups = ref<any[]>([])
-const season = ref('')
-const loading = ref(true)
-const error = ref(false)
-const activeCode = ref('')
+const groups = useState<any[]>('table-groups', () => [])
+const season = useState<string>('table-season', () => '')
+const loading = useState<boolean>('table-loading', () => true)
+const error = useState<boolean>('table-error', () => false)
+const activeCode = useState<string>('table-active-code', () => '')
 
 const legends = [
   { label: 'Libertadores', color: 'bg-blue-500' },
@@ -312,8 +335,9 @@ const legends = [
 // Matches States
 const selectedRound = ref(1)
 const maxRounds = computed(() => campeonatoAtivo.value?.max_rodadas || 38)
-const matches = ref<any[]>([])
-const loadingMatches = ref(false)
+const matches = useState<any[]>('table-matches', () => [])
+const loadingMatches = useState<boolean>('table-loading-matches', () => false)
+const cachedRoundKey = useState<string>('table-cached-round-key', () => '')
 const escudosMap = ref<Record<number, string>>({})
 
 // Unify team crests from standings to render at the top
@@ -338,11 +362,15 @@ const teamCrests = computed(() => {
 
 async function fetchStandings() {
   if (!campeonatoAtivo.value) return
-  loading.value = true
+  const code = campeonatoAtivo.value.api_competition_code || 'BSA'
+  if (activeCode.value !== code) {
+    groups.value = []
+    season.value = ''
+    activeCode.value = code
+  }
+  loading.value = groups.value.length === 0
   error.value = false
   try {
-    const code = campeonatoAtivo.value.api_competition_code || 'BSA'
-    activeCode.value = code
 
     const data: any = await $fetch(`/api/app/standings`, {
       query: { api_competition_code: code }
@@ -373,7 +401,8 @@ function getShieldUrl(apiId: number) {
 async function fetchCurrentRound() {
   if (!campeonatoAtivo.value) return
   try {
-    const { data } = await supabase
+    // 1. Tenta achar rodada aberta ou aguardando escolha (rodada ativa de palpites)
+    const { data: openRound } = await supabase
       .from('rodadas')
       .select('numero_rodada')
       .eq('campeonato_id', campeonatoAtivo.value.id)
@@ -382,11 +411,51 @@ async function fetchCurrentRound() {
       .limit(1)
       .maybeSingle()
     
-    if (data) {
-      selectedRound.value = data.numero_rodada
-    } else {
-      selectedRound.value = 1
+    if (openRound) {
+      selectedRound.value = openRound.numero_rodada
+      return
     }
+
+    // 2. Se não houver aberta/aguardando, tenta achar uma rodada fechada (jogos em andamento)
+    const { data: closedRound } = await supabase
+      .from('rodadas')
+      .select('numero_rodada')
+      .eq('campeonato_id', campeonatoAtivo.value.id)
+      .eq('status', 'fechada')
+      .order('numero_rodada', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (closedRound) {
+      selectedRound.value = closedRound.numero_rodada
+      return
+    }
+
+    // 3. Se não houver fechada, pega a última rodada finalizada
+    const { data: lastFinalizedRound } = await supabase
+      .from('rodadas')
+      .select('numero_rodada')
+      .eq('campeonato_id', campeonatoAtivo.value.id)
+      .eq('status', 'finalizada')
+      .order('numero_rodada', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (lastFinalizedRound) {
+      selectedRound.value = lastFinalizedRound.numero_rodada
+      return
+    }
+
+    // 4. Se não encontrar nada, tenta pegar a primeira rodada do campeonato cadastrada
+    const { data: firstRound } = await supabase
+      .from('rodadas')
+      .select('numero_rodada')
+      .eq('campeonato_id', campeonatoAtivo.value.id)
+      .order('numero_rodada', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    selectedRound.value = firstRound ? firstRound.numero_rodada : 1
   } catch (e) {
     console.error('Erro ao buscar rodada atual:', e)
     selectedRound.value = 1
@@ -395,7 +464,12 @@ async function fetchCurrentRound() {
 
 async function fetchMatches() {
   if (!campeonatoAtivo.value) return
-  loadingMatches.value = true
+  const roundKey = `${campeonatoAtivo.value.id}-${selectedRound.value}`
+  if (cachedRoundKey.value !== roundKey) {
+    matches.value = []
+    cachedRoundKey.value = roundKey
+  }
+  loadingMatches.value = matches.value.length === 0
   try {
     // 1. Obter a rodada daquele campeonato
     const { data: rd } = await supabase

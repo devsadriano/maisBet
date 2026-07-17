@@ -28,12 +28,13 @@ export const useRoundRanking = () => {
   const supabase = useSupabaseClient()
   const { campeonatoAtivo } = useCampeonato()
   
-  const rounds = ref<RoundSummary[]>([])
-  const selectedRoundId = ref<string | null>(null)
-  const matches = ref<RoundMatch[]>([])
-  const matrix = ref<Record<string, Record<string, number>>>({}) // usuario_id -> partida_id -> pontos
-  const roundRanking = ref<RankingEntry[]>([])
-  const loading = ref(false)
+  const rounds = useState<RoundSummary[]>('round-ranking-rounds', () => [])
+  const selectedRoundId = useState<string | null>('round-ranking-selected-id', () => null)
+  const matches = useState<RoundMatch[]>('round-ranking-matches', () => [])
+  const matrix = useState<Record<string, Record<string, any>>>('round-ranking-matrix', () => ({}))
+  const roundRanking = useState<RankingEntry[]>('round-ranking-results', () => [])
+  const loading = useState<boolean>('round-ranking-loading', () => false)
+  const cachedRoundId = useState<string | null>('round-ranking-cached-id', () => null)
 
   const fetchRounds = async () => {
     if (!campeonatoAtivo.value) {
@@ -56,7 +57,15 @@ export const useRoundRanking = () => {
 
   const fetchRoundData = async () => {
     if (!selectedRoundId.value) return
-    loading.value = true
+    
+    if (cachedRoundId.value !== selectedRoundId.value) {
+      matches.value = []
+      matrix.value = {}
+      roundRanking.value = []
+      cachedRoundId.value = selectedRoundId.value
+    }
+    
+    loading.value = matches.value.length === 0
     try {
       // 1. Fetch matches for the round
       const { data: matchesData } = await supabase
