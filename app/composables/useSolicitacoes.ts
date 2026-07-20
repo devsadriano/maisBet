@@ -44,7 +44,7 @@ export const useSolicitacoes = () => {
     loading.value = true
     let query = supabase
       .from('solicitacoes')
-      .select('*, campeonato:campeonatos(id, nome, logo_url, apelido_grupo)')
+      .select('*, campeonato:campeonatos!campeonato_id(id, nome, logo_url, apelido_grupo)')
       .order('created_at', { ascending: false })
 
     if (statusFilter && statusFilter !== 'todas') {
@@ -58,7 +58,32 @@ export const useSolicitacoes = () => {
       console.error('Erro ao buscar solicitações:', error.message)
       return []
     }
-    return (data || []) as Solicitacao[]
+
+    const rows = (data || []) as Solicitacao[]
+
+    // Se algum registro de acesso_bolao veio sem campeonato (join não resolveu),
+    // buscar manualmente via campeonato_id
+    const missingIds = [...new Set(
+      rows
+        .filter(s => s.tipo === 'acesso_bolao' && !s.campeonato && s.campeonato_id)
+        .map(s => s.campeonato_id as string)
+    )]
+
+    if (missingIds.length > 0) {
+      const { data: camps } = await supabase
+        .from('campeonatos')
+        .select('id, nome, logo_url, apelido_grupo')
+        .in('id', missingIds)
+      
+      const campMap = Object.fromEntries((camps || []).map(c => [c.id, c]))
+      rows.forEach(s => {
+        if (s.tipo === 'acesso_bolao' && !s.campeonato && s.campeonato_id && campMap[s.campeonato_id]) {
+          s.campeonato = campMap[s.campeonato_id]
+        }
+      })
+    }
+
+    return rows
   }
 
   const aprovarSolicitacao = async (

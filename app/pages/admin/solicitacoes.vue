@@ -37,7 +37,7 @@
           :options="[
             { value: '', label: 'Todos' },
             { value: '__sistema__', label: '🔑 Apenas Sistema' },
-            ...campeonatosNoFiltro.map(camp => ({ value: camp.id, label: `⚽ ${camp.nome}${camp.apelido_grupo ? ' — ' + camp.apelido_grupo : ''}` }))
+            ...campeonatos.map(camp => ({ value: camp.id, label: `⚽ ${camp.nome}${camp.apelido_grupo ? ' — ' + camp.apelido_grupo : ''}` }))
           ]"
           variant="brand"
         />
@@ -314,7 +314,11 @@ const filteredList = computed(() => {
 
   if (!filterCampeonatoId.value) return byTab
   if (filterCampeonatoId.value === '__sistema__') return byTab.filter(s => s.tipo === 'acesso_sistema')
-  return byTab.filter(s => s.tipo === 'acesso_bolao' && s.campeonato?.id === filterCampeonatoId.value)
+  // Filtra por campeonato — inclui registros mesmo se o join veio null mas o campeonato_id bate
+  return byTab.filter(s =>
+    s.tipo === 'acesso_bolao' &&
+    (s.campeonato?.id === filterCampeonatoId.value || s.campeonato_id === filterCampeonatoId.value)
+  )
 })
 
 // ── Fetch ──
