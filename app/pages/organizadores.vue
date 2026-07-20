@@ -2,8 +2,8 @@
   <div class="space-y-10 animate-fade-in relative">
     
     <!-- Header -->
-    <header class="flex items-center justify-between border-b border-white/5 pb-8">
-      <div class="space-y-2">
+    <header class="flex items-start justify-between border-b border-white/5 pb-8 gap-4">
+      <div class="space-y-2 min-w-0">
          <NuxtLink to="/" class="text-brand-400 text-xs font-black uppercase tracking-widest hover:text-brand-300 transition-colors flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -12,15 +12,36 @@
          </NuxtLink>
          <h1 class="text-4xl md:text-5xl font-bebas text-white tracking-tighter">Organizadores <span class="text-brand-500">das Rodadas</span></h1>
       </div>
-      <div class="hidden md:block">
+      <div class="hidden md:block shrink-0">
          <div class="w-16 h-16 bg-brand-500/10 rounded-2xl border border-brand-500/20 flex items-center justify-center">
             <span class="text-3xl">📋</span>
          </div>
       </div>
     </header>
 
+    <!-- Filtro de Campeonato (Admin apenas) -->
+    <div v-if="isAdmin && allCampeonatos.length > 1" class="flex flex-col sm:flex-row sm:items-center gap-3">
+      <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 shrink-0">Campeonato:</label>
+      <div class="flex items-center gap-3 min-w-0 flex-1">
+        <div class="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 flex-1">
+          <button
+            v-for="camp in allCampeonatos"
+            :key="camp.id"
+            @click="selectedCampId = camp.id"
+            class="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all whitespace-nowrap"
+            :class="selectedCampId === camp.id
+              ? 'bg-brand-500/15 border-brand-500/40 text-brand-400'
+              : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'"
+          >
+            <img v-if="camp.logo_url" :src="camp.logo_url" class="w-4 h-4 object-contain shrink-0" />
+            <span>{{ camp.nome }}{{ camp.apelido_grupo ? ` — ${camp.apelido_grupo}` : '' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- No Bolao State -->
-    <div v-if="!campeonatoAtivo" class="animate-fade-in-up">
+    <div v-if="!campeonatoSelecionado" class="animate-fade-in-up">
       <BaseCard title="⚠️ Nenhum Bolão Selecionado" class="text-center">
           <div class="py-10">
               <span class="text-6xl mb-6 block drop-shadow-lg">🏟️</span>
@@ -41,8 +62,11 @@
       <!-- Info Header Card -->
       <BaseCard variant="pitch">
         <div class="flex items-center gap-4 mb-4">
-          <img v-if="campeonatoAtivo.logo_url" :src="campeonatoAtivo.logo_url" class="w-8 h-8 object-contain" />
-          <h2 class="text-lg font-bebas text-white tracking-widest uppercase">{{ campeonatoAtivo.nome }}</h2>
+          <img v-if="campeonatoSelecionado.logo_url" :src="campeonatoSelecionado.logo_url" class="w-8 h-8 object-contain" />
+          <div>
+            <h2 class="text-lg font-bebas text-white tracking-widest uppercase">{{ campeonatoSelecionado.nome }}</h2>
+            <p v-if="campeonatoSelecionado.apelido_grupo" class="text-[10px] text-amber-400 font-bold uppercase tracking-widest">📎 {{ campeonatoSelecionado.apelido_grupo }}</p>
+          </div>
         </div>
         <p class="text-gray-400 leading-relaxed text-sm md:text-base">
           Abaixo está o histórico de organizadores de cada rodada do campeonato. A regra do sistema escolhe automaticamente o participante com 
@@ -293,18 +317,48 @@ import BaseButton from '~/components/ui/BaseButton.vue'
 import { useCampeonato } from '~/composables/useCampeonato'
 
 const { campeonatoAtivo } = useCampeonato()
+const supabase = useSupabaseClient()
+const { isAdmin } = useAuth()
 
 const loading = ref(false)
 const auditReport = ref<any[]>([])
 const expandedRounds = ref<Set<string>>(new Set())
 const onlyManual = ref(false)
 
+// ── Campeonatos para filtro (admin) ──
+const allCampeonatos = ref<any[]>([])
+const selectedCampId = ref<string>('')
+
+// Campeonato exibido: se admin e selecionou um, usa esse; senão usa o ativo global
+const campeonatoSelecionado = computed(() => {
+  if (isAdmin.value && selectedCampId.value) {
+    return allCampeonatos.value.find(c => c.id === selectedCampId.value) || campeonatoAtivo.value
+  }
+  return campeonatoAtivo.value
+})
+
+const loadCampeonatos = async () => {
+  if (!isAdmin.value) return
+  const { data } = await supabase
+    .from('campeonatos')
+    .select('id, nome, logo_url, apelido_grupo, status')
+    .order('created_at', { ascending: false })
+  allCampeonatos.value = data || []
+
+  // Pré-selecionar o campeonato ativo, ou o primeiro da lista
+  if (!selectedCampId.value) {
+    selectedCampId.value = campeonatoAtivo.value?.id || allCampeonatos.value[0]?.id || ''
+  }
+}
+
 const fetchReport = async () => {
-  if (!campeonatoAtivo.value) return
+  const campId = campeonatoSelecionado.value?.id
+  if (!campId) return
   loading.value = true
+  auditReport.value = []
   try {
     const data = await $fetch<{ auditReport: any[] }>('/api/app/organizadores', {
-      query: { campeonato_id: campeonatoAtivo.value.id }
+      query: { campeonato_id: campId }
     })
     auditReport.value = data.auditReport || []
 
@@ -351,12 +405,9 @@ const filteredReport = computed(() => {
 })
 
 const proximosOrganizadores = computed(() => {
-  // 1. Find the active round (first round that is 'aguardando_escolha' or 'aberta')
   const activeRound = auditReport.value.find((r: any) => r.status === 'aguardando_escolha' || r.status === 'aberta')
   if (!activeRound || !activeRound.candidates) return []
 
-  // 2. The candidates list in activeRound is already sorted by priority.
-  // We can map candidates to calculate future rounds they will organize.
   return activeRound.candidates.map((c: any, index: number) => {
     return {
       id: c.id,
@@ -365,12 +416,29 @@ const proximosOrganizadores = computed(() => {
       escudo_url: c.escudo_url,
       numero_rodada: activeRound.numero_rodada + index
     }
-  }).slice(0, 4) // Show the next 4 in queue
+  }).slice(0, 4)
 })
 
-watch(() => campeonatoAtivo.value?.id, () => {
+// Recarrega ao trocar campeonato (admin)
+watch(selectedCampId, () => {
+  expandedRounds.value = new Set()
   fetchReport()
+})
+
+// Recarrega ao trocar campeonato ativo global (usuário normal)
+watch(() => campeonatoAtivo.value?.id, (newId) => {
+  if (!isAdmin.value && newId) {
+    fetchReport()
+  }
 }, { immediate: true })
+
+onMounted(async () => {
+  await loadCampeonatos()
+  // Para admin, disparar o fetch após carregar os campeonatos
+  if (isAdmin.value) {
+    fetchReport()
+  }
+})
 
 useHead({
   title: 'Organizadores das Rodadas | +BET',
