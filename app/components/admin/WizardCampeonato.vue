@@ -131,10 +131,10 @@
                     <input v-model="form.nome" type="text" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors font-bold text-lg shadow-inner">
                  </div>
                  <div>
-                    <label class="block text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1.5">📎 Apelido do Grupo (Opcional)</label>
-                    <input v-model="form.apelido_grupo" type="text" placeholder="Ex: Turma do Adriano, Galera do Trabalho..." class="w-full bg-black/40 border border-amber-500/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-500 transition-colors text-sm placeholder:text-gray-600">
-                    <p class="text-[10px] text-gray-600 mt-1">Ajuda a diferenciar campeonatos iguais para grupos distintos.</p>
-                 </div>
+                     <label class="block text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1.5">📎 Apelido do Grupo <span class="text-red-400">*</span></label>
+                     <input v-model="form.apelido_grupo" type="text" required placeholder="Ex: Turma do Adriano, Galera do Trabalho..." class="w-full bg-black/40 border border-amber-500/30 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-500 transition-colors text-sm placeholder:text-gray-600">
+                     <p class="text-[10px] text-gray-500 mt-1">Obrigatório — identifica o grupo dentro do mesmo campeonato.</p>
+                  </div>
                  
                  <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -354,10 +354,16 @@ const finalize = async () => {
         return
     }
 
+    if (!form.value.apelido_grupo?.trim()) {
+        errorMessage.value = 'O Apelido do Grupo é obrigatório. Ex: "Galera do Trampo", "Família".'
+        isSubmitting.value = false
+        return
+    }
+
     try {
         const { data, error } = await supabase.from('campeonatos').insert({
             nome: form.value.nome,
-            apelido_grupo: form.value.apelido_grupo || null,
+            apelido_grupo: form.value.apelido_grupo.trim(),
             api_competition_code: form.value.api_competition_code.toUpperCase(),
             season: form.value.season,
             max_rodadas: form.value.max_rodadas,
