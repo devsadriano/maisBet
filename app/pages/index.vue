@@ -122,24 +122,24 @@
                 </div>
 
                 <!-- Filtros de Status -->
-                <div class="flex flex-wrap items-center gap-1 bg-black/40 rounded-xl p-1 border border-white/5 shrink-0">
+                <div class="flex items-center gap-1 bg-black/40 rounded-xl p-1 border border-white/5 overflow-x-auto scrollbar-none shrink-0 max-w-full">
                   <button 
                     @click="statusFilter = 'all'"
-                    class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                    class="shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
                     :class="statusFilter === 'all' ? 'bg-danger-500 text-white' : 'text-gray-400 hover:text-white'"
                   >
                     Todos
                   </button>
                   <button 
                     @click="statusFilter = 'completed'"
-                    class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                    class="shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
                     :class="statusFilter === 'completed' ? 'bg-danger-500 text-white' : 'text-gray-400 hover:text-white'"
                   >
                     Completos
                   </button>
                   <button 
                     @click="statusFilter = 'pending'"
-                    class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
+                    class="shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
                     :class="statusFilter === 'pending' ? 'bg-danger-500 text-white' : 'text-gray-400 hover:text-white'"
                   >
                     Pendentes
