@@ -11,18 +11,18 @@
     </div>
 
     <!-- Tabs -->
-    <div class="flex flex-wrap gap-1 border-b border-white/10 pb-0.5">
+    <div class="flex border-b border-white/10 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
       <button
         v-for="tab in tabs"
         :key="tab.value"
         @click="activeTab = tab.value; filterCampeonatoId = ''"
-        class="flex-1 min-w-0 px-3 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-t-xl transition-all border-b-2 -mb-[3px] whitespace-nowrap"
+        class="relative flex items-center justify-center gap-1.5 shrink-0 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest transition-all border-b-2 -mb-px whitespace-nowrap"
         :class="activeTab === tab.value
           ? 'text-brand-400 border-brand-500 bg-brand-500/10'
           : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'"
       >
         {{ tab.label }}
-        <span v-if="tab.value === 'pendente' && pendingCount > 0" class="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-black rounded-full min-w-[18px] inline-flex items-center justify-center">
+        <span v-if="tab.value === 'pendente' && pendingCount > 0" class="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-full min-w-[18px] inline-flex items-center justify-center leading-none">
           {{ pendingCount }}
         </span>
       </button>
@@ -103,12 +103,12 @@
         </div>
 
         <!-- Bolão / Campeonato Info (for acesso_bolao) -->
-        <div v-if="sol.tipo === 'acesso_bolao'" class="flex items-center gap-3 px-4 py-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
+        <div v-if="sol.tipo === 'acesso_bolao'" class="flex flex-wrap items-center gap-2 px-3 py-2.5 bg-purple-500/10 rounded-xl border border-purple-500/20">
           <span class="text-[10px] font-black uppercase tracking-widest text-purple-400 shrink-0">⚽ Campeonato</span>
-          <div v-if="sol.campeonato" class="flex items-center gap-2 min-w-0">
+          <div v-if="sol.campeonato" class="flex items-center gap-2 min-w-0 flex-1">
             <img v-if="sol.campeonato.logo_url" :src="sol.campeonato.logo_url" class="w-5 h-5 object-contain shrink-0" />
-            <span class="text-sm text-white font-semibold truncate">{{ sol.campeonato.nome }}</span>
-            <span v-if="sol.campeonato.apelido_grupo" class="text-[10px] text-amber-400 font-bold shrink-0">📎 {{ sol.campeonato.apelido_grupo }}</span>
+            <span class="text-sm text-white font-semibold truncate min-w-0">{{ sol.campeonato.nome }}</span>
+            <span v-if="sol.campeonato.apelido_grupo" class="text-[10px] text-amber-400 font-bold shrink-0 truncate max-w-[80px]">📎 {{ sol.campeonato.apelido_grupo }}</span>
           </div>
           <span v-else class="text-sm text-gray-500 italic">Campeonato não encontrado</span>
         </div>
@@ -125,7 +125,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="flex items-center justify-between pt-2 border-t border-white/5">
+        <div class="flex items-center justify-between gap-3 pt-2 border-t border-white/5 flex-wrap">
           <span class="text-[10px] text-gray-500 uppercase tracking-wider">
             {{ timeAgo(sol.created_at) }}
             <span v-if="sol.resolved_at"> · Resolvido {{ timeAgo(sol.resolved_at) }}</span>
@@ -135,13 +135,13 @@
           <div v-if="sol.status === 'pendente'" class="flex items-center gap-2">
             <button
               @click="openRejectModal(sol)"
-              class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition-colors"
+              class="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition-colors active:scale-95"
             >
               Rejeitar
             </button>
             <button
               @click="openApproveModal(sol)"
-              class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg border border-emerald-500/20 transition-colors"
+              class="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg border border-emerald-500/20 transition-colors active:scale-95"
             >
               Aprovar
             </button>
