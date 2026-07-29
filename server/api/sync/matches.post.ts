@@ -158,6 +158,9 @@ export default defineEventHandler(async (event) => {
       if (m.status === 'POSTPONED' || m.status === 'CANCELLED') localStatus = 'adiado'
       if (m.status === 'IN_PLAY' || m.status === 'PAUSED') localStatus = 'agendado' 
 
+      // Regra: Jogos adiados herdam a data do primeiro jogo válido (agendado) da rodada
+      const matchDateToSave = (localStatus === 'adiado') ? firstMatchDate.toISOString() : m.utcDate
+
       const matchData = {
         api_match_id: m.id,
         rodada_id: rodadaId,
@@ -168,7 +171,7 @@ export default defineEventHandler(async (event) => {
         gols_casa: m.score?.fullTime?.home ?? null,
         gols_fora: m.score?.fullTime?.away ?? null,
         status: localStatus,
-        data_partida: m.utcDate,
+        data_partida: matchDateToSave,
         grupo: m.group || null,
         is_mandatory: m.is_mandatory
       }

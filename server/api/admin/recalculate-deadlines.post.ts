@@ -58,6 +58,13 @@ export default defineEventHandler(async (event) => {
         })
         .eq('id', r.id)
 
+      // Regra: Atualizar data_partida de todos os jogos adiados da rodada para coincidir com a primeira partida agendada
+      await supabase
+        .from('partidas')
+        .update({ data_partida: earliestMatch.toISOString() })
+        .eq('rodada_id', r.id)
+        .eq('status', 'adiado')
+
       updatedRounds.push({
         rodada: r.numero_rodada,
         firstMatch: earliestMatch.toISOString(),

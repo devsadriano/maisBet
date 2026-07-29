@@ -149,11 +149,13 @@ Deno.serve(async (req: Request) => {
                 
                 if (calendarioMudou) {
                   const { data: newDbMatches } = await sb.from('partidas')
-                    .select('data_partida')
+                    .select('data_partida, status')
                     .eq('rodada_id', rd.id)
                   
                   if (newDbMatches && newDbMatches.length > 0) {
-                    const sorted = [...newDbMatches].sort((a: any, b: any) => new Date(a.data_partida).getTime() - new Date(b.data_partida).getTime())
+                    const activeMatches = newDbMatches.filter((x: any) => x.status !== 'adiado')
+                    const targetMatches = activeMatches.length > 0 ? activeMatches : newDbMatches
+                    const sorted = [...targetMatches].sort((a: any, b: any) => new Date(a.data_partida).getTime() - new Date(b.data_partida).getTime())
                     const fmd = new Date(sorted[0].data_partida)
                     
                     const isCopaMataMata = c.formato === 'copa' && rd.numero_rodada > 3
@@ -167,6 +169,11 @@ Deno.serve(async (req: Request) => {
                       organizer_deadline: od,
                       calendario_alterado: true
                     }).eq('id', rd.id)
+
+                    // Regra: Atualiza a data_partida dos jogos adiados para o 1º jogo ativo da rodada
+                    await sb.from('partidas').update({
+                      data_partida: fmd.toISOString()
+                    }).eq('rodada_id', rd.id).eq('status', 'adiado')
                     
                     log(`[${c.api_competition_code}] Prazos da Rd ${rd.numero_rodada} recalculados e Alerta ativado! Novo fechamento: ${bd}`)
                   }
@@ -246,7 +253,9 @@ Deno.serve(async (req: Request) => {
                   return { ...m, is_mandatory: im }
                 })
                 const re = (c.formato === 'copa' || next === c.max_rodadas) ? 0 : 1 + confrontations
-                const sm = [...mp].sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
+                const nonPostponedMatches = mp.filter((m: any) => !['POSTPONED', 'CANCELLED', 'SUSPENDED'].includes(m.status))
+                const validMatchesForDeadline = nonPostponedMatches.length > 0 ? nonPostponedMatches : mp
+                const sm = [...validMatchesForDeadline].sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
                 const fmd = new Date(sm[0].utcDate)
 
                 // Copa Deadline: 2h mata-mata (rd > 3), 1h groups
@@ -281,6 +290,7 @@ Deno.serve(async (req: Request) => {
                       let ls = 'agendado'
                       if (m.status === 'FINISHED' || m.status === 'AWARDED') ls = 'finalizado'
                       else if (m.status === 'POSTPONED' || m.status === 'CANCELLED') ls = 'adiado'
+                      const matchDateToSave = (ls === 'adiado') ? fmd.toISOString() : m.utcDate
                       const { error } = await sb.from('partidas').upsert({
                         api_match_id: m.id, rodada_id: nr.id,
                         time_casa: m.homeTeam.shortName || m.homeTeam.name,
@@ -288,7 +298,7 @@ Deno.serve(async (req: Request) => {
                         api_team_home_id: m.homeTeam.id, api_team_away_id: m.awayTeam.id,
                         gols_casa: m.score?.fullTime?.home ?? null,
                         gols_fora: m.score?.fullTime?.away ?? null,
-                        status: ls, data_partida: m.utcDate, is_mandatory: m.is_mandatory,
+                        status: ls, data_partida: matchDateToSave, is_mandatory: m.is_mandatory,
                       }, { onConflict: 'api_match_id,rodada_id' })
                       if (!error) ins++
                     }

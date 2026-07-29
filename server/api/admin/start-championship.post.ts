@@ -185,8 +185,10 @@ export default defineEventHandler(async (event) => {
         ? 0
         : 1 + confrontations
 
-      // Calcular deadlines
-      const sortedMatches = [...matchesProcessed].sort(
+      // Calcular deadlines (excluindo adiados)
+      const nonPostponedMatches = matchesProcessed.filter((m: any) => !['POSTPONED', 'CANCELLED', 'SUSPENDED'].includes(m.status))
+      const validMatchesForDeadline = nonPostponedMatches.length > 0 ? nonPostponedMatches : matchesProcessed
+      const sortedMatches = [...validMatchesForDeadline].sort(
         (a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime()
       )
       const firstMatchDate = new Date(sortedMatches[0].utcDate)
@@ -302,6 +304,8 @@ export default defineEventHandler(async (event) => {
           localStatus = 'finalizado'
         }
 
+        const matchDateToSave = (localStatus === 'adiado') ? firstMatchDate.toISOString() : m.utcDate
+
         const matchData = {
           api_match_id: m.id,
           rodada_id: newRodada.id,
@@ -312,7 +316,7 @@ export default defineEventHandler(async (event) => {
           gols_casa: m.score?.fullTime?.home ?? null,
           gols_fora: m.score?.fullTime?.away ?? null,
           status: localStatus,
-          data_partida: m.utcDate,
+          data_partida: matchDateToSave,
           is_mandatory: m.is_mandatory
         }
 
