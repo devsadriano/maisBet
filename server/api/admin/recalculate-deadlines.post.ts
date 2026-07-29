@@ -1,4 +1,4 @@
-import { serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../utils/requireAdmin'
 
 export default defineEventHandler(async (event) => {
@@ -23,22 +23,25 @@ export default defineEventHandler(async (event) => {
       // 2. Fetch matches for this round sorted by data_partida
       const { data: matches } = await supabase
         .from('partidas')
-        .select('data_partida')
+        .select('data_partida, status')
         .eq('rodada_id', r.id)
         .order('data_partida', { ascending: true })
 
       if (!matches || matches.length === 0) continue
 
-      // Filter out invalid/empty dates
-      const validDates = matches
+      // Filter out postponed matches ('adiado') when calculating round start deadline
+      const activeMatches = matches.filter((m: any) => m.status !== 'adiado')
+      const targetMatches = activeMatches.length > 0 ? activeMatches : matches
+
+      const validDates = targetMatches
         .map((m: any) => new Date(m.data_partida))
         .filter((d: Date) => !isNaN(d.getTime()))
 
       if (validDates.length === 0) continue
 
-      // Earliest match date
+      // Earliest scheduled match date
       const earliestMatch = validDates[0]
-      // 1 hour before first match
+      // 1 hour before first scheduled match
       const newBettingDeadline = new Date(earliestMatch.getTime() - 1 * 3600000).toISOString()
       const newOrganizerDeadline = new Date(earliestMatch.getTime() - 1 * 3600000).toISOString()
 
@@ -67,7 +70,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       success: true,
-      message: `Prazos recalculados para ${updatedRounds.length} rodada(s) considerando Fuso de Campo Grande (MS).`,
+      message: `Prazos recalculados para ${updatedRounds.length} rodada(s) desconsiderando jogos adiados (Fuso Campo Grande MS).`,
       updatedRounds
     }
   } catch (err: any) {

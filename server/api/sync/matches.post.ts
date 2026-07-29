@@ -91,8 +91,10 @@ export default defineEventHandler(async (event) => {
       ? 0 
       : 1 + confrontations
 
-    // 3. Calcular os Deadlines com base no primeiro jogo
-    const sortedMatches = [...matchesProcessed].sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
+    // 3. Calcular os Deadlines com base no primeiro jogo (excluindo adiados)
+    const nonPostponedMatches = matchesProcessed.filter((m: any) => !['POSTPONED', 'CANCELLED', 'SUSPENDED'].includes(m.status))
+    const validMatchesForDeadline = nonPostponedMatches.length > 0 ? nonPostponedMatches : matchesProcessed
+    const sortedMatches = [...validMatchesForDeadline].sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
     const firstMatchDate = new Date(sortedMatches[0].utcDate)
 
     const isMataMata = campeonatoData?.formato === 'copa' && matchday > 3
