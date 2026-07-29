@@ -31,6 +31,7 @@ export interface Campeonato {
   season?: string | null
   max_rodadas?: number | null
   detalhes_premiacao?: string | null
+  fuso_horario?: string | null
 
   // Joins (Opcionais pois vêm das queries de join)
   scoring_system?: {

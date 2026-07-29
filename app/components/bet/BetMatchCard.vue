@@ -44,9 +44,13 @@ const handleDecrement = (field: 'gols_casa_bet' | 'gols_fora_bet') => {
   if (current > 0) updateModel(field, current - 1)
 }
 
+import { useCampeonato } from '~/composables/useCampeonato'
+
+const { fusoHorarioAtivo } = useCampeonato()
+
 const formatDate = (iso: string) => {
   return new Date(iso).toLocaleString('pt-BR', { 
-    timeZone: 'America/Campo_Grande',
+    timeZone: fusoHorarioAtivo.value || 'America/Sao_Paulo',
     weekday: 'short', 
     day: '2-digit', 
     month: '2-digit', 

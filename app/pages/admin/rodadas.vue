@@ -93,9 +93,9 @@
             Ver Tabela Oficial
           </button>
 
-          <button :disabled="isRecalculating" @click="recalculateDeadlines" class="flex flex-1 md:flex-none justify-center items-center gap-2 px-5 py-3 rounded-2xl bg-brand-500/10 border border-brand-500/20 hover:bg-brand-500/20 hover:border-brand-500/40 transition-all text-brand-400 font-bold text-sm tracking-wide active:scale-95 disabled:opacity-50" title="Ajustar prazos para Fuso de Campo Grande MS">
+          <button :disabled="isRecalculating" @click="recalculateDeadlines" class="flex flex-1 md:flex-none justify-center items-center gap-2 px-5 py-3 rounded-2xl bg-brand-500/10 border border-brand-500/20 hover:bg-brand-500/20 hover:border-brand-500/40 transition-all text-brand-400 font-bold text-sm tracking-wide active:scale-95 disabled:opacity-50" :title="`Ajustar prazos para o fuso ${selectedChampionship?.fuso_horario || 'padrão'}`">
             <span v-if="isRecalculating" class="w-4 h-4 border-2 border-brand-400/30 border-t-brand-400 rounded-full animate-spin"></span>
-            <span v-else>🕒 Adjust Prazos (Campo Grande MS)</span>
+            <span v-else>🕒 Adjust Prazos (Fuso do Bolão)</span>
           </button>
         </div>
       </div>
@@ -610,8 +610,9 @@ async function confirmUpdateStatus(id: string, newStatus: string) {
 // -- Helpers --
 const formatDateTime = (iso: string) => {
   if (!iso) return '-'
+  const tz = selectedChampionship.value?.fuso_horario || 'America/Sao_Paulo'
   return new Date(iso).toLocaleString('pt-BR', { 
-    timeZone: 'America/Campo_Grande',
+    timeZone: tz,
     day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
   })
 }

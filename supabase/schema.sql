@@ -67,9 +67,10 @@ CREATE TABLE IF NOT EXISTS public.campeonatos (
     area_flag TEXT,
     formato TEXT DEFAULT 'liga',
     detalhes_premiacao TEXT,
-    apelido_grupo TEXT NOT NULL
+    apelido_grupo TEXT NOT NULL,
+    fuso_horario TEXT NOT NULL DEFAULT 'America/Sao_Paulo'
 );
-COMMENT ON TABLE public.campeonatos IS 'Campeonatos cadastrados no sistema.';
+COMMENT ON TABLE public.campeonatos IS 'Campeonatos cadastrados no sistema com fuso horário de referência.';
 
 -- 2.5 Acessos aos Campeonatos (Adesão de usuários aos bolões)
 CREATE TABLE IF NOT EXISTS public.campeonato_acessos (

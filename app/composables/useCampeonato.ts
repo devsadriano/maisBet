@@ -46,6 +46,11 @@ export const useCampeonato = () => {
     return false
   })
 
+  // Fuso horário do campeonato ativo (default para America/Sao_Paulo)
+  const fusoHorarioAtivo = computed(() => {
+    return campeonatoAtivo.value?.fuso_horario || 'America/Sao_Paulo'
+  })
+
   const fetchCampeonatos = async (force = false) => {
     // Evita refetch se já temos dados para a UI ficar mais rápida
     if (campeonatos.value.length > 0 && !force) return
@@ -241,6 +246,7 @@ export const useCampeonato = () => {
     currentAcesso,
     scoringSystem,
     isCopaAtivo,
+    fusoHorarioAtivo,
     loading,
     fetchCampeonatos,
     selecionarCampeonato,

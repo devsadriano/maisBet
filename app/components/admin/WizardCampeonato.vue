@@ -175,6 +175,17 @@
               />
             </div>
 
+            <!-- Fuso Horário do Campeonato -->
+            <div>
+              <label class="block text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-1.5">🕒 Fuso Horário do Bolão <span class="text-red-400">*</span></label>
+              <BaseSelect
+                v-model="form.fuso_horario"
+                :options="timezoneOptions"
+                variant="brand"
+              />
+              <p class="text-[10px] text-gray-500 mt-1">Define em qual horário oficial os relógios, jogos e fechamento do mercado serão exibidos.</p>
+            </div>
+
             <!-- Formato do Campeonato -->
             <div>
               <label class="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">🗂️ Formato das Regras</label>
@@ -281,6 +292,14 @@ onMounted(() => {
 const loadingLeagueDetails = ref(false)
 const isSubmitting = ref(false)
 
+const timezoneOptions = [
+  { value: 'America/Sao_Paulo', label: '🟢 Horário de Brasília (DF, SP, RJ, MG, Sul, NE, GO) [UTC-3]' },
+  { value: 'America/Campo_Grande', label: '🟡 Horário de Campo Grande / Pantanal (MS, MT) [UTC-4]' },
+  { value: 'America/Manaus', label: '🟡 Horário da Amazônia (AM, RO, RR) [UTC-4]' },
+  { value: 'America/Rio_Branco', label: '🔴 Horário do Acre (AC) [UTC-5]' },
+  { value: 'America/Noronha', label: '🔵 Horário de Fernando de Noronha (FN) [UTC-2]' }
+]
+
 const form = ref({
    nome: '',
    apelido_grupo: '',
@@ -294,7 +313,8 @@ const form = ref({
    start_date: '',
    end_date: '',
    detalhes_premiacao: '',
-   formato: 'liga' as 'liga' | 'copa'
+   formato: 'liga' as 'liga' | 'copa',
+   fuso_horario: 'America/Sao_Paulo'
 })
 
 const selectLeague = async (leagueParam: any) => {
@@ -375,7 +395,8 @@ const finalize = async () => {
             start_date: form.value.start_date || null,
             end_date: form.value.end_date || null,
             detalhes_premiacao: form.value.detalhes_premiacao || null,
-            formato: form.value.formato
+            formato: form.value.formato,
+            fuso_horario: form.value.fuso_horario || 'America/Sao_Paulo'
         }).select().single()
         
         if (error) {

@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     // 1. Fetch active rounds (status 'aberta' or 'aguardando_escolha' or 'fechada')
     const { data: rounds, error: roundsErr } = await supabase
       .from('rodadas')
-      .select('id, numero_rodada, status, campeonato_id, betting_deadline')
+      .select('id, numero_rodada, status, campeonato_id, betting_deadline, campeonato:campeonatos!campeonato_id(fuso_horario)')
       .in('status', ['aberta', 'aguardando_escolha', 'fechada'])
       .order('numero_rodada', { ascending: false })
 
@@ -20,6 +20,8 @@ export default defineEventHandler(async (event) => {
     const updatedRounds: any[] = []
 
     for (const r of rounds) {
+      const fusoHorario = (r.campeonato as any)?.fuso_horario || 'America/Sao_Paulo'
+
       // 2. Fetch matches for this round sorted by data_partida
       const { data: matches } = await supabase
         .from('partidas')
@@ -67,17 +69,18 @@ export default defineEventHandler(async (event) => {
 
       updatedRounds.push({
         rodada: r.numero_rodada,
+        fusoHorario,
         firstMatch: earliestMatch.toISOString(),
-        firstMatchCampoGrande: earliestMatch.toLocaleString('pt-BR', { timeZone: 'America/Campo_Grande' }),
+        firstMatchLocal: earliestMatch.toLocaleString('pt-BR', { timeZone: fusoHorario }),
         newDeadline: newBettingDeadline,
-        newDeadlineCampoGrande: new Date(newBettingDeadline).toLocaleString('pt-BR', { timeZone: 'America/Campo_Grande' }),
+        newDeadlineLocal: new Date(newBettingDeadline).toLocaleString('pt-BR', { timeZone: fusoHorario }),
         status: newStatus
       })
     }
 
     return {
       success: true,
-      message: `Prazos recalculados para ${updatedRounds.length} rodada(s) desconsiderando jogos adiados (Fuso Campo Grande MS).`,
+      message: `Prazos recalculados para ${updatedRounds.length} rodada(s) considerando o fuso horário de cada campeonato.`,
       updatedRounds
     }
   } catch (err: any) {
