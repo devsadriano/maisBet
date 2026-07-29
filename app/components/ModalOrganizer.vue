@@ -176,7 +176,10 @@ const orgTimeRemaining = computed(() => {
 const getShield = (apiId: number) => escudosMap.value[apiId]
 
 const formatDate = (iso: string) => {
-  return new Date(iso).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', ' -')
+  return new Date(iso).toLocaleString('pt-BR', { 
+    timeZone: 'America/Campo_Grande',
+    weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+  }).replace(',', ' -')
 }
 
 // Busca os times dos participantes do campeonato ativo para saber quais jogos são obrigatórios

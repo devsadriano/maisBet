@@ -46,6 +46,7 @@ const handleDecrement = (field: 'gols_casa_bet' | 'gols_fora_bet') => {
 
 const formatDate = (iso: string) => {
   return new Date(iso).toLocaleString('pt-BR', { 
+    timeZone: 'America/Campo_Grande',
     weekday: 'short', 
     day: '2-digit', 
     month: '2-digit', 

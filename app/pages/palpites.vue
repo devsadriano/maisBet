@@ -303,6 +303,7 @@ const handleSave = async () => {
 const formatAutoSelectTime = (iso: string) => {
   if (!iso) return '-'
   const raw = new Date(iso).toLocaleString('pt-BR', {
+    timeZone: 'America/Campo_Grande',
     weekday: 'long', day: '2-digit', month: '2-digit',
     hour: '2-digit', minute: '2-digit'
   }).replace(',', ' -')

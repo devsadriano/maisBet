@@ -85,12 +85,19 @@
           </div>
         </div>
 
-        <button :disabled="!selectedChampionshipId" @click="showStandings = true" class="mt-2 flex w-full md:w-auto justify-center items-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all text-emerald-400 font-bold text-sm tracking-wide group active:scale-95 shadow-lg shadow-emerald-500/5 disabled:opacity-50 disabled:cursor-not-allowed">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
-          </svg>
-          Ver Tabela Oficial
-        </button>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <button :disabled="!selectedChampionshipId" @click="showStandings = true" class="flex flex-1 md:flex-none justify-center items-center gap-2.5 px-5 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/40 transition-all text-emerald-400 font-bold text-sm tracking-wide group active:scale-95 shadow-lg shadow-emerald-500/5 disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:rotate-12 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z" />
+            </svg>
+            Ver Tabela Oficial
+          </button>
+
+          <button :disabled="isRecalculating" @click="recalculateDeadlines" class="flex flex-1 md:flex-none justify-center items-center gap-2 px-5 py-3 rounded-2xl bg-brand-500/10 border border-brand-500/20 hover:bg-brand-500/20 hover:border-brand-500/40 transition-all text-brand-400 font-bold text-sm tracking-wide active:scale-95 disabled:opacity-50" title="Ajustar prazos para Fuso de Campo Grande MS">
+            <span v-if="isRecalculating" class="w-4 h-4 border-2 border-brand-400/30 border-t-brand-400 rounded-full animate-spin"></span>
+            <span v-else>🕒 Adjust Prazos (Campo Grande MS)</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -510,6 +517,33 @@ async function triggerAutoCycle() {
   }
 }
 
+const isRecalculating = ref(false)
+
+async function recalculateDeadlines() {
+  if (isRecalculating.value) return
+  isRecalculating.value = true
+  toastInfo('Recalculando prazos no Fuso de Campo Grande MS...')
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Não autenticado.')
+
+    const res: any = await $fetch('/api/admin/recalculate-deadlines', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session.access_token}` }
+    })
+    
+    if (res.success) {
+      toastSuccess(res.message)
+      await fetchRodadas()
+    }
+  } catch (e: any) {
+    console.error(e)
+    toastError(e.data?.message || 'Erro ao recalcular prazos.')
+  } finally {
+    isRecalculating.value = false
+  }
+}
+
 async function fetchCronStatus() {
   const { data } = await supabase
     .from('cron_logs')
@@ -577,6 +611,7 @@ async function confirmUpdateStatus(id: string, newStatus: string) {
 const formatDateTime = (iso: string) => {
   if (!iso) return '-'
   return new Date(iso).toLocaleString('pt-BR', { 
+    timeZone: 'America/Campo_Grande',
     day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
   })
 }
