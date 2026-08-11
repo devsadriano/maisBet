@@ -93,6 +93,13 @@
             Ver Tabela Oficial
           </button>
 
+          <button :disabled="!selectedChampionshipId" @click="openOrganizerQueueModal" class="flex flex-1 md:flex-none justify-center items-center gap-2 px-5 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all text-amber-400 font-bold text-sm tracking-wide active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-amber-500/5" title="Visualizar ordem de todos os próximos organizadores">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Fila Futura de Organizadores
+          </button>
+
           <button :disabled="isRecalculating" @click="recalculateDeadlines" class="flex flex-1 md:flex-none justify-center items-center gap-2 px-5 py-3 rounded-2xl bg-brand-500/10 border border-brand-500/20 hover:bg-brand-500/20 hover:border-brand-500/40 transition-all text-brand-400 font-bold text-sm tracking-wide active:scale-95 disabled:opacity-50" :title="`Ajustar prazos para o fuso ${selectedChampionship?.fuso_horario || 'padrão'}`">
             <span v-if="isRecalculating" class="w-4 h-4 border-2 border-brand-400/30 border-t-brand-400 rounded-full animate-spin"></span>
             <span v-else>🕒 Adjust Prazos (Fuso do Bolão)</span>
@@ -408,6 +415,90 @@
       </div>
     </Teleport>
 
+    <!-- Modal Fila Futura de Organizadores (Admin) -->
+    <Teleport to="body">
+      <div v-if="showQueueModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-pitch-900/80 backdrop-blur-sm animate-fade-in">
+        <div class="bg-pitch-800 border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in-up">
+          <div class="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div>
+              <h2 class="text-2xl font-bebas tracking-wider text-white flex items-center gap-2">
+                <span>📋</span> FILA FUTURA DE ORGANIZADORES
+              </h2>
+              <p class="text-xs text-gray-400">Sequência calculada de rodízio para as próximas rodadas do campeonato.</p>
+            </div>
+            <button @click="showQueueModal = false" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-4 border-b border-white/5 bg-black/20 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="relative w-full sm:w-72">
+              <input 
+                v-model="queueSearch" 
+                type="text" 
+                placeholder="Buscar participante na fila..." 
+                class="w-full bg-black/40 border border-white/10 rounded-xl py-2 px-3 pl-8 text-xs text-white placeholder-gray-500 outline-none focus:border-amber-500"
+              />
+              <span class="absolute left-2.5 top-2.5 text-gray-500 text-xs">🔍</span>
+            </div>
+            <NuxtLink to="/organizadores" class="text-xs font-bold text-amber-400 hover:underline flex items-center gap-1">
+              <span>Ver Histórico & Auditoria Pública</span> →
+            </NuxtLink>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-6">
+            <div v-if="queueLoading" class="flex justify-center py-12">
+              <div class="w-8 h-8 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+            </div>
+
+            <div v-else-if="filteredQueueCandidates.length === 0" class="text-center py-12 text-gray-500 text-xs">
+              Nenhum participante encontrado na fila de organizadores.
+            </div>
+
+            <div v-else class="space-y-2">
+              <div 
+                v-for="candidate in filteredQueueCandidates" 
+                :key="candidate.id + '-admin-' + candidate.numero_rodada" 
+                class="p-3.5 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between gap-4 hover:bg-white/5 transition-colors"
+                :class="candidate.posicao_fila === 1 ? 'border-amber-500/30 bg-amber-500/5' : ''"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <span 
+                    class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0"
+                    :class="candidate.posicao_fila === 1 ? 'bg-amber-500 text-black font-black' : 'bg-white/5 text-gray-400 border border-white/10'"
+                  >
+                    #{{ candidate.posicao_fila }}
+                  </span>
+                  <img v-if="candidate.escudo_url" :src="candidate.escudo_url" class="w-7 h-7 object-contain shrink-0" />
+                  <span v-else class="text-lg shrink-0">👤</span>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-bold text-white uppercase truncate">{{ candidate.nome }}</span>
+                      <span v-if="candidate.posicao_fila === 1" class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        Próximo / Atual
+                      </span>
+                    </div>
+                    <div class="text-[10px] text-gray-500 flex items-center gap-2">
+                      <span>{{ candidate.time_nome || 'Sem Time' }}</span>
+                      <span>•</span>
+                      <span class="lowercase">{{ candidate.email }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-right shrink-0">
+                  <span class="font-bebas text-sm text-amber-400 block tracking-wider">RODADA {{ candidate.numero_rodada }}</span>
+                  <span class="text-[9px] text-gray-500 font-mono">Organizou {{ candidate.round_count }}x | Última: R{{ candidate.last_round || '-' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Tabela do Brasileirão (ou do campeonato selecionado) -->
     <BrasileiraoStandings 
       :show="showStandings" 
@@ -484,6 +575,54 @@ const usuarios = ref<any[]>([])
 const counts = ref<Record<string, number>>({})
 const loading = ref(true)
 const showStandings = ref(false)
+
+// Modal Fila Futura de Organizadores
+const showQueueModal = ref(false)
+const queueLoading = ref(false)
+const queueCandidates = ref<any[]>([])
+const queueSearch = ref('')
+
+async function openOrganizerQueueModal() {
+  if (!selectedChampionshipId.value) return
+  showQueueModal.value = true
+  queueLoading.value = true
+  queueCandidates.value = []
+  try {
+    const data: any = await $fetch('/api/app/organizadores', {
+      query: { campeonato_id: selectedChampionshipId.value }
+    })
+    const report = data.auditReport || []
+    const activeRound = report.find((r: any) => r.status === 'aguardando_escolha' || r.status === 'aberta') || report[report.length - 1]
+    if (activeRound && activeRound.candidates) {
+      queueCandidates.value = activeRound.candidates.map((c: any, index: number) => ({
+        id: c.id,
+        nome: c.nome,
+        email: c.email,
+        time_nome: c.time_nome,
+        escudo_url: c.escudo_url,
+        round_count: c.round_count,
+        last_round: c.last_round,
+        numero_rodada: activeRound.numero_rodada + index,
+        posicao_fila: index + 1
+      }))
+    }
+  } catch (err) {
+    console.error('Erro ao buscar fila de organizadores para admin:', err)
+  } finally {
+    queueLoading.value = false
+  }
+}
+
+const filteredQueueCandidates = computed(() => {
+  if (!queueSearch.value.trim()) return queueCandidates.value
+  const q = queueSearch.value.toLowerCase().trim()
+  return queueCandidates.value.filter((c: any) => 
+    (c.nome && c.nome.toLowerCase().includes(q)) ||
+    (c.email && c.email.toLowerCase().includes(q)) ||
+    (c.time_nome && c.time_nome.toLowerCase().includes(q)) ||
+    (String(c.numero_rodada).includes(q))
+  )
+})
 
 const lastCronRun = ref<string>('')
 const isTriggeringCron = ref(false)

@@ -69,7 +69,7 @@
           </div>
         </div>
         <p class="text-gray-400 leading-relaxed text-sm md:text-base">
-          Abaixo está o histórico de organizadores de cada rodada do campeonato. A regra do sistema escolhe automaticamente o participante com 
+          Abaixo está a fila completa de organizadores calculada em tempo real para as próximas rodadas, além do histórico das rodadas passadas. A regra do sistema escolhe automaticamente o participante com 
           <strong>menor número de rodadas organizadas</strong>, desempatando pelo <strong>tempo desde a última organização</strong> e depois pela <strong>ordem alfabética</strong>.
         </p>
       </BaseCard>
@@ -89,8 +89,8 @@
         </p>
       </div>
 
-      <!-- List of rounds -->
-      <div v-else class="space-y-6">
+      <!-- List of rounds & full queue -->
+      <div v-else class="space-y-8">
         
         <!-- Warning Alert: Dynamic Rotation Explanation -->
         <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 space-y-2 animate-fade-in-up">
@@ -111,54 +111,311 @@
           </p>
         </div>
 
-        <!-- Upcoming Organizers Timeline -->
-        <div v-if="proximosOrganizadores.length > 0" class="space-y-4 animate-fade-in-up">
-          <h3 class="text-xs font-black uppercase tracking-wider text-gray-400 px-1 flex items-center gap-2">
-            <span>📅</span>
-            Fila de Seleção (Próximas Rodadas)
-          </h3>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div 
-              v-for="(round, idx) in proximosOrganizadores" 
-              :key="round.id"
-              class="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col items-center justify-between text-center relative overflow-hidden group hover:border-brand-500/30 transition-all duration-300"
-            >
-              <!-- Badge: Index Order -->
-              <span 
-                class="absolute top-3 left-3 text-[9px] font-black border px-2 py-0.5 rounded-md"
-                :class="idx === 0 
-                  ? 'bg-brand-500/10 text-brand-400 border-brand-500/20' 
-                  : 'bg-white/5 text-gray-400 border-white/10'"
-              >
-                {{ idx === 0 ? 'Atual' : `${Number(idx) + 1}º na fila` }}
-              </span>
-
-              <!-- Round Header -->
-              <span class="font-bebas text-xl text-white tracking-widest mt-2">RODADA {{ round.numero_rodada }}</span>
-
-              <!-- Shield/Crest -->
-              <div class="my-4 w-14 h-14 flex items-center justify-center p-1 bg-black/35 rounded-full border border-white/5 shadow-inner transition-transform group-hover:scale-110 duration-300">
-                <img 
-                  v-if="round.escudo_url" 
-                  :src="round.escudo_url" 
-                  class="w-10 h-10 object-contain shrink-0" 
-                />
-                <span v-else class="text-2xl">👤</span>
-              </div>
-
-              <!-- Participant Info -->
-              <div class="space-y-1 w-full">
-                <p class="text-xs font-bold text-white uppercase tracking-wider truncate px-1">{{ round.nome || 'Definindo...' }}</p>
-                <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest truncate px-1">{{ round.time_nome || 'Sem Time' }}</p>
-              </div>
+        <!-- Banner de Posição do Usuário ("VOCÊ NA FILA") -->
+        <div 
+          v-if="minhaPosicao" 
+          class="p-5 rounded-2xl bg-gradient-to-r from-brand-500/20 via-brand-500/10 to-transparent border border-brand-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up shadow-lg shadow-brand-500/5"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-brand-500 text-black flex items-center justify-center font-bebas text-2xl font-black shrink-0 shadow-md">
+              #{{ minhaPosicao.posicao_fila }}
             </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest bg-brand-500 text-black">Sua Posição</span>
+                <span class="text-xs text-brand-400 font-bold">Rodada {{ minhaPosicao.numero_rodada }}</span>
+              </div>
+              <h4 class="text-sm font-bold text-white mt-1">
+                <template v-if="minhaPosicao.posicao_fila === 1">
+                  🎯 Você é o organizador atual da Rodada {{ minhaPosicao.numero_rodada }}!
+                </template>
+                <template v-else>
+                  Faltam <strong class="text-brand-400">{{ minhaPosicao.posicao_fila - 1 }}</strong> rodadas para a sua vez de organizar (Rodada {{ minhaPosicao.numero_rodada }}).
+                </template>
+              </h4>
+            </div>
+          </div>
+          <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-black/40 px-3 py-2 rounded-xl border border-white/5 shrink-0 self-stretch sm:self-auto flex items-center justify-center">
+            Organizou {{ minhaPosicao.round_count }}x anteriormente
           </div>
         </div>
 
-        <!-- Filter and controls -->
-        <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10">
-          <span class="text-xs font-bold text-gray-400">Total de rodadas: <strong class="text-white">{{ auditReport.length }}</strong></span>
+        <!-- Upcoming Organizers Section (Fila Completa de Próximas Rodadas) -->
+        <div v-if="proximosOrganizadores.length > 0" class="space-y-6 animate-fade-in-up">
+          
+          <!-- Section Header & Controls -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <h3 class="text-lg font-bebas text-white tracking-widest flex items-center gap-2">
+                <span>📅</span>
+                FILA COMPLETA DE SELEÇÃO (PRÓXIMAS RODADAS)
+              </h3>
+              <p class="text-xs text-gray-400">
+                Mostrando todos os <strong class="text-brand-400">{{ filteredProximos.length }}</strong> participantes na sequência de rodízio.
+              </p>
+            </div>
+
+            <!-- Controles: Busca e Alternador de Vista (Grid / Lista) -->
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- Search Input -->
+              <div class="relative flex-1 sm:w-64 min-w-[180px]">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </span>
+                <input 
+                  v-model="searchQueue" 
+                  type="text" 
+                  placeholder="Buscar na fila..."
+                  class="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-gray-500 outline-none focus:border-brand-500 transition-colors"
+                />
+                <button 
+                  v-if="searchQueue" 
+                  @click="searchQueue = ''" 
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <!-- Switcher: Grid vs Lista -->
+              <div class="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 shrink-0">
+                <button 
+                  @click="viewMode = 'grid'" 
+                  class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+                  :class="viewMode === 'grid' ? 'bg-brand-500 text-black font-bold' : 'text-gray-400 hover:text-white'"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                  <span>Cards</span>
+                </button>
+                <button 
+                  @click="viewMode = 'table'" 
+                  class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+                  :class="viewMode === 'table' ? 'bg-brand-500 text-black font-bold' : 'text-gray-400 hover:text-white'"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                  <span>Lista</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty search result -->
+          <div v-if="filteredProximos.length === 0" class="py-12 text-center space-y-2 bg-white/5 border border-white/10 rounded-2xl">
+            <span class="text-3xl block">🔍</span>
+            <p class="text-sm font-bold text-gray-300">Nenhum participante encontrado na fila</p>
+            <p class="text-xs text-gray-500">Tente buscar por outro nome ou limpe a pesquisa.</p>
+            <button @click="searchQueue = ''" class="mt-2 text-xs text-brand-400 underline hover:text-brand-300 font-bold">Limpar busca</button>
+          </div>
+
+          <!-- VISTA 1: GRID DE CARDS (Desktop & Mobile Adaptável) -->
+          <div v-else-if="viewMode === 'grid'" class="space-y-6">
+            
+            <!-- Destaques Top 4 (Em destaque se sem busca) -->
+            <div v-if="!searchQueue && top4Organizadores.length > 0" class="space-y-3">
+              <div class="text-[10px] font-black uppercase tracking-widest text-brand-400 flex items-center gap-1.5">
+                <span>🔥</span>
+                <span>PRÓXIMAS 4 RODADAS (EM DESTAQUE)</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div 
+                  v-for="round in top4Organizadores" 
+                  :key="round.id"
+                  class="bg-gradient-to-b border rounded-2xl p-5 flex flex-col items-center justify-between text-center relative overflow-hidden group transition-all duration-300"
+                  :class="[
+                    round.id === currentUserId 
+                      ? 'from-brand-500/20 to-black/60 border-brand-500 shadow-lg shadow-brand-500/10' 
+                      : round.posicao_fila === 1 
+                      ? 'from-amber-500/15 to-black/60 border-amber-500/40 hover:border-amber-500' 
+                      : 'from-white/10 to-white/5 border-white/15 hover:border-white/30'
+                  ]"
+                >
+                  <!-- Badge VOCÊ caso seja o usuário logado -->
+                  <span 
+                    v-if="round.id === currentUserId"
+                    class="absolute top-3 right-3 text-[9px] font-black bg-brand-500 text-black px-2 py-0.5 rounded-md uppercase tracking-widest animate-pulse"
+                  >
+                    VOCÊ
+                  </span>
+
+                  <!-- Badge: Order Position -->
+                  <span 
+                    class="absolute top-3 left-3 text-[9px] font-black border px-2 py-0.5 rounded-md"
+                    :class="round.posicao_fila === 1 
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' 
+                      : 'bg-white/10 text-gray-300 border-white/20'"
+                  >
+                    {{ round.posicao_fila === 1 ? 'Atual' : `${round.posicao_fila}º na fila` }}
+                  </span>
+
+                  <!-- Round Header -->
+                  <span class="font-bebas text-2xl text-white tracking-widest mt-4">RODADA {{ round.numero_rodada }}</span>
+
+                  <!-- Shield/Crest -->
+                  <div class="my-4 w-16 h-16 flex items-center justify-center p-1 bg-black/50 rounded-full border border-white/10 shadow-inner transition-transform group-hover:scale-110 duration-300">
+                    <img 
+                      v-if="round.escudo_url" 
+                      :src="round.escudo_url" 
+                      class="w-11 h-11 object-contain shrink-0" 
+                    />
+                    <span v-else class="text-3xl">👤</span>
+                  </div>
+
+                  <!-- Participant Info -->
+                  <div class="space-y-1 w-full">
+                    <p class="text-xs font-black text-white uppercase tracking-wider truncate px-1" :class="round.id === currentUserId ? 'text-brand-400' : ''">
+                      {{ round.nome || 'Definindo...' }}
+                    </p>
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest truncate px-1">{{ round.time_nome || 'Sem Time' }}</p>
+                    <p class="text-[8px] text-gray-500 font-mono mt-1">Organizou {{ round.round_count }}x | Última: R{{ round.last_round || '-' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fila Completa (Do 5º ao N-ésimo ou todos da busca) -->
+            <div class="space-y-3">
+              <div v-if="!searchQueue && restOrganizadores.length > 0" class="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
+                <span>📋</span>
+                <span>DEMAIS ORGANIZADORES DA FILA (DO 5º EM DIANTE)</span>
+              </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div 
+                  v-for="round in (searchQueue ? filteredProximos : restOrganizadores)" 
+                  :key="round.id + '-' + round.numero_rodada"
+                  class="bg-white/5 border rounded-xl p-4 flex items-center gap-3 relative overflow-hidden group hover:border-white/20 transition-all"
+                  :class="[
+                    round.id === currentUserId 
+                      ? 'bg-brand-500/10 border-brand-500/50 text-white shadow-md shadow-brand-500/5' 
+                      : 'border-white/10 text-gray-300'
+                  ]"
+                >
+                  <!-- Position Badge -->
+                  <div 
+                    class="w-10 h-10 rounded-xl flex items-center justify-center font-bebas text-lg shrink-0 border"
+                    :class="round.id === currentUserId 
+                      ? 'bg-brand-500 text-black border-brand-400 font-bold' 
+                      : 'bg-white/5 text-gray-400 border-white/10'"
+                  >
+                    #{{ round.posicao_fila }}
+                  </div>
+
+                  <!-- Shield -->
+                  <div class="w-10 h-10 rounded-full bg-black/40 border border-white/5 p-1 flex items-center justify-center shrink-0">
+                    <img v-if="round.escudo_url" :src="round.escudo_url" class="w-7 h-7 object-contain" />
+                    <span v-else class="text-sm">👤</span>
+                  </div>
+
+                  <!-- Details -->
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-bold uppercase truncate" :class="round.id === currentUserId ? 'text-brand-400' : 'text-white'">
+                        {{ round.nome }}
+                      </span>
+                      <span v-if="round.id === currentUserId" class="px-1.5 py-0.2 text-[8px] font-black uppercase bg-brand-500 text-black rounded">Você</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[9px] text-gray-500 font-bold uppercase mt-0.5">
+                      <span class="text-amber-400 font-mono">Rodada {{ round.numero_rodada }}</span>
+                      <span>{{ round.round_count }}x org</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- VISTA 2: TABELA / LISTA COMPACTA (Ideal para mobile e comparação rápida) -->
+          <div v-else-if="viewMode === 'table'" class="overflow-x-auto rounded-2xl border border-white/10 bg-black/40">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  <th class="px-4 py-3 text-center">Fila</th>
+                  <th class="px-4 py-3 text-center">Rodada Prevista</th>
+                  <th class="px-4 py-3">Participante</th>
+                  <th class="px-4 py-3">Time</th>
+                  <th class="px-4 py-3 text-center">Rodadas Anteriores</th>
+                  <th class="px-4 py-3 text-center">Última Vez (R#)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5 text-xs">
+                <tr 
+                  v-for="round in filteredProximos" 
+                  :key="round.id + '-table-' + round.numero_rodada"
+                  class="transition-colors"
+                  :class="[
+                    round.id === currentUserId 
+                      ? 'bg-brand-500/15 text-white font-bold' 
+                      : 'hover:bg-white/[0.03] text-gray-300'
+                  ]"
+                >
+                  <!-- Position -->
+                  <td class="px-4 py-3 text-center font-mono font-bold">
+                    <span 
+                      class="px-2 py-0.5 rounded-md text-[10px]"
+                      :class="round.posicao_fila === 1 
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
+                        : round.id === currentUserId 
+                        ? 'bg-brand-500 text-black' 
+                        : 'bg-white/5 text-gray-400'"
+                    >
+                      #{{ round.posicao_fila }}
+                    </span>
+                  </td>
+
+                  <!-- Predicted Round -->
+                  <td class="px-4 py-3 text-center font-bebas text-base tracking-wider text-amber-400">
+                    RODADA {{ round.numero_rodada }}
+                  </td>
+
+                  <!-- Participant Name -->
+                  <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                      <span class="uppercase font-bold tracking-wide" :class="round.id === currentUserId ? 'text-brand-400' : 'text-white'">
+                        {{ round.nome }}
+                      </span>
+                      <span v-if="round.id === currentUserId" class="px-2 py-0.5 text-[8px] font-black uppercase bg-brand-500 text-black rounded-full">
+                        VOCÊ
+                      </span>
+                      <span v-if="round.posicao_fila === 1" class="px-2 py-0.5 text-[8px] font-black uppercase bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/30">
+                        Atual
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Team -->
+                  <td class="px-4 py-3">
+                    <div class="flex items-center gap-2">
+                      <img v-if="round.escudo_url" :src="round.escudo_url" class="w-4 h-4 object-contain shrink-0" />
+                      <span class="text-gray-400">{{ round.time_nome || 'Sem Time' }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Round Count -->
+                  <td class="px-4 py-3 text-center font-mono font-bold text-gray-300">
+                    {{ round.round_count }}
+                  </td>
+
+                  <!-- Last Round -->
+                  <td class="px-4 py-3 text-center font-mono text-gray-400">
+                    {{ round.last_round ? `R${round.last_round}` : '-' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- Filter and controls for Historical Report -->
+        <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/10 mt-8">
+          <span class="text-xs font-bold text-gray-400">Histórico de rodadas criadas: <strong class="text-white">{{ auditReport.length }}</strong></span>
           <div class="flex items-center gap-2">
             <button 
               @click="onlyManual = !onlyManual"
@@ -170,6 +427,7 @@
           </div>
         </div>
 
+        <!-- Historical Audit List -->
         <div 
           v-for="round in filteredReport" 
           :key="round.id"
@@ -315,17 +573,24 @@ import { ref, computed, onMounted, watch } from 'vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useCampeonato } from '~/composables/useCampeonato'
+import { useAuth } from '~/composables/useAuth'
 
 const { campeonatoAtivo } = useCampeonato()
 const supabase = useSupabaseClient()
-const { isAdmin } = useAuth()
+const { user, profile, isAdmin } = useAuth()
+
+const currentUserId = computed(() => profile.value?.id || user.value?.id)
 
 const loading = ref(false)
 const auditReport = ref<any[]>([])
 const expandedRounds = ref<Set<string>>(new Set())
 const onlyManual = ref(false)
 
-// ── Campeonatos para filtro (admin) ──
+// Controls for upcoming queue display
+const viewMode = ref<'grid' | 'table'>('grid')
+const searchQueue = ref('')
+
+// Campeonatos para filtro (admin)
 const allCampeonatos = ref<any[]>([])
 const selectedCampId = ref<string>('')
 
@@ -404,19 +669,58 @@ const filteredReport = computed(() => {
   return list.reverse()
 })
 
+// FULL list of upcoming organizers for all future rounds (WITHOUT .slice(0, 4) restriction)
 const proximosOrganizadores = computed(() => {
-  const activeRound = auditReport.value.find((r: any) => r.status === 'aguardando_escolha' || r.status === 'aberta')
+  const activeRound = auditReport.value.find((r: any) => r.status === 'aguardando_escolha' || r.status === 'aberta') 
+    || auditReport.value[auditReport.value.length - 1]
+
   if (!activeRound || !activeRound.candidates) return []
+
+  const baseRoundNum = activeRound.numero_rodada
 
   return activeRound.candidates.map((c: any, index: number) => {
     return {
       id: c.id,
       nome: c.nome,
+      email: c.email,
       time_nome: c.time_nome,
       escudo_url: c.escudo_url,
-      numero_rodada: activeRound.numero_rodada + index
+      round_count: c.round_count,
+      last_round: c.last_round,
+      numero_rodada: baseRoundNum + index,
+      posicao_fila: index + 1
     }
-  }).slice(0, 4)
+  })
+})
+
+// Destaque dos 4 primeiros organizadores da fila
+const top4Organizadores = computed(() => {
+  return proximosOrganizadores.value.slice(0, 4)
+})
+
+// Demais organizadores a partir da 5ª posição
+const restOrganizadores = computed(() => {
+  return proximosOrganizadores.value.slice(4)
+})
+
+// Fila filtrada por busca do usuário
+const filteredProximos = computed(() => {
+  if (!searchQueue.value.trim()) {
+    return proximosOrganizadores.value
+  }
+  const q = searchQueue.value.toLowerCase().trim()
+  return proximosOrganizadores.value.filter((p: any) => {
+    return (p.nome && p.nome.toLowerCase().includes(q)) || 
+           (p.time_nome && p.time_nome.toLowerCase().includes(q)) ||
+           (p.email && p.email.toLowerCase().includes(q)) ||
+           (String(p.numero_rodada).includes(q))
+  })
+})
+
+// Posição na fila do usuário logado
+const minhaPosicao = computed(() => {
+  if (!currentUserId.value) return null
+  return proximosOrganizadores.value.find((p: any) => p.id === currentUserId.value) || null
 })
 
 // Recarrega ao trocar campeonato (admin)
@@ -443,7 +747,7 @@ onMounted(async () => {
 useHead({
   title: 'Organizadores das Rodadas | +BET',
   meta: [
-    { name: 'description', content: 'Histórico de organizadores de cada rodada do bolão.' }
+    { name: 'description', content: 'Histórico e fila completa de organizadores de cada rodada do bolão.' }
   ]
 })
 </script>
