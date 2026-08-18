@@ -9,19 +9,31 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: {
+        lang: 'pt-BR',
         class: 'dark'
-      }
+      },
+      meta: [
+        { name: 'theme-color', content: '#0f1117' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'apple-mobile-web-app-title', content: '+BET' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/img/icon-192.png' },
+        { rel: 'apple-touch-icon', href: '/img/icon-192.png' }
+      ]
     }
   },
 
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
+      id: '/',
       name: '+BET — Bolão de Futebol',
       short_name: '+BET',
-      description: 'Seu hub de bolões de futebol. Palpite, compete e acompanhe o ranking!',
+      description: 'Seu hub de bolões de futebol. Palpite, compita e acompanhe o ranking!',
       lang: 'pt-BR',
-      theme_color: '#00e87a',
+      theme_color: '#0f1117',
       background_color: '#0f1117',
       display: 'standalone',
       orientation: 'portrait',
@@ -33,14 +45,26 @@ export default defineNuxtConfig({
           src: '/img/icon-192.png',
           sizes: '192x192',
           type: 'image/png',
-          purpose: 'any maskable',
+          purpose: 'any'
+        },
+        {
+          src: '/img/icon-192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'maskable'
         },
         {
           src: '/img/icon-512.png',
           sizes: '512x512',
           type: 'image/png',
-          purpose: 'any maskable',
+          purpose: 'any'
         },
+        {
+          src: '/img/icon-512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable'
+        }
       ],
     },
     workbox: {
@@ -62,7 +86,7 @@ export default defineNuxtConfig({
       periodicSyncForUpdates: 3600,
     },
     devOptions: {
-      enabled: false, // Evita conflitos com hot-reload do dev server
+      enabled: false,
     },
   },
 
