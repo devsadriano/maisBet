@@ -25,14 +25,13 @@
       <div class="absolute top-[-10%] left-[-10%] w-[400px] h-[400px] bg-white/20 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
       <div class="absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] bg-black/10 rounded-full blur-[80px] pointer-events-none"></div>
 
-      <div class="relative z-10 text-center space-y-6">
-        <!-- Logo animada -->
-        <div class="inline-flex items-center justify-center w-28 h-28 bg-white/10 rounded-[2.5rem] rotate-12 backdrop-blur-sm border border-white/20 mb-6 group hover:rotate-0 transition-transform duration-500">
-           <span class="text-white text-7xl font-bebas rotate-[-12deg] group-hover:rotate-0 transition-transform">+</span>
-        </div>
-        <h1 class="text-7xl font-bebas text-white tracking-[0.2em] leading-none drop-shadow-md">
-          BET<span class="text-white/50">.</span>
-        </h1>
+      <div class="relative z-10 text-center space-y-6 flex flex-col items-center">
+        <!-- Logo oficial -->
+        <img 
+          src="/img/icon-512.png" 
+          alt="+BET Logo" 
+          class="w-36 h-36 rounded-[2.5rem] shadow-[0_0_40px_rgba(62,207,142,0.3)] border border-white/10 hover:scale-105 transition-transform duration-500 object-cover mb-4" 
+        />
         <div class="flex items-center justify-center gap-4 opacity-80">
           <div class="h-px w-12 bg-white/30"></div>
           <p class="text-white font-bold text-xs tracking-[0.4em] uppercase shadow-sm">The Official Betting Hub</p>
@@ -48,13 +47,12 @@
 
       <div class="w-full max-w-[440px] relative z-10 space-y-4 md:space-y-10 py-4 md:py-0">
         <!-- Mobile Branding -->
-        <div class="md:hidden text-center space-y-2 mb-4 md:mb-10 mobile-branding">
-          <div class="inline-flex items-center justify-center w-12 h-12 bg-[var(--brand)] rounded-2xl rotate-12 shadow-2xl mb-1">
-             <span class="text-white text-3xl font-bebas rotate-[-12deg]">+</span>
-          </div>
-          <h1 class="text-4xl font-bebas text-[var(--text-primary)] tracking-[0.2em] leading-none">
-            BET<span class="text-[var(--brand)]">.</span>
-          </h1>
+        <div class="md:hidden text-center flex flex-col items-center justify-center space-y-2 mb-4 md:mb-10 mobile-branding">
+          <img 
+            src="/img/icon-192.png" 
+            alt="+BET Logo" 
+            class="w-20 h-20 rounded-2xl shadow-[0_0_25px_rgba(62,207,142,0.3)] border border-white/10 mb-2 object-cover" 
+          />
         </div>
 
         <!-- Auth Card -->
