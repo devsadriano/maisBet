@@ -552,11 +552,11 @@
       </BaseCard>
 
       <!-- Dashboard Central Grid: Palpites Rápidos + Ranking Geral -->
-      <div v-if="campeonatoAtivo" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div v-if="campeonatoAtivo" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
         
         <!-- Coluna Esquerda: Palpites Rápidos (8/12) -->
-        <div class="lg:col-span-8 space-y-6">
-          <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <div class="lg:col-span-8 flex flex-col">
+          <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col flex-1">
             <!-- Header do Widget -->
             <div class="bg-white/5 py-4 sm:py-5 px-4 sm:px-8 border-b border-white/10 flex justify-between items-center">
               <div>
@@ -569,38 +569,40 @@
             </div>
 
             <!-- Loading Bets -->
-            <div v-if="loadingBets" class="p-20 text-center flex flex-col items-center justify-center space-y-4">
-              <div class="w-10 h-10 border-3 border-brand-500/20 border-t-brand-500 rounded-full animate-spin"></div>
-              <span class="text-brand-400 font-bebas text-lg tracking-widest">Sincronizando Partidas...</span>
+            <div v-if="loadingBets" class="flex-1 flex flex-col items-center justify-center p-20 text-center space-y-6">
+              <div class="w-16 h-16 border-4 border-brand-500/20 border-t-brand-500 rounded-full animate-spin"></div>
+              <span class="text-brand-400 font-bebas text-3xl tracking-widest">Sincronizando Partidas...</span>
             </div>
 
             <!-- Aguardando Escolha State (LIGA ONLY) -->
-            <div v-else-if="isAguardandoEscolha" class="p-16 text-center space-y-4">
-              <span class="text-5xl block animate-pulse">⏳</span>
-              <h4 class="text-lg font-bebas text-white tracking-wider uppercase">Aguardando Escolha do Organizador</h4>
-              <p class="text-xs text-gray-400 max-w-sm mx-auto leading-relaxed">
-                <template v-if="profile?.id === rodada?.organizer_id">
-                  Você foi sorteado para escolher as partidas extras desta rodada! Acesse a página de palpites para definir os jogos.
-                </template>
-                <template v-else>
-                  A Rodada {{ rodada?.numero_rodada }} está aguardando o organizador 
-                  <strong class="text-white">{{ rodada?.organizador?.nome || 'definido' }}</strong> escolher as partidas extras.
-                </template>
-              </p>
+            <div v-else-if="isAguardandoEscolha" class="flex-1 flex flex-col items-center justify-center p-16 text-center space-y-6">
+              <span class="text-8xl block animate-pulse">⏳</span>
+              <div class="space-y-3">
+                <h4 class="text-3xl font-bebas text-white tracking-wider uppercase">Aguardando Escolha do Organizador</h4>
+                <p class="text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
+                  <template v-if="profile?.id === rodada?.organizer_id">
+                    Você foi sorteado para escolher as partidas extras desta rodada! Acesse a página de palpites para definir os jogos.
+                  </template>
+                  <template v-else>
+                    A Rodada {{ rodada?.numero_rodada }} está aguardando o organizador 
+                    <strong class="text-white">{{ rodada?.organizador?.nome || 'definido' }}</strong> escolher as partidas extras.
+                  </template>
+                </p>
+              </div>
               <div class="pt-2">
-                <NuxtLink to="/palpites" class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-black dark:text-white font-black text-xs uppercase tracking-widest py-3 px-6 rounded-2xl transition-all shadow-[0_0_15px_var(--brand-glow)]">
+                <NuxtLink to="/palpites" class="inline-flex items-center gap-3 bg-brand-500 hover:bg-brand-600 text-black dark:text-white font-black text-sm uppercase tracking-widest py-4 px-10 rounded-2xl transition-all shadow-[0_0_20px_var(--brand-glow)] hover:scale-105">
                   {{ profile?.id === rodada?.organizer_id ? 'Escolher Jogos Extras' : 'Acessar Palpites' }} →
                 </NuxtLink>
               </div>
             </div>
 
             <!-- Palpites Encerrados (Nenhuma rodada aberta ou aguardando) -->
-            <div v-else-if="isPalpitesFechados" class="space-y-0">
+            <div v-else-if="isPalpitesFechados" class="flex-1 flex flex-col">
               <!-- Locked Message -->
-              <div class="p-10 text-center space-y-3">
-                <span class="text-4xl block">🔒</span>
-                <h4 class="text-lg font-bebas text-gray-400 tracking-wider">PALPITES ENCERRADOS</h4>
-                <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+              <div class="py-10 px-10 text-center space-y-4">
+                <span class="text-7xl block">🔒</span>
+                <h4 class="text-2xl font-bebas text-gray-400 tracking-wider">PALPITES ENCERRADOS</h4>
+                <p class="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
                   Não há rodadas abertas para novos palpites neste bolão no momento. Acompanhe os resultados no ranking!
                 </p>
               </div>
@@ -649,12 +651,14 @@
             </div>
 
             <!-- Sem confrontos pendentes -->
-            <div v-else class="p-16 text-center space-y-3">
-              <span class="text-4xl block">🎉</span>
-              <h4 class="text-lg font-bebas text-gray-400 tracking-wider">TUDO PRONTO POR AQUI!</h4>
-              <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
-                Você já palpitou em todos os confrontos disponíveis ou a rodada não possui jogos pendentes no momento.
-              </p>
+            <div v-else class="flex-1 flex flex-col items-center justify-center p-16 text-center space-y-6">
+              <span class="text-8xl block">🎉</span>
+              <div class="space-y-3">
+                <h4 class="text-3xl font-bebas text-gray-400 tracking-wider">TUDO PRONTO POR AQUI!</h4>
+                <p class="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                  Você já palpitou em todos os confrontos disponíveis ou a rodada não possui jogos pendentes no momento.
+                </p>
+              </div>
             </div>
 
             <!-- Barra de Ações (Apenas se a rodada estiver aberta e houver palpites para salvar) -->
@@ -965,10 +969,12 @@ const initActiveCampeonato = () => {
 }
 
 // Estatísticas do Usuário baseadas no Ranking
+// Usa profile.value?.id (UUID da tabela usuarios) porque o objeto auth do Supabase
+// expõe o ID em .sub (não em .id) — profile.id é sempre o UUID correto
 const userRankingEntry = computed(() => {
-  const currentUser = user.value
-  if (!currentUser || !ranking.value) return null
-  return ranking.value.find(r => r.usuario_id === currentUser.id)
+  const userId = profile.value?.id
+  if (!userId || !ranking.value?.length) return null
+  return ranking.value.find(r => r.usuario_id === userId) ?? null
 })
 
 const userAproveitamento = computed(() => {
