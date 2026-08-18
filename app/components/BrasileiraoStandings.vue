@@ -79,16 +79,16 @@
               <table class="w-full text-left border-separate border-spacing-y-1">
                 <thead class="text-[10px] text-gray-500 uppercase font-black tracking-widest border-b border-white/5">
                   <tr>
-                    <th class="px-4 py-3 text-center">#</th>
+                    <th class="px-3 py-3 text-center">#</th>
                     <th class="px-4 py-3">Time</th>
-                    <th class="px-4 py-3 text-center">J</th>
-                    <th class="px-4 py-3 text-center">V</th>
-                    <th class="px-4 py-3 text-center">E</th>
-                    <th class="px-4 py-3 text-center">D</th>
-                    <th class="px-4 py-3 text-center hidden md:table-cell">Gols</th>
-                    <th class="px-4 py-3 text-center">SG</th>
-                    <th class="px-4 py-3 text-center">PTS</th>
-                    <th class="px-4 py-3 text-center">Últimas</th>
+                    <th class="px-3 py-3 text-center text-emerald-400 font-black">PTS</th>
+                    <th class="px-3 py-3 text-center">J</th>
+                    <th class="px-3 py-3 text-center">V</th>
+                    <th class="px-3 py-3 text-center">E</th>
+                    <th class="px-3 py-3 text-center">D</th>
+                    <th class="px-3 py-3 text-center hidden md:table-cell">Gols</th>
+                    <th class="px-3 py-3 text-center">SG</th>
+                    <th class="px-3 py-3 text-center">Últimas</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -98,7 +98,7 @@
                     :class="getRowBg(idx)"
                     class="group hover:bg-white/[0.08] transition-colors border border-white/5 overflow-hidden"
                   >
-                    <td class="px-4 py-3.5 text-center font-bebas text-lg" :class="getTextColor(idx)">
+                    <td class="px-3 py-3.5 text-center font-bebas text-lg" :class="getTextColor(idx)">
                       {{ row.position }}
                     </td>
                     <td class="px-4 py-3.5">
@@ -107,16 +107,16 @@
                         <span class="font-bold text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white truncate max-w-[120px] sm:max-w-none">{{ row.team.name }}</span>
                       </div>
                     </td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.playedGames }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-700 dark:text-gray-300 font-bold">{{ row.won }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.draw }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.lost }}</td>
-                    <td class="px-4 py-3.5 text-center text-[10px] text-gray-450 dark:text-gray-500 font-mono hidden md:table-cell">{{ row.goalsFor }}:{{ row.goalsAgainst }}</td>
-                    <td class="px-4 py-3.5 text-center text-xs font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
+                    <td class="px-3 py-3.5 text-center font-bebas text-xl text-gray-900 dark:text-white font-bold bg-white/5">{{ row.points }}</td>
+                    <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.playedGames }}</td>
+                    <td class="px-3 py-3.5 text-center text-xs text-gray-700 dark:text-gray-300 font-bold">{{ row.won }}</td>
+                    <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.draw }}</td>
+                    <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.lost }}</td>
+                    <td class="px-3 py-3.5 text-center text-[10px] text-gray-450 dark:text-gray-500 font-mono hidden md:table-cell">{{ row.goalsFor }}:{{ row.goalsAgainst }}</td>
+                    <td class="px-3 py-3.5 text-center text-xs font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
                       {{ row.goalDifference > 0 ? '+' : '' }}{{ row.goalDifference }}
                     </td>
-                    <td class="px-4 py-3.5 text-center font-bebas text-xl text-gray-800 dark:text-white">{{ row.points }}</td>
-                    <td class="px-4 py-3.5">
+                    <td class="px-3 py-3.5">
                       <div class="flex items-center justify-center gap-1">
                         <div 
                           v-for="(status, sidx) in parseForm(row.form)" 
@@ -204,7 +204,13 @@ async function fetchStandings() {
 
     if (!code) throw new Error('No competition code')
 
-    const data: any = await $fetch(`/api/app/standings?api_competition_code=${code}`)
+    const data: any = await $fetch(`/api/app/standings`, {
+      query: {
+        api_competition_code: code,
+        refresh: 'true',
+        t: String(Date.now())
+      }
+    })
     groups.value = data.standings || []
     season.value = data.season || ''
   } catch (err) {
@@ -246,14 +252,22 @@ const getTextColor = (idx: number | string) => {
   return 'text-gray-500 dark:text-gray-400'
 }
 
-const parseForm = (formStr: string) => {
-  if (!formStr) return []
-  // Formato: W,D,L,W,W
+const parseForm = (formStr?: string) => {
+  if (!formStr || typeof formStr !== 'string' || !formStr.trim()) {
+    return [
+      { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' },
+      { label: 'E', color: 'bg-gray-500' },
+      { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' },
+      { label: 'E', color: 'bg-gray-500' },
+      { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' }
+    ]
+  }
   return formStr.split(',').map(s => {
-    if (s === 'W') return { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' }
-    if (s === 'D') return { label: 'E', color: 'bg-gray-500' }
-    if (s === 'L') return { label: 'D', color: 'bg-red-500 shadow-lg shadow-red-500/20' }
-    return { label: '?', color: 'bg-gray-700' }
+    const trimmed = s ? s.trim().toUpperCase() : ''
+    if (trimmed === 'W' || trimmed === 'V') return { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' }
+    if (trimmed === 'D' || trimmed === 'E') return { label: 'E', color: 'bg-gray-500' }
+    if (trimmed === 'L') return { label: 'D', color: 'bg-red-500 shadow-lg shadow-red-500/20' }
+    return { label: 'E', color: 'bg-gray-500' }
   })
 }
 

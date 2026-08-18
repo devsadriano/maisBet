@@ -112,7 +112,7 @@ import BaseToast from '~/components/ui/BaseToast.vue'
 import WizardCampeonato from '~/components/admin/WizardCampeonato.vue'
 import { useToast } from '~/composables/useToast'
 
-definePageMeta({ middleware: 'is-admin' })
+definePageMeta({ middleware: 'is-admin', layout: 'admin' })
 
 const supabase = useSupabaseClient()
 const campeonatos = ref<any[]>([])

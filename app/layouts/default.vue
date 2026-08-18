@@ -59,17 +59,7 @@
           Regras
           <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
         </NuxtLink>
-        <NuxtLink
-          v-if="isAdmin"
-          to="/admin"
-          class="text-xs font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--brand)] group relative py-1"
-          :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-          active-class="!text-[var(--brand)]"
-        >
-          Painel Admin
-          <span v-if="adminPendingCount > 0" class="absolute -top-2 -right-5 min-w-[16px] h-4 px-0.5 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{{ adminPendingCount }}</span>
-          <span class="absolute bottom-0 left-0 w-full h-0.5 bg-[var(--brand)] scale-x-0 group-hover:scale-x-100 transition-transform origin-left rounded-full" />
-        </NuxtLink>
+
       </nav>
 
       <div class="flex items-center gap-2">
@@ -108,14 +98,11 @@
               @click="toggleDropdown"
               class="relative z-50 flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 duration-100 cursor-pointer select-none"
             >
-              <div v-if="currentAcesso?.times?.escudo_url && !isAdmin" class="w-10 h-10 flex items-center justify-center p-0">
+              <div v-if="currentAcesso?.times?.escudo_url" class="w-10 h-10 flex items-center justify-center p-0">
                 <img :src="currentAcesso.times.escudo_url" alt="Escudo" class="w-full h-full object-contain drop-shadow-md" />
               </div>
               <div v-else class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shadow-inner overflow-hidden">
-                <div v-if="isAdmin" class="w-full h-full bg-[var(--brand-dim)] text-[var(--brand)] flex items-center justify-center">
-                  <span class="font-bebas text-lg mt-0.5">A</span>
-                </div>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
@@ -143,13 +130,7 @@
                 </div>
 
                 <!-- Actions -->
-                <NuxtLink v-if="isAdmin" to="/admin" class="w-full text-left px-4 py-2 text-sm text-[var(--brand)] hover:bg-white/5 transition-colors flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Painel Administrativo
-                </NuxtLink>
+
                 <button @click="logout" class="w-full text-left px-4 py-2 text-sm text-gray-400 hover:text-red-400 hover:bg-white/5 transition-colors flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -264,21 +245,7 @@
           :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
       </NuxtLink>
 
-      <!-- Admin -->
-      <NuxtLink v-if="isAdmin" to="/admin" class="flex flex-col items-center gap-0.5 transition-all relative px-1.5 sm:px-3 py-1 active:scale-90 active:opacity-60 select-none cursor-pointer duration-100"
-        :class="route.path.startsWith('/admin') ? (isDark ? 'text-[var(--brand)]' : 'text-green-700') : (isDark ? 'text-gray-500' : 'text-slate-400')"
-      >
-        <div class="relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span v-if="adminPendingCount > 0" class="absolute -top-1 -right-1.5 min-w-[14px] h-3.5 px-0.5 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center">{{ adminPendingCount }}</span>
-        </div>
-        <span class="font-bold uppercase tracking-wider text-[10px] leading-none" style="font-size: 10px !important;">Admin</span>
-        <span v-if="route.path.startsWith('/admin')" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
-          :class="isDark ? 'bg-[var(--brand)]' : 'bg-green-700'"></span>
-      </NuxtLink>
+
     </nav>
 
 
@@ -302,7 +269,6 @@ import BaseToast from '~/components/ui/BaseToast.vue'
 const { profile, user, isAdmin, logout, fetchProfile, waitForProfile } = useAuth()
 const { isDark, toggleTheme, initTheme } = useTheme()
 const { campeonatos, campeonatoAtivo, currentAcesso, fetchCampeonatos, selecionarCampeonato } = useCampeonato()
-const { pendingCount: adminPendingCount, fetchPendingCount: fetchAdminPendingCount } = useSolicitacoes()
 const route = useRoute()
 
 const showDropdown = ref(false)
@@ -333,9 +299,6 @@ await useAsyncData('init-layout', async () => {
     // Sempre force=true: garante que os campeonatos são recarregados com isAdmin correto.
     // O waitForProfile() dentro de fetchCampeonatos protege contra race conditions.
     await fetchCampeonatos(true)
-    if (isAdmin.value) {
-      await fetchAdminPendingCount()
-    }
   }
   return true
 })
@@ -348,9 +311,6 @@ watch(user, async (newUser, oldUser) => {
     await waitForProfile()
     // Força novo fetch pois o papel do usuário pode ter mudado
     await fetchCampeonatos(true)
-    if (isAdmin.value) {
-      await fetchAdminPendingCount()
-    }
   }
 })
 

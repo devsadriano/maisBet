@@ -124,7 +124,8 @@ import BrasileiraoStandings from '@/components/BrasileiraoStandings.vue'
 import { ref, onMounted } from 'vue'
 
 definePageMeta({
-  middleware: 'is-admin'
+  middleware: 'is-admin',
+  layout: 'admin'
 })
 
 const { pendingCount, fetchPendingCount } = useSolicitacoes()

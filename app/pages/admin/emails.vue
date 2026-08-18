@@ -202,7 +202,8 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import BaseSelect from '~/components/ui/BaseSelect.vue'
 
 definePageMeta({
-  middleware: 'is-admin'
+  middleware: 'is-admin',
+  layout: 'admin'
 })
 
 const supabase = useSupabaseClient()

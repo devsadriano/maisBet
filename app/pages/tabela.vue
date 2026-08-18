@@ -57,7 +57,7 @@
             variant="brand" 
             size="sm" 
             :disabled="loading" 
-            @click="fetchStandings"
+            @click="fetchStandings(true)"
             class="w-full sm:w-auto flex items-center justify-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" :class="{ 'animate-spin': loading }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -112,16 +112,16 @@
                   <table class="w-full text-left border-separate border-spacing-y-1">
                     <thead class="text-[10px] text-gray-500 uppercase font-black tracking-widest border-b border-white/5">
                       <tr>
-                        <th class="px-4 py-3 text-center">#</th>
+                        <th class="px-3 py-3 text-center">#</th>
                         <th class="px-4 py-3">Time</th>
-                        <th class="px-4 py-3 text-center">J</th>
-                        <th class="px-4 py-3 text-center">V</th>
-                        <th class="px-4 py-3 text-center">E</th>
-                        <th class="px-4 py-3 text-center">D</th>
-                        <th class="px-4 py-3 text-center hidden md:table-cell">Gols</th>
-                        <th class="px-4 py-3 text-center">SG</th>
-                        <th class="px-4 py-3 text-center">PTS</th>
-                        <th class="px-4 py-3 text-center">Últimas</th>
+                        <th class="px-3 py-3 text-center text-brand-400 font-black">PTS</th>
+                        <th class="px-3 py-3 text-center">J</th>
+                        <th class="px-3 py-3 text-center">V</th>
+                        <th class="px-3 py-3 text-center">E</th>
+                        <th class="px-3 py-3 text-center">D</th>
+                        <th class="px-3 py-3 text-center hidden md:table-cell">Gols</th>
+                        <th class="px-3 py-3 text-center">SG</th>
+                        <th class="px-3 py-3 text-center">Últimas</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -131,7 +131,7 @@
                         :class="getRowBg(idx)"
                         class="group hover:bg-white/[0.08] transition-colors border border-white/5 overflow-hidden"
                       >
-                        <td class="px-4 py-3.5 text-center font-bebas text-lg rounded-l-xl" :class="getTextColor(idx)">
+                        <td class="px-3 py-3.5 text-center font-bebas text-lg rounded-l-xl" :class="getTextColor(idx)">
                           {{ row.position }}
                         </td>
                         <td class="px-4 py-3.5">
@@ -140,16 +140,16 @@
                             <span class="font-bold text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white truncate max-w-[120px] sm:max-w-none">{{ row.team.name }}</span>
                           </div>
                         </td>
-                        <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.playedGames }}</td>
-                        <td class="px-4 py-3.5 text-center text-xs text-gray-700 dark:text-gray-300 font-bold">{{ row.won }}</td>
-                        <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.draw }}</td>
-                        <td class="px-4 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.lost }}</td>
-                        <td class="px-4 py-3.5 text-center text-[10px] text-gray-450 dark:text-gray-500 font-mono hidden md:table-cell">{{ row.goalsFor }}:{{ row.goalsAgainst }}</td>
-                        <td class="px-4 py-3.5 text-center text-xs font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
+                        <td class="px-3 py-3.5 text-center font-bebas text-xl text-gray-900 dark:text-white font-bold bg-white/5">{{ row.points }}</td>
+                        <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.playedGames }}</td>
+                        <td class="px-3 py-3.5 text-center text-xs text-gray-700 dark:text-gray-300 font-bold">{{ row.won }}</td>
+                        <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.draw }}</td>
+                        <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.lost }}</td>
+                        <td class="px-3 py-3.5 text-center text-[10px] text-gray-450 dark:text-gray-500 font-mono hidden md:table-cell">{{ row.goalsFor }}:{{ row.goalsAgainst }}</td>
+                        <td class="px-3 py-3.5 text-center text-xs font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
                           {{ row.goalDifference > 0 ? '+' : '' }}{{ row.goalDifference }}
                         </td>
-                        <td class="px-4 py-3.5 text-center font-bebas text-xl text-gray-800 dark:text-white">{{ row.points }}</td>
-                        <td class="px-4 py-3.5 rounded-r-xl">
+                        <td class="px-3 py-3.5 rounded-r-xl">
                           <div class="flex items-center justify-center gap-1">
                             <div 
                               v-for="(status, sidx) in parseForm(row.form)" 
@@ -310,10 +310,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import BaseCard from '~/components/ui/BaseCard.vue'
 import BaseButton from '~/components/ui/BaseButton.vue'
 import { useCampeonato } from '~/composables/useCampeonato'
+import { useToast } from '~/composables/useToast'
 
 const supabase = useSupabaseClient()
 const { campeonatoAtivo } = useCampeonato()
@@ -360,9 +361,13 @@ const teamCrests = computed(() => {
 
 // --- Data Fetching ---
 
-async function fetchStandings() {
+const toast = useToast()
+
+async function fetchStandings(force = false) {
   if (!campeonatoAtivo.value) return
   const code = campeonatoAtivo.value.api_competition_code || 'BSA'
+  const campSeason = campeonatoAtivo.value.season ? String(campeonatoAtivo.value.season) : undefined
+
   if (activeCode.value !== code) {
     groups.value = []
     season.value = ''
@@ -371,12 +376,20 @@ async function fetchStandings() {
   loading.value = groups.value.length === 0
   error.value = false
   try {
+    const queryParams: Record<string, string> = { 
+      api_competition_code: code,
+      refresh: 'true',
+      t: String(Date.now())
+    }
+    if (campSeason) queryParams.season = campSeason
 
-    const data: any = await $fetch(`/api/app/standings`, {
-      query: { api_competition_code: code }
-    })
+    const data: any = await $fetch(`/api/app/standings`, { query: queryParams })
     groups.value = data.standings || []
     season.value = data.season || ''
+
+    if (force && process.client) {
+      toast.success('Tabela de classificação atualizada!')
+    }
   } catch (err) {
     console.error(err)
     error.value = true
@@ -539,13 +552,22 @@ function formatMatchDate(isoString: string, status: string) {
 
 // --- Standings Helpers ---
 
-function parseForm(formStr: string) {
-  if (!formStr) return []
+function parseForm(formStr?: string) {
+  if (!formStr || typeof formStr !== 'string' || !formStr.trim()) {
+    return [
+      { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' },
+      { label: 'E', color: 'bg-gray-500' },
+      { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' },
+      { label: 'E', color: 'bg-gray-500' },
+      { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' }
+    ]
+  }
   return formStr.split(',').map(s => {
-    if (s === 'W') return { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' }
-    if (s === 'D') return { label: 'E', color: 'bg-gray-500' }
-    if (s === 'L') return { label: 'D', color: 'bg-red-500 shadow-lg shadow-red-500/20' }
-    return { label: '?', color: 'bg-gray-700' }
+    const trimmed = s ? s.trim().toUpperCase() : ''
+    if (trimmed === 'W' || trimmed === 'V') return { label: 'V', color: 'bg-emerald-500 shadow-lg shadow-emerald-500/20' }
+    if (trimmed === 'D' || trimmed === 'E') return { label: 'E', color: 'bg-gray-500' }
+    if (trimmed === 'L') return { label: 'D', color: 'bg-red-500 shadow-lg shadow-red-500/20' }
+    return { label: 'E', color: 'bg-gray-500' }
   })
 }
 
@@ -569,11 +591,26 @@ const getTextColor = (idx: number | string) => {
 
 // --- Lifecycles & Watchers ---
 
+let autoRefreshTimer: ReturnType<typeof setInterval> | null = null
+
 onMounted(async () => {
   await fetchEscudos()
   await fetchStandings()
   await fetchCurrentRound()
   await fetchMatches()
+
+  if (process.client) {
+    autoRefreshTimer = setInterval(async () => {
+      await fetchStandings(true)
+      await fetchMatches()
+    }, 60000)
+  }
+})
+
+onUnmounted(() => {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer)
+  }
 })
 
 watch(() => campeonatoAtivo.value?.id, async () => {

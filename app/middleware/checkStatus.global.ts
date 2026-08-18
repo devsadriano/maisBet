@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { user, userStatus, waitForProfile } = useAuth()
+  const { user, userStatus, isAdmin, waitForProfile } = useAuth()
 
   // Páginas públicas que não precisam de verificação
   const publicPaths = ['/login', '/confirm']
@@ -18,6 +18,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Aguarda o perfil carregar do banco ANTES de tomar qualquer decisão.
   // Isso evita tanto bloquear admins quanto liberar pendentes prematuramente.
   await waitForProfile()
+
+  // ── LAYOUT UNIFICADO DO ADMIN ──
+  // Se for Admin, força o layout 'admin' em todas as páginas para que a barra lateral nunca suma!
+  if (isAdmin.value && to.path !== '/aguardando-aprovacao') {
+    setPageLayout('admin')
+  }
 
   const status = userStatus.value
 

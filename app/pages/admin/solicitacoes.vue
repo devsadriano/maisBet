@@ -263,7 +263,8 @@ import BaseSelect from '~/components/ui/BaseSelect.vue'
 import type { Solicitacao } from '~/composables/useSolicitacoes'
 
 definePageMeta({
-  middleware: 'is-admin'
+  middleware: 'is-admin',
+  layout: 'admin'
 })
 
 const { profile } = useAuth()

@@ -103,6 +103,7 @@ export const useAuth = () => {
       password
     })
     if (error) throw error
+    await fetchProfile()
   }
 
   const register = async (email: string, password: string, nome: string) => {

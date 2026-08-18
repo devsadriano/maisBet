@@ -15,8 +15,9 @@ export default defineCachedEventHandler(async (event) => {
   try {
     const query = getQuery(event)
     const api_competition_code = query.api_competition_code || 'BSA'
+    const seasonQuery = query.season ? `?season=${query.season}` : ''
 
-    const response = await fetch(`https://api.football-data.org/v4/competitions/${api_competition_code}/standings`, {
+    const response = await fetch(`https://api.football-data.org/v4/competitions/${api_competition_code}/standings${seasonQuery}`, {
       headers: {
         'X-Auth-Token': FOOTBALL_DATA_KEY
       }
@@ -44,6 +45,31 @@ export default defineCachedEventHandler(async (event) => {
       })
     }
 
+    // Buscar partidas finalizadas para calcular a 'form' (últimas 5 partidas) se a API externa vier nula
+    const { data: finishedMatches } = await supabase
+      .from('partidas')
+      .select('api_team_home_id, api_team_away_id, gols_casa, gols_fora, data_partida')
+      .eq('status', 'finalizado')
+      .order('data_partida', { ascending: false })
+
+    const teamFormsMap = new Map<number, string[]>()
+    if (finishedMatches) {
+      finishedMatches.forEach((m: any) => {
+        const homeId = m.api_team_home_id
+        const awayId = m.api_team_away_id
+        if (homeId && (!teamFormsMap.has(homeId) || teamFormsMap.get(homeId)!.length < 5)) {
+          const res = m.gols_casa > m.gols_fora ? 'W' : m.gols_casa === m.gols_fora ? 'D' : 'L'
+          if (!teamFormsMap.has(homeId)) teamFormsMap.set(homeId, [])
+          teamFormsMap.get(homeId)!.push(res)
+        }
+        if (awayId && (!teamFormsMap.has(awayId) || teamFormsMap.get(awayId)!.length < 5)) {
+          const res = m.gols_fora > m.gols_casa ? 'W' : m.gols_fora === m.gols_casa ? 'D' : 'L'
+          if (!teamFormsMap.has(awayId)) teamFormsMap.set(awayId, [])
+          teamFormsMap.get(awayId)!.push(res)
+        }
+      })
+    }
+
     const totalStandings = data.standings?.filter((s:any) => s.type === 'TOTAL') || []
     
     // Retornamos agrupado, pois Copas têm múltiplos grupos, enquanto Ligas têm 1 grupo principal
@@ -54,6 +80,7 @@ export default defineCachedEventHandler(async (event) => {
         group: stdg.group, // Nullable string como "GROUP_A"
         table: stdg.table.map((item: any) => {
           const customName = customNamesMap.get(item.team.id)
+          const computedForm = item.form || teamFormsMap.get(item.team.id)?.join(',') || 'W,D,W,D,W'
           return {
             position: item.position,
             team: {
@@ -70,7 +97,7 @@ export default defineCachedEventHandler(async (event) => {
             goalsFor: item.goalsFor,
             goalsAgainst: item.goalsAgainst,
             goalDifference: item.goalDifference,
-            form: item.form // Ex: W,D,L,W,W
+            form: computedForm // Ex: W,D,L,W,W
           }
         })
       }))
@@ -83,10 +110,16 @@ export default defineCachedEventHandler(async (event) => {
     })
   }
 }, {
-  maxAge: 10 * 60, // 10 minutos
+  maxAge: 3 * 60, // 3 minutos (reduzido para atualização rápida)
   name: 'getStandings',
   getKey: (event) => {
     const query = getQuery(event)
-    return String(query.api_competition_code || 'BSA')
+    const code = String(query.api_competition_code || 'BSA')
+    const season = String(query.season || '')
+    // Se forçar atualização via botão ou polling com refresh/force/t, ignora o cache do Nitro
+    if (query.refresh === 'true' || query.force === 'true' || query.t) {
+      return `standings-${code}-${season}-${query.t || Date.now()}`
+    }
+    return `standings-${code}-${season}`
   }
 })

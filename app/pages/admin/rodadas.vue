@@ -524,7 +524,7 @@ import 'dayjs/locale/pt-br'
 dayjs.extend(relativeTime)
 dayjs.locale('pt-br')
 
-definePageMeta({ middleware: 'is-admin' })
+definePageMeta({ middleware: 'is-admin', layout: 'admin' })
 
 const { success: toastSuccess, error: toastError, info: toastInfo } = useToast()
 const supabase = useSupabaseClient<any>()

@@ -357,7 +357,7 @@ definePageMeta({
   layout: false
 })
 
-const { login, register, user, profile, logout } = useAuth()
+const { login, register, user, profile, logout, isAdmin } = useAuth()
 const supabase = useSupabaseClient()
 
 const isLoginMode = ref(true)
@@ -517,7 +517,8 @@ const handleSubmit = async () => {
     if (isLoginMode.value) {
       // ── Login ────────────────────────────────
       await login(form.email, form.password)
-      await navigateTo('/')
+      // Perfil já foi carregado no login() -> redireciona instantaneamente
+      await navigateTo(isAdmin.value ? '/admin' : '/')
       
     } else {
       // ── Solicitar Acesso ─────────────────────
