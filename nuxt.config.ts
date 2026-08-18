@@ -13,7 +13,7 @@ export default defineNuxtConfig({
         class: 'dark'
       },
       meta: [
-        { name: 'theme-color', content: '#0f1117' },
+        { name: 'theme-color', content: '#22C55E' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         { name: 'apple-mobile-web-app-title', content: '+BET' }
@@ -33,8 +33,8 @@ export default defineNuxtConfig({
       short_name: '+BET',
       description: 'Seu hub de bolões de futebol. Palpite, compita e acompanhe o ranking!',
       lang: 'pt-BR',
-      theme_color: '#0f1117',
-      background_color: '#0f1117',
+      theme_color: '#22C55E',
+      background_color: '#22C55E',
       display: 'standalone',
       orientation: 'portrait',
       start_url: '/',
