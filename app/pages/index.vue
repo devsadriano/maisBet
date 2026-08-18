@@ -117,18 +117,18 @@
 
               <!-- Contador de Urgência (Countdown) -->
               <div 
-                class="w-full flex items-center justify-center gap-2 sm:gap-3 rounded-2xl py-3 sm:py-4.5 px-3 sm:px-8 shadow-inner transition-all max-w-full overflow-hidden"
+                class="w-full flex items-center justify-center gap-3 sm:gap-4 rounded-3xl py-5 sm:py-7 md:py-8 px-4 sm:px-10 shadow-2xl transition-all max-w-full overflow-hidden"
                 :class="(!rodada || locked) 
-                  ? 'bg-red-500/10 border border-red-500/25 hover:bg-red-500/15' 
-                  : 'bg-brand-500/10 border border-brand-500/25 hover:bg-brand-500/15'"
+                  ? 'bg-red-500/10 border-2 border-red-500/30 hover:bg-red-500/15 shadow-[0_0_30px_rgba(239,68,68,0.15)]' 
+                  : 'bg-brand-500/10 border-2 border-brand-500/30 hover:bg-brand-500/15 shadow-[0_0_30px_rgba(14,165,233,0.15)]'"
               >
                 <div 
-                  class="w-2 h-2 sm:w-3 sm:h-3 rounded-full animate-pulse shrink-0"
-                  :class="(!rodada || locked) ? 'bg-red-500' : 'bg-brand-500'"
+                  class="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 rounded-full animate-pulse shrink-0 shadow-lg"
+                  :class="(!rodada || locked) ? 'bg-red-500 shadow-red-500/50' : 'bg-brand-500 shadow-brand-500/50'"
                 ></div>
                 <span 
-                  class="text-[11px] sm:text-lg md:text-xl lg:text-2xl font-black uppercase tracking-wider whitespace-nowrap font-mono"
-                  :class="(!rodada || locked) ? 'text-red-600 dark:text-red-400' : 'text-brand-600 dark:text-brand-400'"
+                  class="text-sm sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-wider whitespace-nowrap font-mono"
+                  :class="(!rodada || locked) ? 'text-red-500 dark:text-red-400' : 'text-brand-500 dark:text-brand-400'"
                 >
                   {{ loadingBets ? 'Calculando...' : (!rodada || locked) ? 'Mercado Fechado' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
                 </span>
@@ -179,18 +179,28 @@
             <!-- Aguardando Escolha State (LIGA ONLY) -->
             <div v-else-if="isAguardandoEscolha" class="flex-1 flex flex-col items-center justify-center p-16 text-center space-y-6">
               <span class="text-8xl block animate-pulse">⏳</span>
-              <div class="space-y-3">
-                <h4 class="text-3xl font-bebas text-white tracking-wider uppercase">Aguardando Escolha do Organizador</h4>
-                <p class="text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
+                <div class="space-y-4 max-w-md mx-auto">
+                  <h4 class="text-3xl font-bebas text-white tracking-wider uppercase">Aguardando Escolha do Organizador</h4>
+                  
                   <template v-if="profile?.id === rodada?.organizer_id">
-                    Você foi sorteado para escolher as partidas extras desta rodada! Acesse a página de palpites para definir os jogos.
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                      Você foi sorteado para escolher as partidas extras desta rodada! Acesse a página de palpites para definir os jogos.
+                    </p>
                   </template>
                   <template v-else>
-                    A Rodada {{ rodada?.numero_rodada }} está aguardando o organizador 
-                    <strong class="text-white">{{ rodada?.organizador?.nome || 'definido' }}</strong> escolher as partidas extras.
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                      A Rodada <strong class="text-white font-bold">{{ rodada?.numero_rodada }}</strong> está aguardando a seleção das partidas extras.
+                    </p>
+
+                    <!-- Highlighted Organizer Badge on its own line -->
+                    <div class="flex justify-center my-2">
+                      <div class="inline-flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 border border-amber-500/40 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.25)]">
+                        <span class="text-2xl drop-shadow-md">👑</span>
+                        <span class="text-xl font-black text-amber-300 tracking-wide drop-shadow">{{ rodada?.organizador?.nome || 'Definido' }}</span>
+                      </div>
+                    </div>
                   </template>
-                </p>
-              </div>
+                </div>
               <div class="pt-2">
                 <NuxtLink to="/palpites" class="inline-flex items-center gap-3 bg-brand-500 hover:bg-brand-600 text-black dark:text-white font-black text-sm uppercase tracking-widest py-4 px-10 rounded-2xl transition-all shadow-[0_0_20px_var(--brand-glow)] hover:scale-105">
                   {{ profile?.id === rodada?.organizer_id ? 'Escolher Jogos Extras' : 'Acessar Palpites' }} →
@@ -278,24 +288,24 @@
         </div>
 
         <!-- Coluna Direita: Mini Ranking (4/12) -->
-        <div class="lg:col-span-4 space-y-6">
-          <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl p-6 space-y-6">
+        <div class="lg:col-span-4 flex flex-col justify-between gap-6">
+          <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl p-6 space-y-6 flex-1 flex flex-col justify-between">
             <div>
               <h3 class="text-sm font-black uppercase tracking-[0.2em] text-white">🏆 RANKING DO BOLÃO</h3>
               <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Classificação atualizada</p>
             </div>
             
-            <div v-if="loadingRanking" class="flex flex-col items-center justify-center py-10 space-y-2">
+            <div v-if="loadingRanking" class="flex flex-col items-center justify-center py-10 space-y-2 flex-1">
               <div class="w-8 h-8 border-3 border-brand-500/20 border-t-brand-500 rounded-full animate-spin"></div>
               <span class="text-brand-400 font-bebas text-sm">Atualizando...</span>
             </div>
             
-            <div v-else-if="ranking.length === 0" class="py-10 text-center">
+            <div v-else-if="ranking.length === 0" class="py-10 text-center flex-1 flex flex-col justify-center">
               <span class="text-3xl opacity-30 block mb-2">🏆</span>
               <p class="text-xs text-gray-500 uppercase font-black tracking-widest">Sem pontuações ainda</p>
             </div>
 
-            <div v-else class="space-y-3">
+            <div v-else class="space-y-3 flex-1 flex flex-col justify-center">
               <!-- Top 3 -->
               <div 
                 v-for="entry in ranking.slice(0, 3)" 
@@ -352,14 +362,14 @@
               </template>
               
               <!-- Link Geral -->
-              <NuxtLink to="/ranking" class="block w-full text-center py-3.5 bg-brand-500/10 hover:bg-brand-500/20 active:scale-[0.98] rounded-2xl border border-brand-500/20 hover:border-brand-500/40 text-[10px] font-black uppercase tracking-[0.2em] text-brand-400 hover:text-brand-300 transition-all shadow-[0_0_20px_rgba(34,197,94,0.05)]">
+              <NuxtLink to="/ranking" class="block w-full text-center py-3.5 bg-brand-500/10 hover:bg-brand-500/20 active:scale-[0.98] rounded-2xl border border-brand-500/20 hover:border-brand-500/40 text-[10px] font-black uppercase tracking-[0.2em] text-brand-400 hover:text-brand-300 transition-all shadow-[0_0_20px_rgba(34,197,94,0.05)] mt-auto">
                 Ver Classificação Completa →
               </NuxtLink>
             </div>
           </div>
 
           <!-- Card de Organizadores das Rodadas (Competidor) -->
-          <NuxtLink to="/organizadores" class="block bg-white/5 border border-white/10 rounded-[2.5rem] p-6 hover:bg-white/10 hover:border-brand-500/50 transition-all group">
+          <NuxtLink to="/organizadores" class="block bg-white/5 border border-white/10 rounded-[2.5rem] p-6 hover:bg-white/10 hover:border-brand-500/50 transition-all group shrink-0">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400 text-xl border border-brand-500/20 shadow-inner group-hover:scale-110 transition-transform">
                 📋

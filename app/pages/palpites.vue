@@ -111,17 +111,31 @@
                 <!-- Non-Organizer View -->
                 <template v-else>
                   <span class="text-6xl mb-6 block drop-shadow-lg">⏳</span>
-                  <h2 class="text-3xl font-bebas text-white mb-3 tracking-widest uppercase">
+                  <h2 class="text-3xl font-bebas text-white mb-4 tracking-widest uppercase">
                     Aguardando Organizador
                   </h2>
-                  <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed mb-4">
-                    A Rodada {{ rodada.numero_rodada }} está aguardando o organizador 
-                    <span v-if="rodada.organizador?.nome" class="font-bold text-white">{{ rodada.organizador.nome }}</span>
-                    escolher as partidas extras. Volte mais tarde!
-                  </p>
+
+                  <div class="space-y-4 my-6">
+                    <p class="text-gray-400 text-sm max-w-md mx-auto leading-relaxed">
+                      A Rodada <strong class="text-white font-bold">{{ rodada.numero_rodada }}</strong> está aguardando o organizador escolher as partidas extras:
+                    </p>
+                    
+                    <!-- Highlighted Organizer Badge on its own line -->
+                    <div class="flex justify-center">
+                      <div class="inline-flex items-center gap-3 px-6 py-3.5 bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-amber-500/20 border border-amber-500/40 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.25)] hover:scale-105 transition-all">
+                        <span class="text-2xl drop-shadow-md">👑</span>
+                        <span class="text-xl font-black text-amber-300 tracking-wide drop-shadow">{{ rodada.organizador?.nome || 'Não definido' }}</span>
+                      </div>
+                    </div>
+
+                    <p class="text-gray-400 text-xs max-w-md mx-auto leading-relaxed">
+                      Volte mais tarde para registrar seus palpites!
+                    </p>
+                  </div>
+
                   <div v-if="rodada.organizer_deadline" class="flex items-center justify-center text-center gap-2.5 px-4 py-3 bg-brand-500/10 border border-brand-500/20 rounded-2xl max-w-md mx-auto">
                     <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse shrink-0"></span>
-                    <span class="text-xs font-mono text-brand-400 leading-relaxed text-center">Se não escolher a tempo, o sistema seleciona automaticamente às {{ formatAutoSelectTime(rodada.organizer_deadline) }}</span>
+                    <span class="text-xs font-mono text-brand-400 leading-relaxed text-center">Se não escolher a tempo, o sistema seleciona automaticamente no {{ formatAutoSelectTime(rodada.organizer_deadline) }}</span>
                   </div>
                 </template>
             </div>
@@ -299,15 +313,15 @@ const handleSave = async () => {
     }
 }
 
-// Helper: formata o horário da seleção automática
+// Helper: formata o horário da seleção automática (ex: "Sábado, 22/08 às 14:00")
 const formatAutoSelectTime = (iso: string) => {
   if (!iso) return '-'
-  const raw = new Date(iso).toLocaleString('pt-BR', {
-    timeZone: 'America/Campo_Grande',
-    weekday: 'long', day: '2-digit', month: '2-digit',
-    hour: '2-digit', minute: '2-digit'
-  }).replace(',', ' -')
-  return raw.charAt(0).toUpperCase() + raw.slice(1)
+  const date = new Date(iso)
+  const weekday = date.toLocaleString('pt-BR', { timeZone: 'America/Campo_Grande', weekday: 'long' })
+  const dayMonth = date.toLocaleString('pt-BR', { timeZone: 'America/Campo_Grande', day: '2-digit', month: '2-digit' })
+  const time = date.toLocaleString('pt-BR', { timeZone: 'America/Campo_Grande', hour: '2-digit', minute: '2-digit' })
+  const capitalizedWeekday = weekday.charAt(0).toUpperCase() + weekday.slice(1)
+  return `${capitalizedWeekday}, ${dayMonth} às ${time}`
 }
 
 // SEO
