@@ -77,7 +77,7 @@
           :round-status="roundStatus"
         />
 
-        <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 items-stretch">
           <div class="min-w-0">
             <RankingMatchesPanel 
               :matches="matches" 
@@ -92,7 +92,7 @@
               :matches="matches"
               :matrix="matrix"
               :round-ranking="roundRanking"
-              :current-user-id="user?.id || ''"
+              :current-user-id="profile?.id || user?.id || ''"
             />
           </div>
         </div>
@@ -118,7 +118,7 @@ import RankingMatrixTable from '~/components/ranking/RankingMatrixTable.vue'
 import RankingShameZone from '~/components/ranking/RankingShameZone.vue'
 
 // Composables
-const { user } = useAuth()
+const { user, profile } = useAuth()
 const { ranking, loading: loadingGeral, fetchRanking } = useRanking()
 const { 
   rounds, 

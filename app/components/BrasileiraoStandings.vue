@@ -79,16 +79,17 @@
               <table class="w-full text-left border-separate border-spacing-y-1">
                 <thead class="text-[10px] text-gray-500 uppercase font-black tracking-widest border-b border-white/5">
                   <tr>
-                    <th class="px-3 py-3 text-center">#</th>
-                    <th class="px-4 py-3">Time</th>
-                    <th class="px-3 py-3 text-center text-emerald-400 font-black">PTS</th>
-                    <th class="px-3 py-3 text-center">J</th>
-                    <th class="px-3 py-3 text-center">V</th>
-                    <th class="px-3 py-3 text-center">E</th>
-                    <th class="px-3 py-3 text-center">D</th>
-                    <th class="px-3 py-3 text-center hidden md:table-cell">Gols</th>
-                    <th class="px-3 py-3 text-center">SG</th>
-                    <th class="px-3 py-3 text-center">Últimas</th>
+                    <th class="px-1.5 py-3 text-center w-8">#</th>
+                    <th class="px-2 sm:px-3 py-3">Time</th>
+                    <th class="px-1.5 py-3 text-center text-emerald-400 font-black w-10">PTS</th>
+                    <th class="px-1.5 py-3 text-center w-8">J</th>
+                    <th class="px-1.5 py-3 text-center w-8">V</th>
+                    <th class="px-1.5 py-3 text-center w-8">E</th>
+                    <th class="px-1.5 py-3 text-center w-8">D</th>
+                    <th class="px-1.5 py-3 text-center w-10 text-emerald-600 dark:text-emerald-400">GP</th>
+                    <th class="px-1.5 py-3 text-center w-10 text-red-600 dark:text-red-400">GC</th>
+                    <th class="px-1.5 py-3 text-center w-10">SG</th>
+                    <th class="px-2 py-3 text-center hidden md:table-cell w-28">Últimas</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -98,30 +99,31 @@
                     :class="getRowBg(idx)"
                     class="group hover:bg-white/[0.08] transition-colors border border-white/5 overflow-hidden"
                   >
-                    <td class="px-3 py-3.5 text-center font-bebas text-lg" :class="getTextColor(idx)">
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center font-bebas text-base sm:text-lg" :class="getTextColor(idx)">
                       {{ row.position }}
                     </td>
-                    <td class="px-4 py-3.5">
-                      <div class="flex items-center gap-3">
-                        <img :src="row.team.crest" class="w-6 h-6 object-contain" :alt="row.team.name">
-                        <span class="font-bold text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white truncate max-w-[120px] sm:max-w-none">{{ row.team.name }}</span>
+                    <td class="px-2 sm:px-3 py-3 sm:py-3.5">
+                      <div class="flex items-center gap-2 sm:gap-3">
+                        <img :src="row.team.crest" class="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0" :alt="row.team.name">
+                        <span class="font-bold text-xs sm:text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white truncate max-w-[100px] sm:max-w-[180px] md:max-w-none">{{ row.team.name }}</span>
                       </div>
                     </td>
-                    <td class="px-3 py-3.5 text-center font-bebas text-xl text-gray-900 dark:text-white font-bold bg-white/5">{{ row.points }}</td>
-                    <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.playedGames }}</td>
-                    <td class="px-3 py-3.5 text-center text-xs text-gray-700 dark:text-gray-300 font-bold">{{ row.won }}</td>
-                    <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.draw }}</td>
-                    <td class="px-3 py-3.5 text-center text-xs text-gray-500 dark:text-gray-400">{{ row.lost }}</td>
-                    <td class="px-3 py-3.5 text-center text-[10px] text-gray-450 dark:text-gray-500 font-mono hidden md:table-cell">{{ row.goalsFor }}:{{ row.goalsAgainst }}</td>
-                    <td class="px-3 py-3.5 text-center text-xs font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center font-bebas text-lg sm:text-xl text-gray-900 dark:text-white font-bold bg-white/5">{{ row.points }}</td>
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">{{ row.playedGames }}</td>
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center text-xs text-gray-700 dark:text-gray-300 font-bold">{{ row.won }}</td>
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">{{ row.draw }}</td>
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">{{ row.lost }}</td>
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center text-xs text-emerald-600 dark:text-emerald-400/90 font-bold">{{ row.goalsFor }}</td>
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center text-xs text-red-600 dark:text-red-400/90 font-bold">{{ row.goalsAgainst }}</td>
+                    <td class="px-1.5 py-3 sm:py-3.5 text-center text-xs sm:text-sm font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
                       {{ row.goalDifference > 0 ? '+' : '' }}{{ row.goalDifference }}
                     </td>
-                    <td class="px-3 py-3.5">
-                      <div class="flex items-center justify-center gap-1">
+                    <td class="px-2 py-3 sm:py-3.5 hidden md:table-cell">
+                      <div class="flex items-center justify-center gap-0.5 sm:gap-1">
                         <div 
                           v-for="(status, sidx) in parseForm(row.form)" 
                           :key="sidx"
-                          class="w-5 h-5 rounded flex items-center justify-center text-[9px] font-black text-white"
+                          class="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded flex items-center justify-center text-[8px] sm:text-[9px] font-black text-white"
                           :class="status.color"
                         >
                           {{ status.label }}

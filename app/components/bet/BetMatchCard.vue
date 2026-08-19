@@ -95,34 +95,50 @@ const formatDate = (iso: string) => {
       <!-- Prediction Area -->
       <div class="flex items-center gap-1 sm:gap-4 p-1.5 sm:p-2 bg-black/40 rounded-[2.5rem] border border-white/10 shadow-inner shrink-0">
         <!-- Home Score Control -->
-        <div class="flex flex-col items-center">
-          <button @click="handleIncrement('gols_casa_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">+</button>
+        <div class="flex flex-col items-center gap-1">
+          <button 
+            @click="handleIncrement('gols_casa_bet')" 
+            :disabled="isLocked" 
+            class="w-9 h-9 sm:w-11 sm:h-11 bg-white/5 hover:bg-brand-500 border border-white/10 hover:border-brand-400 text-brand-400 hover:text-black rounded-full transition-all duration-200 flex items-center justify-center text-xl sm:text-2xl font-black disabled:opacity-20 disabled:pointer-events-none active:scale-95 shadow-sm"
+          >+</button>
           <input 
             type="number" min="0" max="20"
             :value="modelValue.gols_casa_bet"
             :disabled="isLocked"
             @input="updateModel('gols_casa_bet', ($event.target as HTMLInputElement).valueAsNumber)"
-            class="w-8 h-10 sm:w-12 sm:h-14 bg-transparent text-center font-bebas text-2xl sm:text-4xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
+            class="w-9 h-11 sm:w-14 sm:h-16 bg-transparent text-center font-bebas text-3xl sm:text-5xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
           />
-          <button @click="handleDecrement('gols_casa_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">-</button>
+          <button 
+            @click="handleDecrement('gols_casa_bet')" 
+            :disabled="isLocked" 
+            class="w-9 h-9 sm:w-11 sm:h-11 bg-white/5 hover:bg-brand-500 border border-white/10 hover:border-brand-400 text-brand-400 hover:text-black rounded-full transition-all duration-200 flex items-center justify-center text-xl sm:text-2xl font-black disabled:opacity-20 disabled:pointer-events-none active:scale-95 shadow-sm"
+          >-</button>
         </div>
 
-        <div class="text-brand-500 font-bebas text-xl sm:text-2xl flex flex-col items-center justify-center h-full pt-1">
+        <div class="text-brand-500 font-bebas text-xl sm:text-2xl flex flex-col items-center justify-center h-full pt-1 px-1 sm:px-2">
           <span class="opacity-50 text-[10px] tracking-widest leading-none mb-1 select-none">X</span>
-          <div class="w-px h-6 sm:h-8 bg-white/10 rounded-full" />
+          <div class="w-px h-8 sm:h-12 bg-white/10 rounded-full" />
         </div>
 
         <!-- Away Score Control -->
-        <div class="flex flex-col items-center">
-          <button @click="handleIncrement('gols_fora_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">+</button>
+        <div class="flex flex-col items-center gap-1">
+          <button 
+            @click="handleIncrement('gols_fora_bet')" 
+            :disabled="isLocked" 
+            class="w-9 h-9 sm:w-11 sm:h-11 bg-white/5 hover:bg-brand-500 border border-white/10 hover:border-brand-400 text-brand-400 hover:text-black rounded-full transition-all duration-200 flex items-center justify-center text-xl sm:text-2xl font-black disabled:opacity-20 disabled:pointer-events-none active:scale-95 shadow-sm"
+          >+</button>
           <input 
             type="number" min="0" max="20"
             :value="modelValue.gols_fora_bet"
             :disabled="isLocked"
             @input="updateModel('gols_fora_bet', ($event.target as HTMLInputElement).valueAsNumber)"
-            class="w-8 h-10 sm:w-12 sm:h-14 bg-transparent text-center font-bebas text-2xl sm:text-4xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
+            class="w-9 h-11 sm:w-14 sm:h-16 bg-transparent text-center font-bebas text-3xl sm:text-5xl text-white outline-none focus:text-brand-400 disabled:opacity-50 hide-arrows" 
           />
-          <button @click="handleDecrement('gols_fora_bet')" :disabled="isLocked" class="w-7 h-7 sm:w-10 sm:h-10 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all flex items-center justify-center text-base sm:text-lg disabled:opacity-20">-</button>
+          <button 
+            @click="handleDecrement('gols_fora_bet')" 
+            :disabled="isLocked" 
+            class="w-9 h-9 sm:w-11 sm:h-11 bg-white/5 hover:bg-brand-500 border border-white/10 hover:border-brand-400 text-brand-400 hover:text-black rounded-full transition-all duration-200 flex items-center justify-center text-xl sm:text-2xl font-black disabled:opacity-20 disabled:pointer-events-none active:scale-95 shadow-sm"
+          >-</button>
         </div>
       </div>
 
