@@ -19,7 +19,7 @@
     <div class="space-y-8">
       
       <!-- Central do Competidor (Hero Card) -->
-      <BaseCard variant="pitch" class="p-6 md:p-8">
+      <BaseCard variant="pitch" class="p-4 sm:p-6 md:p-8">
         <div v-if="profile" class="space-y-8">
           
           <!-- Banner Topo com Boas-Vindas e Seletor -->
@@ -99,14 +99,28 @@
             </div>
 
             <!-- Progresso e Alerta Regressivo -->
-            <div class="flex flex-col gap-6 bg-white/[0.02] border border-white/5 p-6 rounded-2xl">
+            <div class="flex flex-col gap-4 sm:gap-6 bg-white/[0.02] border border-white/5 p-4 sm:p-6 rounded-2xl">
               <!-- Barra de Progresso -->
-              <div class="w-full space-y-2">
-                <div class="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                  <span>Progresso do Bolão: <strong class="text-white">{{ campeonatoAtivo.nome }}</strong></span>
-                  <span v-if="rodada && campeonatoAtivo.max_rodadas">Rodada {{ rodada.numero_rodada }} de {{ campeonatoAtivo.max_rodadas }}</span>
+              <div class="w-full space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs font-bold uppercase tracking-wider text-gray-400">
+                  <div class="space-y-1 min-w-0">
+                    <div class="flex flex-wrap items-baseline gap-1.5">
+                      <span class="text-gray-500 text-[11px] font-bold">Progresso do Bolão:</span>
+                      <strong class="text-white font-extrabold text-sm sm:text-base tracking-wide">{{ campeonatoAtivo.nome }}</strong>
+                    </div>
+                    <div v-if="campeonatoAtivo.apelido_grupo" class="flex items-center gap-1.5 text-amber-400 font-bold text-[11px] sm:text-xs">
+                      <span>📎</span>
+                      <span>{{ campeonatoAtivo.apelido_grupo }}</span>
+                    </div>
+                  </div>
+
+                  <div v-if="rodada && campeonatoAtivo.max_rodadas" class="shrink-0 flex items-center self-start sm:self-center">
+                    <span class="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-brand-400 font-extrabold text-[10px] sm:text-xs tracking-wider">
+                      Rodada {{ rodada.numero_rodada }} de {{ campeonatoAtivo.max_rodadas }}
+                    </span>
+                  </div>
                 </div>
-                <div v-if="rodada && campeonatoAtivo.max_rodadas" class="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
+                <div v-if="rodada && campeonatoAtivo.max_rodadas" class="w-full bg-white/5 rounded-full h-2.5 overflow-hidden border border-white/5">
                   <div 
                     class="bg-gradient-to-r from-brand-500 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_var(--brand-glow)]"
                     :style="{ width: `${(rodada.numero_rodada / campeonatoAtivo.max_rodadas) * 100}%` }"
@@ -117,21 +131,36 @@
 
               <!-- Contador de Urgência (Countdown) -->
               <div 
-                class="w-full flex items-center justify-center gap-3 sm:gap-4 rounded-3xl py-5 sm:py-7 md:py-8 px-4 sm:px-10 shadow-2xl transition-all max-w-full overflow-hidden"
+                class="w-full flex items-center justify-center gap-2 sm:gap-4 rounded-2xl sm:rounded-3xl py-3.5 sm:py-6 md:py-7 px-3 sm:px-8 shadow-2xl transition-all max-w-full overflow-hidden"
                 :class="(!rodada || locked) 
                   ? 'bg-red-500/10 border-2 border-red-500/30 hover:bg-red-500/15 shadow-[0_0_30px_rgba(239,68,68,0.15)]' 
                   : 'bg-brand-500/10 border-2 border-brand-500/30 hover:bg-brand-500/15 shadow-[0_0_30px_rgba(14,165,233,0.15)]'"
               >
                 <div 
-                  class="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 rounded-full animate-pulse shrink-0 shadow-lg"
+                  class="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 rounded-full animate-pulse shrink-0 shadow-lg"
                   :class="(!rodada || locked) ? 'bg-red-500 shadow-red-500/50' : 'bg-brand-500 shadow-brand-500/50'"
                 ></div>
-                <span 
-                  class="text-sm sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-wider whitespace-nowrap font-mono"
-                  :class="(!rodada || locked) ? 'text-red-500 dark:text-red-400' : 'text-brand-500 dark:text-brand-400'"
-                >
-                  {{ loadingBets ? 'Calculando...' : (!rodada || locked) ? 'Mercado Fechado' : `Fecha em: ${timeRemaining || 'Calculando...'}` }}
-                </span>
+
+                <template v-if="loadingBets">
+                  <span class="text-sm sm:text-2xl md:text-3xl font-black uppercase tracking-wider font-mono text-brand-500 dark:text-brand-400">
+                    Calculando...
+                  </span>
+                </template>
+                <template v-else-if="!rodada || locked">
+                  <span class="text-sm sm:text-2xl md:text-3xl font-black uppercase tracking-wider font-mono text-red-500 dark:text-red-400">
+                    Mercado Fechado
+                  </span>
+                </template>
+                <template v-else>
+                  <div class="flex items-center gap-1.5 sm:gap-3 flex-wrap justify-center min-w-0">
+                    <span class="text-[11px] sm:text-base md:text-lg font-black uppercase tracking-wider text-slate-400 dark:text-gray-400 shrink-0">
+                      Fecha em:
+                    </span>
+                    <span class="text-sm sm:text-2xl md:text-3xl lg:text-4xl font-black uppercase tracking-tight sm:tracking-wider font-mono text-brand-600 dark:text-brand-400 shrink-0">
+                      {{ timeRemaining || 'Calculando...' }}
+                    </span>
+                  </div>
+                </template>
               </div>
             </div>
 

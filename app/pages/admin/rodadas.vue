@@ -457,40 +457,49 @@
               Nenhum participante encontrado na fila de organizadores.
             </div>
 
-            <div v-else class="space-y-2">
+            <div v-else class="space-y-2.5">
               <div 
                 v-for="candidate in filteredQueueCandidates" 
                 :key="candidate.id + '-admin-' + candidate.numero_rodada" 
-                class="p-3.5 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between gap-4 hover:bg-white/5 transition-colors"
-                :class="candidate.posicao_fila === 1 ? 'border-amber-500/30 bg-amber-500/5' : ''"
+                class="p-3.5 rounded-2xl border border-white/10 bg-white/[0.02] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/5 transition-all"
+                :class="candidate.posicao_fila === 1 ? 'border-amber-500/40 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.08)]' : ''"
               >
-                <div class="flex items-center gap-3 min-w-0">
+                <!-- Esquerda: Posição, Escudo e Informações do Participante -->
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <!-- Posição na Fila -->
                   <span 
-                    class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-xs shrink-0"
-                    :class="candidate.posicao_fila === 1 ? 'bg-amber-500 text-black font-black' : 'bg-white/5 text-gray-400 border border-white/10'"
+                    class="w-8 h-8 rounded-xl flex items-center justify-center font-mono font-bold text-xs shrink-0 shadow-sm"
+                    :class="candidate.posicao_fila === 1 ? 'bg-amber-500 text-black font-black' : 'bg-white/10 text-gray-300 border border-white/10'"
                   >
                     #{{ candidate.posicao_fila }}
                   </span>
-                  <img v-if="candidate.escudo_url" :src="candidate.escudo_url" class="w-7 h-7 object-contain shrink-0" />
-                  <span v-else class="text-lg shrink-0">👤</span>
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs font-bold text-white uppercase truncate">{{ candidate.nome }}</span>
-                      <span v-if="candidate.posicao_fila === 1" class="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/30">
+
+                  <!-- Escudo do Time / Avatar -->
+                  <div class="w-8 h-8 rounded-full bg-black/40 border border-white/10 p-1 flex items-center justify-center shrink-0">
+                    <img v-if="candidate.escudo_url" :src="candidate.escudo_url" class="w-6 h-6 object-contain" />
+                    <span v-else class="text-sm">👤</span>
+                  </div>
+
+                  <!-- Detalhes do Usuário -->
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-xs font-black text-white uppercase truncate">{{ candidate.nome }}</span>
+                      <span v-if="candidate.posicao_fila === 1" class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
                         Próximo / Atual
                       </span>
                     </div>
-                    <div class="text-[10px] text-gray-500 flex items-center gap-2">
-                      <span>{{ candidate.time_nome || 'Sem Time' }}</span>
-                      <span>•</span>
-                      <span class="lowercase">{{ candidate.email }}</span>
+                    <div class="text-[10px] text-gray-400 flex items-center gap-1.5 flex-wrap mt-0.5">
+                      <span class="font-bold text-gray-300">{{ candidate.time_nome || 'Sem Time' }}</span>
+                      <span class="text-gray-600">•</span>
+                      <span class="lowercase text-gray-400 truncate max-w-[180px] sm:max-w-none">{{ candidate.email }}</span>
                     </div>
                   </div>
                 </div>
 
-                <div class="text-right shrink-0">
-                  <span class="font-bebas text-sm text-amber-400 block tracking-wider">RODADA {{ candidate.numero_rodada }}</span>
-                  <span class="text-[9px] text-gray-500 font-mono">Organizou {{ candidate.round_count }}x | Última: R{{ candidate.last_round || '-' }}</span>
+                <!-- Direita: Rodada e Estatísticas de Organização -->
+                <div class="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 border-white/5 pt-2 sm:pt-0 shrink-0 gap-1 text-right">
+                  <span class="font-bebas text-sm sm:text-base text-amber-400 tracking-wider">RODADA {{ candidate.numero_rodada }}</span>
+                  <span class="text-[9px] text-gray-400 font-mono">Organizou <strong class="text-white">{{ candidate.round_count }}x</strong> | Última: <strong class="text-gray-300">R{{ candidate.last_round || '-' }}</strong></span>
                 </div>
               </div>
             </div>

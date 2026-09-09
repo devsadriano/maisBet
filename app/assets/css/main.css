@@ -233,96 +233,80 @@ html.dark .glass-card {
 }
 
 /* =====================================================
-   LIGHT MODE — Global Overrides
-   Resolve text-white invisível em TODAS as páginas/
-   componentes sem precisar editar cada arquivo.
+   LIGHT MODE — Ajustes de Contraste Globais
+   Aplica-se EXCLUSIVAMENTE quando html NÃO possui .dark
+   O MODO ESCURO (html.dark) permanece 100% INTACTO.
    ===================================================== */
 
-/* text-white → texto escuro no light mode */
+/* 1. Converter text-white para texto escuro no Light Mode */
 html:not(.dark) .text-white {
   color: var(--text-primary) !important;
 }
-html:not(.dark) .text-white\/90 {
-  color: rgba(17, 24, 39, 0.9) !important;
-}
-html:not(.dark) .text-white\/80 {
-  color: rgba(17, 24, 39, 0.8) !important;
-}
-html:not(.dark) .text-white\/70 {
-  color: rgba(17, 24, 39, 0.7) !important;
-}
-html:not(.dark) .text-white\/50 {
-  color: rgba(17, 24, 39, 0.5) !important;
-}
-html:not(.dark) .text-white\/30 {
-  color: rgba(17, 24, 39, 0.3) !important;
-}
-html:not(.dark) .text-white\/20 {
-  color: rgba(17, 24, 39, 0.2) !important;
-}
-html:not(.dark) .text-white\/10 {
-  color: rgba(17, 24, 39, 0.1) !important;
+
+html:not(.dark) .text-white\/90,
+html:not(.dark) .text-white\/80,
+html:not(.dark) .text-white\/70,
+html:not(.dark) .text-white\/60 {
+  color: var(--text-secondary) !important;
 }
 
-/* Exceção: Preserve white text em botões e elementos com fundo escuro/colorido */
-html:not(.dark) button.bg-emerald-500 .text-white,
-html:not(.dark) button.bg-emerald-500,
+html:not(.dark) .text-white\/50,
+html:not(.dark) .text-white\/40,
+html:not(.dark) .text-white\/30,
+html:not(.dark) .text-white\/20 {
+  color: var(--text-muted) !important;
+}
+
+/* Exceções: Manter texto branco em botões e crachás com fundo colorido/escuro */
+html:not(.dark) .bg-brand-500 .text-white,
+html:not(.dark) .bg-brand-600 .text-white,
 html:not(.dark) .bg-emerald-500 .text-white,
-html:not(.dark) .font-bebas.bg-emerald-500 {
+html:not(.dark) .bg-emerald-600 .text-white,
+html:not(.dark) .bg-green-600 .text-white,
+html:not(.dark) .bg-red-500 .text-white,
+html:not(.dark) .bg-amber-500 .text-white,
+html:not(.dark) .bg-black .text-white,
+html:not(.dark) button.bg-brand-500,
+html:not(.dark) button.bg-brand-500 *,
+html:not(.dark) button.bg-emerald-500,
+html:not(.dark) button.bg-emerald-500 *,
+html:not(.dark) button.bg-emerald-600,
+html:not(.dark) .btn-brand {
   color: #ffffff !important;
 }
 
-/* text-gray-400 → cinza mais escuro no light mode (mais contraste) */
+/* 2. Converter cores de texto apagadas (ex: text-gray-300 / text-gray-400 no Light Mode) */
+html:not(.dark) .text-gray-300 {
+  color: var(--text-secondary) !important; /* slate-700 (#334155) */
+}
+
 html:not(.dark) .text-gray-400 {
-  color: #4b5563 !important; /* gray-600 */
-}
-html:not(.dark) .text-gray-500 {
-  color: #374151 !important; /* gray-700 */
+  color: var(--text-muted) !important; /* slate-500 (#64748b) */
 }
 
-/* Backgrounds transparentes → cards com fundo branco e sombra */
+/* 3. Evitar containers transparentes bg-white/5 inviáveis no Light Mode */
 html:not(.dark) .bg-white\/5,
-html:not(.dark) .bg-white\/\[0\.08\],
-html:not(.dark) .bg-white\/\[0\.07\],
-html:not(.dark) .bg-white\/\[0\.04\],
+html:not(.dark) .bg-white\/\[0\.02\],
 html:not(.dark) .bg-white\/\[0\.03\],
-html:not(.dark) .bg-white\/\[0\.02\] {
+html:not(.dark) .bg-white\/\[0\.04\],
+html:not(.dark) .bg-white\/\[0\.05\],
+html:not(.dark) .bg-white\/10 {
   background-color: var(--bg-surface) !important;
-  box-shadow: var(--shadow-card);
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
-/* Hover em cards */
-html:not(.dark) .hover\:bg-white\/10:hover,
-html:not(.dark) .hover\:bg-white\/\[0\.07\]:hover,
-html:not(.dark) .hover\:bg-white\/\[0\.08\]:hover {
-  background-color: var(--bg-surface-2) !important;
-  box-shadow: var(--shadow-card-hover);
+/* 4. Sub-elementos em cards */
+html:not(.dark) .bg-white\/5 .text-gray-400,
+html:not(.dark) .bg-white\/10 .text-gray-400 {
+  color: var(--text-secondary) !important;
 }
 
-/* Bordas brancas transparentes → mais visíveis no light mode */
-html:not(.dark) .border-white\/5,
-html:not(.dark) .border-white\/\[0\.05\] {
-  border-color: var(--border) !important;
-}
-html:not(.dark) .border-white\/10 {
-  border-color: rgba(15, 23, 42, 0.09) !important;
-}
-html:not(.dark) .border-white\/20 {
-  border-color: rgba(15, 23, 42, 0.14) !important;
-}
-
-/* bg-pitch-800/900 (dark backgrounds) → surface no light mode */
-html:not(.dark) .bg-pitch-800,
-html:not(.dark) .bg-pitch-900 {
-  background-color: var(--bg-surface) !important;
-  box-shadow: var(--shadow-card);
-}
-
-/* brand links no light = verde profundo */
-html:not(.dark) .text-brand-500,
-html:not(.dark) .text-brand-400,
-html:not(.dark) .text-brand-300 {
-  color: var(--brand) !important;
+/* Preservar fundo escuro de Modais e Overlays fixos */
+html:not(.dark) .fixed.inset-0.bg-black\/80,
+html:not(.dark) .fixed.inset-0.bg-black\/70,
+html:not(.dark) .fixed.inset-0.bg-black\/60 {
+  background-color: rgba(15, 23, 42, 0.65) !important;
 }
 
 /* Nav bar no light mode */
@@ -333,10 +317,4 @@ html:not(.dark) .bg-gray-900 {
   backdrop-filter: blur(16px);
   border-color: rgba(15, 23, 42, 0.10) !important;
   box-shadow: 0 -1px 0 rgba(15,23,42,0.08), 0 -4px 16px rgba(15,23,42,0.06);
-}
-
-/* Texto da nav bar no light */
-html:not(.dark) .bg-gray-900\/95 .text-gray-400,
-html:not(.dark) .bg-gray-900\/80 .text-gray-400 {
-  color: var(--text-muted) !important;
 }

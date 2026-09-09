@@ -122,7 +122,7 @@
                         <th class="px-1.5 py-3 text-center w-10 text-emerald-600 dark:text-emerald-400">GP</th>
                         <th class="px-1.5 py-3 text-center w-10 text-red-600 dark:text-red-400">GC</th>
                         <th class="px-1.5 py-3 text-center w-10">SG</th>
-                        <th class="px-2 py-3 text-center hidden md:table-cell w-28">Últimas</th>
+                        <th class="px-2 py-3 text-center w-24 sm:w-28">Últimas</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -151,7 +151,7 @@
                         <td class="px-1.5 py-3 sm:py-4 text-center text-xs sm:text-sm font-bold" :class="row.goalDifference > 0 ? 'text-emerald-600 dark:text-emerald-400' : row.goalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-450'">
                           {{ row.goalDifference > 0 ? '+' : '' }}{{ row.goalDifference }}
                         </td>
-                        <td class="px-2 py-3 sm:py-4 rounded-r-xl hidden md:table-cell">
+                        <td class="px-2 py-3 sm:py-4 rounded-r-xl">
                           <div class="flex items-center justify-center gap-0.5 sm:gap-1">
                             <div 
                               v-for="(status, sidx) in parseForm(row.form)" 
