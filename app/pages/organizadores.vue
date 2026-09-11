@@ -114,7 +114,7 @@
         <!-- Banner de Posição do Usuário ("VOCÊ NA FILA") -->
         <div 
           v-if="minhaPosicao" 
-          class="p-5 rounded-2xl bg-emerald-50 dark:bg-gradient-to-r dark:from-brand-500/20 dark:via-brand-500/10 dark:to-transparent border border-emerald-200 dark:border-brand-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up shadow-sm dark:shadow-brand-500/5"
+          class="p-5 rounded-2xl bg-emerald-50 dark:bg-black/40 dark:bg-gradient-to-r dark:from-brand-500/20 dark:via-brand-500/10 dark:to-transparent border border-emerald-200 dark:border-brand-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up shadow-sm dark:shadow-brand-500/5"
         >
           <div class="flex items-center gap-3">
             <div class="w-12 h-12 rounded-xl bg-brand-500 text-black flex items-center justify-center font-bebas text-2xl font-black shrink-0 shadow-md">
@@ -229,10 +229,10 @@
                   class="border rounded-2xl p-5 flex flex-col items-center justify-between text-center relative overflow-hidden group transition-all duration-300 shadow-sm hover:shadow-md"
                   :class="[
                     round.id === currentUserId 
-                      ? 'bg-emerald-50 dark:bg-gradient-to-b dark:from-brand-500/20 dark:to-black/60 border-brand-500 shadow-md dark:shadow-brand-500/10' 
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 dark:bg-gradient-to-b dark:from-brand-500/20 dark:to-black/80 border-brand-500 shadow-md dark:shadow-brand-500/10' 
                       : round.posicao_fila === 1 
-                      ? 'bg-amber-50 dark:bg-gradient-to-b dark:from-amber-500/15 dark:to-black/60 border-amber-400 dark:border-amber-500/40 hover:border-amber-500' 
-                      : 'bg-white dark:bg-gradient-to-b dark:from-white/10 dark:to-white/5 border-slate-200 dark:border-white/15 hover:border-slate-300 dark:hover:border-white/30 shadow-xs'
+                      ? 'bg-amber-50 dark:bg-amber-950/40 dark:bg-gradient-to-b dark:from-amber-500/20 dark:to-black/80 border-amber-400 dark:border-amber-500/40 hover:border-amber-500' 
+                      : 'bg-white dark:bg-black/40 dark:bg-gradient-to-b dark:from-white/10 dark:to-white/5 border-slate-200 dark:border-white/15 hover:border-slate-300 dark:hover:border-white/30 shadow-xs'
                   ]"
                 >
                   <!-- Badge VOCÊ caso seja o usuário logado -->
