@@ -142,6 +142,17 @@
             Acesso &amp; E-mails
           </NuxtLink>
 
+          <NuxtLink
+            to="/admin/relatorio"
+            class="admin-nav-link"
+            :class="route.path.startsWith('/admin/relatorio') ? 'admin-nav-active' : 'admin-nav-inactive'"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Relatórios
+          </NuxtLink>
+
           <div class="pt-3 border-t border-white/5 mt-3 space-y-1">
             <p class="px-3 pb-1 text-[9px] text-gray-600 font-black uppercase tracking-[0.2em]">Jogo</p>
             

@@ -112,6 +112,25 @@
         </div>
       </button>
 
+
+      <!-- Card Relatórios -->
+      <NuxtLink to="/admin/relatorio" class="group bg-white/5 border border-white/10 p-6 rounded-2xl hover:bg-white/10 hover:border-purple-500/50 transition-all flex flex-col justify-between overflow-hidden relative">
+        <div class="absolute -right-6 -bottom-6 text-white/5 group-hover:text-purple-500/20 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-32 h-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="relative z-10">
+          <div class="w-12 h-12 bg-white/10 text-gray-400 group-hover:bg-purple-500 group-hover:text-white rounded-xl flex items-center justify-center mb-4 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div class="text-xl font-sans font-semibold tracking-tight text-white mb-2">Relatórios</div>
+          <p class="text-sm font-sans text-gray-300 leading-relaxed">Gere relatórios em PDF e Excel com ranking, partidas e participantes do bolão.</p>
+        </div>
+      </NuxtLink>
+
     </div>
     
     <!-- Modal Tabela -->
