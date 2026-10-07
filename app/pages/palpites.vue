@@ -171,6 +171,30 @@
           <SpecialBetsCard :campeonato-id="campeonatoAtivo.id" :is-locked="locked" />
         </div>
 
+        <!-- Banner de Transparência da Origem dos Jogos Extras -->
+        <div v-if="(rodada as any).extras_escolhidos_tipo" class="animate-fade-in">
+          <div v-if="(rodada as any).extras_escolhidos_tipo === 'admin'" class="bg-gradient-to-r from-purple-500/15 via-purple-500/10 to-transparent border border-purple-500/30 rounded-2xl p-4 flex items-center gap-3 shadow-lg shadow-purple-500/5">
+            <span class="text-2xl shrink-0">👑</span>
+            <div class="text-xs">
+              <span class="font-black uppercase tracking-wider text-purple-300 block mb-0.5 text-[10px]">Transparência da Rodada</span>
+              <span class="text-gray-300">
+                Os jogos extras desta rodada foram definidos pelo <strong>Administrador</strong> no lugar de 
+                <strong class="text-white">{{ (rodada as any).organizador?.nome || 'Organizador da Rodada' }}</strong>.
+              </span>
+            </div>
+          </div>
+
+          <div v-else-if="(rodada as any).extras_escolhidos_tipo === 'sistema'" class="bg-gradient-to-r from-blue-500/15 via-blue-500/10 to-transparent border border-blue-500/30 rounded-2xl p-4 flex items-center gap-3 shadow-lg shadow-blue-500/5">
+            <span class="text-2xl shrink-0">🤖</span>
+            <div class="text-xs">
+              <span class="font-black uppercase tracking-wider text-blue-300 block mb-0.5 text-[10px]">Escolha Automática</span>
+              <span class="text-gray-300">
+                O prazo do organizador expirou. Os jogos extras foram definidos <strong>automaticamente pelo sistema</strong>.
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Info Banner (Integrated) -->
         <div class="bg-brand-500/5 border border-brand-500/20 rounded-3xl p-6 flex flex-col md:flex-row gap-4 items-center animate-fade-in shadow-inner overflow-hidden relative">
             <div class="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 blur-[100px] rounded-full -mr-16 -mt-16" />

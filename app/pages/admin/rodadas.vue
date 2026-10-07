@@ -223,6 +223,51 @@
                   <span v-else class="text-[10px] text-gray-500">Organizador(a)</span>
                 </div>
               </div>
+
+              <!-- Selo de Auditoria dos Jogos Extras -->
+              <div v-if="r.extras_escolhidos_tipo" class="mb-3">
+                <span v-if="r.extras_escolhidos_tipo === 'admin'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-purple-500/10 text-purple-300 border border-purple-500/25">
+                  👑 Extras Definidos pelo Admin
+                </span>
+                <span v-else-if="r.extras_escolhidos_tipo === 'sistema'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-300 border border-blue-500/25">
+                  🤖 Extras Definidos Automaticamente
+                </span>
+                <span v-else-if="r.extras_escolhidos_tipo === 'organizador'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                  ✓ Extras Definidos pelo Organizador
+                </span>
+              </div>
+
+              <!-- Ação Admin: Escolher Extras pelo Organizador -->
+              <div v-if="r.status === 'aguardando_escolha'" class="mb-3">
+                <button 
+                  @click="openAdminExtraModal(r)"
+                  class="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                >
+                  👑 Assumir Escolha de Extras da Rodada
+                </button>
+              </div>
+
+              <!-- Ação Admin: Se a rodada já está aberta, permitir que o Admin reconfigure/ajuste os extras se precisar -->
+              <div v-if="r.status === 'aberta'" class="mb-2">
+                <button 
+                  @click="openAdminExtraModal(r)"
+                  class="w-full py-2 px-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                  title="Corrigir ou reconfigurar os jogos extras da rodada"
+                >
+                  👑 Reconfigurar Extras da Rodada
+                </button>
+              </div>
+
+              <!-- Ação Admin: Lançar Palpites em Nome de um Jogador -->
+              <div v-if="r.status === 'aberta'" class="mb-3">
+                <button 
+                  @click="openPlayerBetModal(r)"
+                  class="w-full py-2 px-3 bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 text-brand-400 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                >
+                  ✍ Lançar Palpites em Nome de um Jogador
+                </button>
+              </div>
+
               <!-- Trocar Organizador Customizado -->
               <div v-if="r.status === 'aguardando_escolha' || r.status === 'aberta'" class="mt-4 relative z-50">
                 <div class="flex items-center gap-2">
@@ -508,10 +553,102 @@
       </div>
     </Teleport>
 
+    <!-- Modal do Organizador (para o Admin definir jogos extras) -->
+    <ModalOrganizer 
+      :open="isOrganizerModalOpen" 
+      :rodada="selectedRoundForOrganizer" 
+      :organizer-id="profile?.id || ''" 
+      @close="isOrganizerModalOpen = false" 
+      @saved="onOrganizerModalSaved" 
+    />
+
+    <!-- Modal Lançar Palpites por Jogador (Admin) -->
+    <Teleport to="body">
+      <div v-if="showPlayerBetModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-pitch-900/80 backdrop-blur-sm animate-fade-in">
+        <div class="relative w-full max-w-2xl bg-pitch-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          
+          <!-- Header -->
+          <div class="px-6 py-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-gradient-to-r from-brand-500/10 to-transparent">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-brand-500/20 text-brand-400">Admin</span>
+                <span class="text-xs text-gray-400 font-mono">Rodada {{ playerBetRound?.numero_rodada }}</span>
+              </div>
+              <h2 class="text-2xl font-bebas tracking-widest text-white">Lançar Palpites em Nome de um Jogador</h2>
+            </div>
+            <button @click="showPlayerBetModal = false" class="text-gray-500 hover:text-white transition-colors p-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Seleção de Jogador -->
+          <div class="p-6 border-b border-white/5 bg-white/[0.02]">
+            <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Selecione o Participante:</label>
+            <select v-model="selectedPlayerBetUserId" @change="loadPlayerExistingBets" class="w-full bg-black/40 border border-white/10 text-white rounded-xl px-4 py-2.5 text-sm outline-none focus:border-brand-500">
+              <option value="" disabled>-- Selecione um participante --</option>
+              <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.nome }} ({{ u.email }})</option>
+            </select>
+          </div>
+
+          <!-- Lista de Jogos da Rodada com inputs de placar -->
+          <div class="flex-1 overflow-y-auto p-6 space-y-4">
+            <div v-if="loadingPlayerBetMatches" class="flex justify-center py-12">
+              <div class="w-8 h-8 border-4 border-brand-500/30 border-t-brand-500 rounded-full animate-spin"></div>
+            </div>
+            <div v-else-if="!selectedPlayerBetUserId" class="text-center py-12 text-gray-500 text-sm">
+              Selecione um participante acima para visualizar e preencher os palpites.
+            </div>
+            <div v-else class="space-y-3">
+              <div v-for="match in playerBetMatches" :key="match.id" class="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between gap-4">
+                <div class="flex-1 text-right font-bold text-white text-sm truncate">{{ match.time_casa }}</div>
+                <div v-if="playerBetsMap[match.id]" class="flex items-center gap-2 shrink-0">
+                  <input 
+                    type="number" 
+                    min="0" 
+                    max="99" 
+                    v-model.number="playerBetsMap[match.id]!.gols_casa" 
+                    class="w-12 h-10 bg-black/50 border border-white/10 rounded-lg text-center font-bebas text-xl text-brand-400 focus:border-brand-500 outline-none" 
+                  />
+                  <span class="text-xs text-gray-500 font-bold">X</span>
+                  <input 
+                    type="number" 
+                    min="0" 
+                    max="99" 
+                    v-model.number="playerBetsMap[match.id]!.gols_fora" 
+                    class="w-12 h-10 bg-black/50 border border-white/10 rounded-lg text-center font-bebas text-xl text-brand-400 focus:border-brand-500 outline-none" 
+                  />
+                </div>
+                <div class="flex-1 text-left font-bold text-white text-sm truncate">{{ match.time_fora }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="px-6 py-4 border-t border-white/10 shrink-0 flex items-center justify-between bg-white/[0.02]">
+            <span class="text-xs text-gray-500">Salva diretamente como palpites oficiais do participante selecionado.</span>
+            <div class="flex items-center gap-3">
+              <button @click="showPlayerBetModal = false" class="px-4 py-2 text-sm text-gray-400 hover:text-white">Cancelar</button>
+              <button 
+                @click="savePlayerBetsAsAdmin" 
+                :disabled="!selectedPlayerBetUserId || savingPlayerBets"
+                class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                <span v-if="savingPlayerBets" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                {{ savingPlayerBets ? 'Salvando...' : 'Salvar Palpites em Nome do Jogador' }}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Tabela do Brasileirão (ou do campeonato selecionado) -->
     <BrasileiraoStandings 
       :show="showStandings" 
-      :competitionCode="selectedCompetitionCode" 
+      :competitionCode="selectedCompetitionCode || ''" 
       @close="showStandings = false" 
     />
   </div>
@@ -525,7 +662,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useToast } from '~/composables/useToast'
+import { useAuth } from '~/composables/useAuth'
 import BrasileiraoStandings from '~/components/BrasileiraoStandings.vue'
+import ModalOrganizer from '~/components/ModalOrganizer.vue'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/pt-br'
@@ -535,8 +674,123 @@ dayjs.locale('pt-br')
 
 definePageMeta({ middleware: 'is-admin', layout: 'admin' })
 
+const { profile } = useAuth()
 const { success: toastSuccess, error: toastError, info: toastInfo } = useToast()
 const supabase = useSupabaseClient<any>()
+
+// State para Escolha de Extras pelo Admin
+const isOrganizerModalOpen = ref(false)
+const selectedRoundForOrganizer = ref<any>(null)
+
+async function openAdminExtraModal(round: any) {
+  loading.value = true
+  try {
+    const { data: matches } = await supabase
+      .from('partidas')
+      .select('*')
+      .eq('rodada_id', round.id)
+      .order('data_partida', { ascending: true })
+    
+    selectedRoundForOrganizer.value = {
+      ...round,
+      partidas: matches || []
+    }
+    isOrganizerModalOpen.value = true
+  } catch (err) {
+    console.error('Erro ao abrir modal de extras:', err)
+    toastError('Erro ao carregar partidas para o modal.')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function onOrganizerModalSaved() {
+  toastSuccess('Jogos extras definidos com sucesso pelo Administrador!')
+  isOrganizerModalOpen.value = false
+  await fetchRodadas()
+}
+
+// State para Lançar Palpites por Jogador
+const showPlayerBetModal = ref(false)
+const playerBetRound = ref<any>(null)
+const selectedPlayerBetUserId = ref('')
+const playerBetMatches = ref<any[]>([])
+const loadingPlayerBetMatches = ref(false)
+const savingPlayerBets = ref(false)
+const playerBetsMap = ref<Record<string, { gols_casa: number, gols_fora: number }>>({})
+
+async function openPlayerBetModal(round: any) {
+  playerBetRound.value = round
+  selectedPlayerBetUserId.value = ''
+  playerBetsMap.value = {}
+  loadingPlayerBetMatches.value = true
+  showPlayerBetModal.value = true
+
+  try {
+    const { data: matches } = await supabase
+      .from('partidas')
+      .select('*')
+      .eq('rodada_id', round.id)
+      .or('is_mandatory.eq.true,is_extra.eq.true')
+      .order('data_partida', { ascending: true })
+
+    playerBetMatches.value = matches || []
+    for (const m of playerBetMatches.value) {
+      playerBetsMap.value[m.id] = { gols_casa: 0, gols_fora: 0 }
+    }
+  } catch (err) {
+    console.error('Erro ao carregar partidas para palpites:', err)
+  } finally {
+    loadingPlayerBetMatches.value = false
+  }
+}
+
+async function loadPlayerExistingBets() {
+  if (!selectedPlayerBetUserId.value || !playerBetRound.value) return
+  try {
+    const matchIds = playerBetMatches.value.map(m => m.id)
+    const { data: existing } = await supabase
+      .from('palpites')
+      .select('partida_id, gols_casa, gols_fora')
+      .eq('usuario_id', selectedPlayerBetUserId.value)
+      .in('partida_id', matchIds)
+
+    if (existing) {
+      existing.forEach((p: any) => {
+        if (playerBetsMap.value[p.partida_id]) {
+          playerBetsMap.value[p.partida_id] = {
+            gols_casa: p.gols_casa,
+            gols_fora: p.gols_fora
+          }
+        }
+      })
+    }
+  } catch (err) {
+    console.error('Erro ao buscar palpites existentes:', err)
+  }
+}
+
+async function savePlayerBetsAsAdmin() {
+  if (!selectedPlayerBetUserId.value || !playerBetRound.value) return
+  savingPlayerBets.value = true
+  try {
+    const res: any = await $fetch(`/api/admin/rounds/${playerBetRound.value.id}/player-bets`, {
+      method: 'POST',
+      body: {
+        usuario_id: selectedPlayerBetUserId.value,
+        palpites: playerBetsMap.value
+      }
+    })
+    toastSuccess(res.message || 'Palpites salvos com sucesso!')
+    showPlayerBetModal.value = false
+    await fetchRodadas()
+  } catch (err: any) {
+    console.error(err)
+    toastError(err.data?.message || err.message || 'Erro ao salvar palpites.')
+  } finally {
+    savingPlayerBets.value = false
+  }
+}
 
 // State for Dropdown
 const campeonatosAdmin = ref<any[]>([])
@@ -881,11 +1135,12 @@ async function fetchUsuarios() {
     if (acessos && acessos.length > 0) {
       const emailsList = acessos.map(a => a.email.toLowerCase())
       
-      // 2. Buscar usuários correspondentes
+      // 2. Buscar usuários correspondentes (apenas não-admin)
       const { data: users } = await supabase
         .from('usuarios')
         .select('id, nome, email, is_admin')
         .in('email', emailsList)
+        .eq('is_admin', false)
         .order('nome')
 
       if (users) {
@@ -895,10 +1150,11 @@ async function fetchUsuarios() {
     }
 
     // Fallback: se não houver acessos registrados para o campeonato, 
-    // busca todos os usuários do sistema (como o banco de dados faz)
+    // busca todos os usuários não-admin
     const { data: allUsers } = await supabase
       .from('usuarios')
       .select('id, nome, email, is_admin')
+      .eq('is_admin', false)
       .order('nome')
 
     if (allUsers) {

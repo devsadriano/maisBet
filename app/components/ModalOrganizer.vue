@@ -91,23 +91,36 @@
 
           <!-- Footer -->
           <div class="px-6 py-4 border-t border-white/10 shrink-0 flex items-center justify-between bg-white/[0.02]">
-            <p class="text-xs text-orange-400" v-if="extraIds.length < calculatedExtras">
-              Faltam {{ calculatedExtras - extraIds.length }} jogos extras
-            </p>
-            <p class="text-xs text-emerald-400 font-bold flex items-center gap-1" v-else>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-              Pronto para abrir a rodada!
-            </p>
+            <div>
+              <p class="text-xs text-orange-400" v-if="extraIds.length < calculatedExtras">
+                Faltam {{ calculatedExtras - extraIds.length }} jogos extras
+              </p>
+              <p class="text-xs text-red-400 font-bold" v-else-if="extraIds.length > calculatedExtras">
+                Excesso: {{ extraIds.length }}/{{ calculatedExtras }} selecionados. Desmarque para poder abrir.
+              </p>
+              <p class="text-xs text-emerald-400 font-bold flex items-center gap-1" v-else>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                Pronto para abrir a rodada!
+              </p>
+            </div>
 
             <div class="flex items-center gap-3">
-              <button @click="$emit('close')" class="px-5 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancelar</button>
+              <button 
+                v-if="extraIds.length > 0" 
+                type="button" 
+                @click="extraIds = []" 
+                class="px-3 py-1.5 text-xs text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors"
+              >
+                Limpar seleção
+              </button>
+              <button @click="$emit('close')" class="px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">Cancelar</button>
               <button
                 @click="salvar"
                 :disabled="extraIds.length !== calculatedExtras || salvando"
                 class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-semibold rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
               >
                 <span v-if="salvando" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                Abrir Rodada ao Público
+                Salvar & Abrir Rodada
               </button>
             </div>
           </div>
@@ -186,10 +199,11 @@ const formatDate = (iso: string) => {
 const { campeonatoAtivo } = useCampeonato()
 
 const fetchParticipantTeams = async () => {
-  if (!campeonatoAtivo.value) return
+  const campId = props.rodada?.campeonato_id || campeonatoAtivo.value?.id
+  if (!campId) return
   try {
     const { teamApiIds } = await $fetch<{ teamApiIds: number[] }>('/api/app/participant-teams', {
-      params: { campeonato_id: campeonatoAtivo.value.id }
+      params: { campeonato_id: campId }
     })
     participantTeamApiIds.value = new Set(teamApiIds || [])
   } catch (e) {
@@ -232,7 +246,13 @@ const partidasOrdenadas = computed(() => {
 watch(() => props.open, async (val) => {
   if (val) {
     await fetchParticipantTeams()
-    extraIds.value = props.rodada.partidas.filter((p:any) => p.is_extra).map((p:any) => p.id)
+    const currentExtras = (props.rodada?.partidas || []).filter((p: any) => p.is_extra).map((p: any) => p.id)
+    // Se a rodada tiver mais extras marcados do que o permitido (ex: anomalia com todas as partidas extras), zera para seleção limpa
+    if (currentExtras.length > calculatedExtras.value) {
+      extraIds.value = []
+    } else {
+      extraIds.value = currentExtras
+    }
   }
 })
 

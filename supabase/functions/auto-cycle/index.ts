@@ -216,8 +216,12 @@ Deno.serve(async (req: Request) => {
               } else {
                 log(`[${c.api_competition_code}] Extras já escolhidos (${ce?.length || 0}/${r.required_extra_games}).`)
               }
-              await sb.from('rodadas').update({ status: 'aberta' }).eq('id', r.id)
-              log(`[${c.api_competition_code}] Rd ${r.numero_rodada} ABERTA (fallback auto-seleção).`)
+              await sb.from('rodadas').update({ 
+                status: 'aberta',
+                extras_escolhidos_tipo: 'sistema',
+                extras_escolhidos_em: new Date().toISOString()
+              }).eq('id', r.id)
+              log(`[${c.api_competition_code}] Rd ${r.numero_rodada} ABERTA (fallback auto-seleção sistema).`)
             }
           }
         }

@@ -35,7 +35,12 @@ export default defineEventHandler(async (event) => {
   // ── 2. Rodadas (filtradas pelo corte se informado) ────────────────────────
   let rodadasQuery = supabase
     .from('rodadas')
-    .select('id, numero_rodada, status, organizer_deadline, betting_deadline, created_at, multiplicador, usuarios(id, nome, email)')
+    .select(`
+      id, numero_rodada, status, organizer_deadline, betting_deadline, created_at, multiplicador,
+      organizer_id, extras_escolhidos_tipo, extras_escolhidos_por, extras_escolhidos_em,
+      organizador:usuarios!organizer_id(id, nome, email),
+      escolhido_por:usuarios!extras_escolhidos_por(id, nome, email)
+    `)
     .eq('campeonato_id', campeonato_id)
     .order('numero_rodada', { ascending: true })
 
@@ -43,7 +48,10 @@ export default defineEventHandler(async (event) => {
     rodadasQuery = rodadasQuery.lte('numero_rodada', ate_rodada_numero)
   }
 
-  const { data: rodadas } = await rodadasQuery
+  const { data: rodadas, error: rodadasErr } = await rodadasQuery
+  if (rodadasErr) {
+    console.error('[report.get] Erro ao buscar rodadas:', rodadasErr)
+  }
   const rodadasList: any[] = rodadas || []
   const rodadasIds = rodadasList.map((r: any) => r.id)
   const rodadasMap = new Map(rodadasList.map((r: any) => [r.id, r]))
@@ -69,8 +77,7 @@ export default defineEventHandler(async (event) => {
 
   const { data: usuarios } = await supabase
     .from('usuarios')
-    .select('id, nome, email, cidade, estado, created_at')
-    .eq('is_admin', false)
+    .select('id, nome, email, cidade, estado, is_admin, created_at')
 
   const usuariosList: any[] = usuarios || []
   const acessosList: any[] = acessos || []
@@ -298,19 +305,74 @@ export default defineEventHandler(async (event) => {
     }
   }).sort((a: any, b: any) => a.participante.localeCompare(b.participante))
 
-  // ── 11. Organizadores por Rodada ─────────────────────────────────────────
-  const organizadores = rodadasList.map((r: any) => ({
-    id: r.id,
-    numero_rodada: r.numero_rodada,
-    status: r.status,
-    organizador_id: r.usuarios?.id || null,
-    organizador: r.usuarios?.nome || 'Não definido',
-    email_organizador: r.usuarios?.email || '-',
-    betting_deadline: r.betting_deadline,
-    organizer_deadline: r.organizer_deadline,
-    multiplicador: r.multiplicador || 1,
-    total_partidas: partidasList.filter((p: any) => p.rodada_id === r.id).length,
-    partidas_finalizadas: partidasList.filter((p: any) => p.rodada_id === r.id && p.status === 'finalizado').length
+  // ── 11. Organizadores por Rodada com Auditoria de Extras ─────────────────
+  const organizadores = rodadasList.map((r: any) => {
+    const org = r.organizador || r.usuarios
+    const quemEscolheu = r.escolhido_por
+
+    let extrasDesc = 'Pendente'
+    if (r.extras_escolhidos_tipo === 'organizador') {
+      extrasDesc = org?.nome ? `Organizador (${org.nome})` : 'Organizador Titular'
+    } else if (r.extras_escolhidos_tipo === 'admin') {
+      extrasDesc = quemEscolheu?.nome ? `Admin (${quemEscolheu.nome})` : 'Administrador'
+    } else if (r.extras_escolhidos_tipo === 'sistema') {
+      extrasDesc = 'Sistema (Automático)'
+    }
+
+    return {
+      id: r.id,
+      numero_rodada: r.numero_rodada,
+      status: r.status,
+      organizador_id: org?.id || r.organizer_id || null,
+      organizador: org?.nome || 'Não definido',
+      email_organizador: org?.email || '-',
+      betting_deadline: r.betting_deadline,
+      organizer_deadline: r.organizer_deadline,
+      multiplicador: r.multiplicador || 1,
+      extras_escolhidos_tipo: r.extras_escolhidos_tipo || null,
+      extras_escolhidos_em: r.extras_escolhidos_em || null,
+      extras_escolhidos_por_nome: quemEscolheu?.nome || (r.extras_escolhidos_tipo === 'sistema' ? 'Sistema Automático' : null),
+      extras_definidos_por: extrasDesc,
+      total_partidas: partidasList.filter((p: any) => p.rodada_id === r.id).length,
+      partidas_finalizadas: partidasList.filter((p: any) => p.rodada_id === r.id && p.status === 'finalizado').length
+    }
+  })
+
+  // ── 11.5 Balanço de Organizadores e Fila de Rodízio ────────────────────────
+  const balancoOrganizadores = participantes.map((u: any) => {
+    const acessoUser = acessosList.find((a: any) => a.email?.toLowerCase() === u.email?.toLowerCase())
+    const rodadasOrganizadas = rodadasList
+      .filter((r: any) => r.organizer_id === u.id)
+      .map((r: any) => r.numero_rodada)
+      .sort((a: number, b: number) => a - b)
+
+    const totalOrg = rodadasOrganizadas.length
+    const ultRodada = totalOrg > 0 ? rodadasOrganizadas[rodadasOrganizadas.length - 1] : null
+
+    return {
+      usuario_id: u.id,
+      nome: u.nome,
+      email: u.email,
+      time_nome: acessoUser?.times?.nome || 'Sem Time',
+      total_organizadas: totalOrg,
+      rodadas_numeros: rodadasOrganizadas,
+      rodadas_formatadas: rodadasOrganizadas.length > 0 ? rodadasOrganizadas.map(n => `Rodada ${n}`).join(', ') : 'Nenhuma',
+      ultima_rodada: ultRodada,
+      ultima_rodada_formatada: ultRodada !== null ? `Rodada ${ultRodada}` : '-'
+    }
+  }).sort((a: any, b: any) => {
+    if (a.total_organizadas !== b.total_organizadas) {
+      return a.total_organizadas - b.total_organizadas
+    }
+    const ultA = a.ultima_rodada || 0
+    const ultB = b.ultima_rodada || 0
+    if (ultA !== ultB) {
+      return ultA - ultB
+    }
+    return a.nome.localeCompare(b.nome, 'pt-BR')
+  }).map((item: any, idx: number) => ({
+    ...item,
+    posicao_fila: idx + 1
   }))
 
   // ── 12. Lista de participantes completa ──────────────────────────────────
@@ -352,6 +414,7 @@ export default defineEventHandler(async (event) => {
       total_solicitacoes: solicitacoesList.length
     },
     ranking: rankingSorted,
+    balanco_organizadores: balancoOrganizadores,
     rodadas: organizadores,
     partidas: partidasList.map((p: any) => {
       const rodada = rodadasMap.get(p.rodada_id)

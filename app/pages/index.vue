@@ -25,15 +25,28 @@
           <!-- Banner Topo com Boas-Vindas e Seletor -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
             <div>
-              <h1 class="text-4xl sm:text-5xl md:text-6xl font-bebas tracking-wide text-gray-900 dark:text-white mb-2">
-                E AÍ, <span class="text-brand-600 dark:text-brand-400">{{ profile.nome.split(' ')[0] }}</span>!
-              </h1>
-              <div class="flex items-center gap-2">
-                <div class="h-2 w-2 rounded-full animate-pulse bg-emerald-500"></div>
-                <p class="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-emerald-400">
-                  Status: Competidor Ativo
-                </p>
-              </div>
+              <template v-if="isAdmin">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bebas tracking-wide text-gray-900 dark:text-white mb-2">
+                  PAINEL DO <span class="text-brand-600 dark:text-brand-400">ADMINISTRADOR</span>
+                </h1>
+                <div class="flex items-center gap-2">
+                  <div class="h-2 w-2 rounded-full animate-pulse bg-brand-500"></div>
+                  <p class="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-brand-400">
+                    Status: Gestão de Bolões
+                  </p>
+                </div>
+              </template>
+              <template v-else>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bebas tracking-wide text-gray-900 dark:text-white mb-2">
+                  E AÍ, <span class="text-brand-600 dark:text-brand-400">{{ profile.nome.split(' ')[0] }}</span>!
+                </h1>
+                <div class="flex items-center gap-2">
+                  <div class="h-2 w-2 rounded-full animate-pulse bg-emerald-500"></div>
+                  <p class="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-emerald-400">
+                    Status: Competidor Ativo
+                  </p>
+                </div>
+              </template>
             </div>
 
             <!-- Seletor de Campeonato Ativo -->
@@ -51,8 +64,8 @@
           <!-- Estatísticas se houver campeonato selecionado -->
           <div v-if="campeonatoAtivo" class="space-y-8 animate-fade-in-up">
             
-            <!-- Grid de Resumos -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Grid de Resumos (Apenas para Competidores) -->
+            <div v-if="!isAdmin" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               
               <!-- Stat 1: Pontuação -->
               <div class="bg-white/[0.02] hover:bg-white/[0.04] border border-white/5 p-6 rounded-2xl flex items-center gap-4 transition-all group/stat">
@@ -183,10 +196,10 @@
       </BaseCard>
 
       <!-- Dashboard Central Grid: Palpites Rápidos + Ranking Geral -->
-      <div v-if="campeonatoAtivo" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div v-if="campeonatoAtivo" :class="isAdmin ? 'grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch' : 'grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch'">
         
-        <!-- Coluna Esquerda: Palpites Rápidos (8/12) -->
-        <div class="lg:col-span-8 flex flex-col">
+        <!-- Coluna Esquerda: Palpites Rápidos (8/12) - APENAS PARA JOGADORES -->
+        <div v-if="!isAdmin" class="lg:col-span-8 flex flex-col">
           <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col flex-1">
             <!-- Header do Widget -->
             <div class="bg-white/5 py-4 sm:py-5 px-4 sm:px-8 border-b border-white/10 flex justify-between items-center">
@@ -316,8 +329,8 @@
           </div>
         </div>
 
-        <!-- Coluna Direita: Mini Ranking (4/12) -->
-        <div class="lg:col-span-4 flex flex-col justify-between gap-6">
+        <!-- Coluna de Ranking Geral -->
+        <div :class="isAdmin ? 'col-span-1 flex flex-col justify-between gap-6' : 'lg:col-span-4 flex flex-col justify-between gap-6'">
           <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl p-6 space-y-6 flex-1 flex flex-col justify-between">
             <div>
               <h3 class="text-sm font-black uppercase tracking-[0.2em] text-white">🏆 RANKING DO BOLÃO</h3>
@@ -340,7 +353,7 @@
                 v-for="entry in ranking.slice(0, 3)" 
                 :key="entry.usuario_id"
                 class="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-all"
-                :class="{ 'bg-brand-500/[0.05] border-brand-500/20': entry.usuario_id === user?.id }"
+                :class="{ 'bg-brand-500/[0.05] border-brand-500/20': !isAdmin && entry.usuario_id === user?.id }"
               >
                 <div class="flex items-center gap-3 min-w-0">
                   <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bebas text-lg shrink-0"
@@ -364,8 +377,8 @@
                 </div>
               </div>
               
-              <!-- Posição do Usuário se fora do Top 3 -->
-              <template v-if="userRankingEntry && userRankingEntry.position > 3">
+              <!-- Posição do Usuário se fora do Top 3 (Apenas para Jogadores) -->
+              <template v-if="!isAdmin && userRankingEntry && userRankingEntry.position > 3">
                 <div class="flex justify-center my-2">
                   <div class="h-4 border-l border-dashed border-white/10" />
                 </div>
@@ -397,7 +410,57 @@
             </div>
           </div>
 
-          <!-- Card de Organizadores das Rodadas (Competidor) -->
+          <!-- Card de Organizadores das Rodadas (Apenas se NÃO for Admin, para manter layout 4/12) -->
+          <NuxtLink v-if="!isAdmin" to="/organizadores" class="block bg-white/5 border border-white/10 rounded-[2.5rem] p-6 hover:bg-white/10 hover:border-brand-500/50 transition-all group shrink-0">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400 text-xl border border-brand-500/20 shadow-inner group-hover:scale-110 transition-transform">
+                📋
+              </div>
+              <div>
+                <h3 class="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-white">Organizadores</h3>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">Histórico dos organizadores das rodadas</p>
+              </div>
+            </div>
+          </NuxtLink>
+        </div>
+
+        <!-- Se for Admin: Coluna de Gestão da Rodada & Organizadores -->
+        <div v-if="isAdmin" class="col-span-1 flex flex-col justify-between gap-6">
+          <div class="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl p-6 space-y-6 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xl">👑</span>
+                <h3 class="text-sm font-black uppercase tracking-[0.2em] text-white">CENTRAL DE GESTÃO</h3>
+              </div>
+              <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Status e controle operacional da rodada</p>
+            </div>
+
+            <div class="space-y-4 flex-1 flex flex-col justify-center">
+              <div class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-gray-400 font-bold uppercase text-[10px]">Rodada Ativa:</span>
+                  <span class="text-brand-400 font-black">Rodada {{ rodada?.numero_rodada || '-' }}</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-gray-400 font-bold uppercase text-[10px]">Status:</span>
+                  <span class="capitalize px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider" 
+                    :class="rodada?.status === 'aberta' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/15 text-amber-400 border border-amber-500/20'">
+                    {{ rodada?.status === 'aguardando_escolha' ? 'Aguardando Escolha' : (rodada?.status || 'Carregando...') }}
+                  </span>
+                </div>
+                <div v-if="rodada?.organizador" class="flex items-center justify-between text-xs">
+                  <span class="text-gray-400 font-bold uppercase text-[10px]">Organizador Sorteado:</span>
+                  <span class="text-amber-300 font-bold">👑 {{ rodada.organizador.nome }}</span>
+                </div>
+              </div>
+
+              <NuxtLink to="/admin/rodadas" class="block w-full text-center py-3.5 bg-brand-500 hover:bg-brand-600 active:scale-[0.98] rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all shadow-[0_0_20px_var(--brand-glow)]">
+                Gerenciar Rodadas & Extras no Painel →
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Card de Organizadores (Para o Admin) -->
           <NuxtLink to="/organizadores" class="block bg-white/5 border border-white/10 rounded-[2.5rem] p-6 hover:bg-white/10 hover:border-brand-500/50 transition-all group shrink-0">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center text-brand-400 text-xl border border-brand-500/20 shadow-inner group-hover:scale-110 transition-transform">

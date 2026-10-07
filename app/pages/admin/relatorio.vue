@@ -111,7 +111,7 @@
             </div>
             <div>
               <div class="text-sm font-black text-white">Excel Completo</div>
-              <div class="text-xs text-gray-400 mt-0.5">8 Abas · Dados detalhados e regras</div>
+              <div class="text-xs text-gray-400 mt-0.5">9 Abas · Dados detalhados e organizadores</div>
             </div>
             <span v-if="exportingExcel" class="ml-auto w-5 h-5 border-2 border-emerald-400/20 border-t-emerald-400 rounded-full animate-spin shrink-0" />
           </button>
@@ -127,7 +127,7 @@
             </div>
             <div>
               <div class="text-sm font-black text-white">PDF Relatório</div>
-              <div class="text-xs text-gray-400 mt-0.5">8 Seções · Relatório Oficial Completo</div>
+              <div class="text-xs text-gray-400 mt-0.5">9 Seções · Relatório Oficial Completo</div>
             </div>
             <span v-if="exportingPDF" class="ml-auto w-5 h-5 border-2 border-red-400/20 border-t-red-400 rounded-full animate-spin shrink-0" />
           </button>
@@ -355,12 +355,26 @@ const exportExcel = async () => {
     }))
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(solRows), 'Solicitações')
 
-    // ── Aba 6 — Rodadas
+    // ── Aba 6 — Balanço de Organizadores e Fila de Rodízio
+    const orgRows = (d.balanco_organizadores || []).map((o: any) => ({
+      'Posição na Fila': o.posicao_fila,
+      'Participante': o.nome,
+      'Email': o.email,
+      'Time do Coração': o.time_nome || '-',
+      'Total de Rodadas Organizadas': o.total_organizadas,
+      'Rodadas que Organizou': o.rodadas_formatadas,
+      'Última Rodada Organizada': o.ultima_rodada_formatada
+    }))
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(orgRows), 'Organizadores')
+
+    // ── Aba 7 — Rodadas e Auditoria
     const rodadasRows = d.rodadas.map((r: any) => ({
       'Rodada': r.numero_rodada,
       'Status': statusLabel(r.status),
-      'Organizador': r.organizador,
+      'Organizador Sorteado': r.organizador,
       'Email Organizador': r.email_organizador,
+      'Extras Escolhidos Por': r.extras_definidos_por || 'Pendente',
+      'Data/Hora Escolha Extras': formatDate(r.extras_escolhidos_em),
       'Prazo Apostas': formatDate(r.betting_deadline),
       'Prazo Organizador': formatDate(r.organizer_deadline),
       'Multiplicador': r.multiplicador,
@@ -369,7 +383,7 @@ const exportExcel = async () => {
     }))
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rodadasRows), 'Rodadas')
 
-    // ── Aba 7 — Participantes
+    // ── Aba 8 — Participantes
     const partRows = d.participantes.map((p: any) => ({
       'Nome': p.nome,
       'Email': p.email,
@@ -380,7 +394,7 @@ const exportExcel = async () => {
     }))
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(partRows), 'Participantes')
 
-    // ── Aba 8 — Regras & Parâmetros
+    // ── Aba 9 — Regras & Parâmetros
     const regrasRows = [
       { 'Parâmetro': 'Campeonato', 'Valor': meta.campeonato_nome },
       { 'Parâmetro': 'Apelido do Grupo', 'Valor': meta.apelido_grupo || '-' },
@@ -406,7 +420,7 @@ const exportExcel = async () => {
 
     const safeName = `${meta.apelido_grupo || meta.campeonato_nome || 'Campeonato'}_${ateStr}`.replace(/[^a-zA-Z0-9_-]/g, '_')
     XLSX.writeFile(wb, `Relatorio_${safeName}.xlsx`)
-    toast.success('✅ Excel Completo com 8 abas gerado com sucesso!')
+    toast.success('✅ Excel Completo com 9 abas gerado com sucesso!')
   } catch (err: any) {
     console.error(err)
     toast.error('Erro ao gerar Excel: ' + err.message)
@@ -572,18 +586,51 @@ const exportPDF = async () => {
       })
     }
 
-    // ── 5. Rodadas e Organizadores
+    // ── 5. Balanço de Organizadores e Fila de Rodízio
+    if (d.balanco_organizadores && d.balanco_organizadores.length > 0) {
+      doc.addPage()
+      addHeader('BALANÇO DE ORGANIZADORES E FILA DE RODÍZIO')
+      autoTable(doc, {
+        startY: 26,
+        margin: { top: 26, bottom: 12 },
+        columns: [
+          { header: 'Fila', dataKey: 'fila' },
+          { header: 'Participante', dataKey: 'nome' },
+          { header: 'Email', dataKey: 'email' },
+          { header: 'Time', dataKey: 'time' },
+          { header: 'Total Org.', dataKey: 'total' },
+          { header: 'Rodadas Que Organizou', dataKey: 'rodadas' },
+          { header: 'Última Rodada', dataKey: 'ultima' }
+        ],
+        body: d.balanco_organizadores.map((o: any) => ({
+          fila: '#' + o.posicao_fila,
+          nome: o.nome,
+          email: o.email || '-',
+          time: o.time_nome || '-',
+          total: o.total_organizadas + ' rodada(s)',
+          rodadas: o.rodadas_formatadas,
+          ultima: o.ultima_rodada_formatada
+        })),
+        theme: 'striped',
+        headStyles: { fillColor: [245, 158, 11], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+        bodyStyles: { fontSize: 7.5 },
+        didDrawPage: () => addHeader('BALANÇO DE ORGANIZADORES E FILA DE RODÍZIO')
+      })
+    }
+
+    // ── 6. Rodadas e Auditoria de Extras
     if (d.rodadas && d.rodadas.length > 0) {
       doc.addPage()
-      addHeader('RODADAS E ORGANIZADORES')
+      addHeader('RODADAS E AUDITORIA DE EXTRAS')
       autoTable(doc, {
         startY: 26,
         margin: { top: 26, bottom: 12 },
         columns: [
           { header: 'Rodada', dataKey: 'rod' },
           { header: 'Status', dataKey: 'status' },
-          { header: 'Organizador', dataKey: 'org' },
-          { header: 'Email Organizador', dataKey: 'email' },
+          { header: 'Organizador Sorteado', dataKey: 'org' },
+          { header: 'Extras Definidos Por', dataKey: 'extras' },
+          { header: 'Data Escolha', dataKey: 'data_extras' },
           { header: 'Prazo Apostas', dataKey: 'prazo' },
           { header: 'Mult.', dataKey: 'mult' },
           { header: 'Partidas', dataKey: 'total' }
@@ -592,7 +639,8 @@ const exportPDF = async () => {
           rod: 'Rodada ' + r.numero_rodada,
           status: statusLabel(r.status),
           org: r.organizador,
-          email: r.email_organizador || '-',
+          extras: r.extras_definidos_por || 'Pendente',
+          data_extras: formatDate(r.extras_escolhidos_em),
           prazo: formatDate(r.betting_deadline),
           mult: r.multiplicador + 'x',
           total: `${r.partidas_finalizadas}/${r.total_partidas}`
@@ -600,11 +648,11 @@ const exportPDF = async () => {
         theme: 'striped',
         headStyles: { fillColor: [14, 165, 233], textColor: 255, fontStyle: 'bold', fontSize: 8 },
         bodyStyles: { fontSize: 7.5 },
-        didDrawPage: () => addHeader('RODADAS E ORGANIZADORES')
+        didDrawPage: () => addHeader('RODADAS E AUDITORIA DE EXTRAS')
       })
     }
 
-    // ── 6. Participantes do Bolão
+    // ── 7. Participantes do Bolão
     if (d.participantes && d.participantes.length > 0) {
       doc.addPage()
       addHeader('PARTICIPANTES DO BOLÃO')
@@ -632,7 +680,7 @@ const exportPDF = async () => {
       })
     }
 
-    // ── 7. Solicitações de Acesso
+    // ── 8. Solicitações de Acesso
     if (d.solicitacoes && d.solicitacoes.length > 0) {
       doc.addPage()
       addHeader('SOLICITAÇÕES DE ACESSO')
@@ -660,7 +708,7 @@ const exportPDF = async () => {
       })
     }
 
-    // ── 8. Configurações e Regras
+    // ── 9. Configurações e Regras
     doc.addPage()
     addHeader('REGRAS E CONFIGURAÇÕES')
     autoTable(doc, {

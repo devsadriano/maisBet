@@ -19,13 +19,25 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    const updateData: any = { status: newStatus }
+    if (newStatus === 'aguardando_escolha') {
+      updateData.extras_escolhidos_tipo = null
+      updateData.extras_escolhidos_por = null
+      updateData.extras_escolhidos_em = null
+    }
+
     const { error } = await supabase
       .from('rodadas')
-      .update({ status: newStatus })
+      .update(updateData)
       .eq('id', id)
 
     if (error) {
       throw createError({ statusCode: 500, message: error.message })
+    }
+
+    if (newStatus === 'aguardando_escolha') {
+      // Limpa marcações de jogos extras nas partidas para permitir seleção limpa do organizador ou admin
+      await supabase.from('partidas').update({ is_extra: false }).eq('rodada_id', id)
     }
 
     return { success: true, message: `Status alterado para ${newStatus} com sucesso!` }

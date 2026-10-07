@@ -455,7 +455,23 @@
             </div>
 
             <!-- Compliance Status Badges and Accordion Arrow -->
-            <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t border-slate-100 dark:border-white/5 pt-3 md:pt-0 md:border-0">
+            <div class="flex items-center gap-2 sm:gap-3 w-full md:w-auto justify-between md:justify-end border-t border-slate-100 dark:border-white/5 pt-3 md:pt-0 md:border-0 flex-wrap">
+              <!-- Selo de Origem dos Extras -->
+              <span 
+                v-if="round.extras_audit?.tipo === 'admin'"
+                class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-500/15 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30"
+                title="Os jogos extras desta rodada foram definidos pelo administrador"
+              >
+                👑 Extras p/ Admin
+              </span>
+              <span 
+                v-else-if="round.extras_audit?.tipo === 'sistema'"
+                class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30"
+                title="Os jogos extras foram escolhidos automaticamente pelo sistema por expiração de prazo"
+              >
+                🤖 Extras Automáticos
+              </span>
+
               <span 
                 v-if="round.rule_followed"
                 class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30"

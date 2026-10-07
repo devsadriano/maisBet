@@ -135,11 +135,19 @@ export default defineEventHandler(async (event) => {
     const organizerUser = round.organizer_id ? userById.get(round.organizer_id) : null
     const organizer = organizerUser ? {
       id: organizerUser.id,
-      nome: (organizerUser.is_admin || organizerUser.nome === 'ADRIANO ADMIN') ? 'Administrador' : organizerUser.nome,
+      nome: organizerUser.is_admin ? 'Administrador' : organizerUser.nome,
       email: organizerUser.email,
       time_nome: participants.find((p: any) => p.id === organizerUser.id)?.time_nome || 'Sem Time',
       escudo_url: participants.find((p: any) => p.id === organizerUser.id)?.escudo_url || null
     } : null
+
+    // Auditoria de quem configurou os jogos extras
+    const escolheuUser = round.extras_escolhidos_por ? userById.get(round.extras_escolhidos_por) : null
+    const extrasAudit = {
+      tipo: round.extras_escolhidos_tipo || null,
+      em: round.extras_escolhidos_em || null,
+      escolhido_por_nome: escolheuUser?.nome || (round.extras_escolhidos_tipo === 'admin' ? 'Administrador' : null)
+    }
 
     // Rule was followed if organizer matches the top candidate (or if there is no organizer/candidates)
     const firstCandidateId = candidates[0]?.id || null
@@ -152,6 +160,7 @@ export default defineEventHandler(async (event) => {
       created_at: round.created_at,
       total_participants: activeParticipants.length,
       organizer,
+      extras_audit: extrasAudit,
       rule_followed: ruleFollowed,
       candidates
     }

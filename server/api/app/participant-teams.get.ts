@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const teamApiIds = acessos
-    ?.map((a: any) => a.times?.api_team_id)
+    ?.map((a: any) => Array.isArray(a.times) ? a.times[0]?.api_team_id : a.times?.api_team_id)
     .filter(Boolean) || []
 
   return { teamApiIds }

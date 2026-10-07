@@ -215,18 +215,20 @@ export default defineEventHandler(async (event) => {
         if (!organizerId) {
           console.warn(`[start-championship] Sem organizador para rodada ${matchday}, tentando buscar participante como fallback`)
           // Fallback: buscar qualquer participante não-admin
-          const { data: fallbackUser } = await supabase
+          const { data: acessosList } = await supabase
             .from('campeonato_acessos')
             .select('email')
             .eq('campeonato_id', campeonato_id)
-            .limit(1)
-            .single()
-          if (fallbackUser) {
+
+          if (acessosList && acessosList.length > 0) {
+            const emails = acessosList.map((a: any) => a.email.toLowerCase())
             const { data: fbUser } = await supabase
               .from('usuarios')
               .select('id')
-              .eq('email', fallbackUser.email)
-              .single()
+              .in('email', emails)
+              .eq('is_admin', false)
+              .limit(1)
+              .maybeSingle()
             organizerId = fbUser?.id || null
           }
         }
@@ -238,20 +240,22 @@ export default defineEventHandler(async (event) => {
         })
         organizerId = orgData || null
         
-        // Se mesmo assim não tiver, buscar fallback
+        // Se mesmo assim não tiver, buscar fallback não-admin
         if (!organizerId) {
-          const { data: fallbackUser } = await supabase
+          const { data: acessosList } = await supabase
             .from('campeonato_acessos')
             .select('email')
             .eq('campeonato_id', campeonato_id)
-            .limit(1)
-            .single()
-          if (fallbackUser) {
+
+          if (acessosList && acessosList.length > 0) {
+            const emails = acessosList.map((a: any) => a.email.toLowerCase())
             const { data: fbUser } = await supabase
               .from('usuarios')
               .select('id')
-              .eq('email', fallbackUser.email)
-              .single()
+              .in('email', emails)
+              .eq('is_admin', false)
+              .limit(1)
+              .maybeSingle()
             organizerId = fbUser?.id || null
           }
         }
