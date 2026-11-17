@@ -7,6 +7,20 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-auto-cycle-secret',
 }
 
+async function getChampionshipTeamIds(sb: any, campeonatoId: string): Promise<Set<number>> {
+  const { data: acessosData } = await sb
+    .from('campeonato_acessos')
+    .select('times(api_team_id)')
+    .eq('campeonato_id', campeonatoId)
+    .not('time_id', 'is', null)
+
+  return new Set(
+    acessosData
+      ?.map((a: any) => Array.isArray(a.times) ? a.times[0]?.api_team_id : a.times?.api_team_id)
+      .filter(Boolean) || []
+  )
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -203,21 +217,50 @@ Deno.serve(async (req: Request) => {
             // Fallback: organizador não escolheu a tempo → sistema auto-seleciona extras
             if (c.formato !== 'copa' && r.status === 'aguardando_escolha' && now >= r.organizer_deadline) {
               log(`[${c.api_competition_code}] ⚡ Organizador não escolheu rd ${r.numero_rodada}. Auto-seleção (fallback)...`)
-              const { data: ce } = await sb.from('partidas').select('id').eq('rodada_id', r.id).eq('is_extra', true)
-              const falta = Math.max(0, r.required_extra_games - (ce?.length || 0))
-              if (falta > 0) {
-                const { data: av } = await sb.from('partidas').select('id')
-                  .eq('rodada_id', r.id).eq('is_mandatory', false).eq('is_extra', false)
-                if (av && av.length > 0) {
-                  const sel = av.sort(() => 0.5 - Math.random()).slice(0, falta)
-                  for (const x of sel) await sb.from('partidas').update({ is_extra: true }).eq('id', x.id)
-                  log(`[${c.api_competition_code}] ${sel.length} jogos extras selecionados aleatoriamente.`)
+              const utids = await getChampionshipTeamIds(sb, c.id)
+              const { data: roundMatches } = await sb
+                .from('partidas')
+                .select('id, api_team_home_id, api_team_away_id, status, is_mandatory, is_extra')
+                .eq('rodada_id', r.id)
+
+              let confrontations = 0
+              const normalizedMatches = (roundMatches || []).map((p: any) => ({ ...p }))
+              for (const p of normalizedMatches) {
+                const shouldBeMandatory = r.numero_rodada === c.max_rodadas || utids.has(p.api_team_home_id) || utids.has(p.api_team_away_id)
+                if (utids.has(p.api_team_home_id) && utids.has(p.api_team_away_id)) {
+                  confrontations++
                 }
-              } else {
-                log(`[${c.api_competition_code}] Extras já escolhidos (${ce?.length || 0}/${r.required_extra_games}).`)
+                const nextExtra = shouldBeMandatory ? false : p.is_extra
+                if (p.is_mandatory !== shouldBeMandatory || p.is_extra !== nextExtra) {
+                  await sb.from('partidas').update({
+                    is_mandatory: shouldBeMandatory,
+                    is_extra: nextExtra
+                  }).eq('id', p.id)
+                  p.is_mandatory = shouldBeMandatory
+                  p.is_extra = nextExtra
+                }
               }
+
+              const requiredExtras = r.numero_rodada === c.max_rodadas ? 0 : 1 + confrontations
+              const currentExtras = normalizedMatches.filter((p: any) => p.is_extra && !p.is_mandatory)
+              const falta = Math.max(0, requiredExtras - currentExtras.length)
+
+              if (falta > 0) {
+                const available = normalizedMatches.filter((p: any) => !p.is_mandatory && !p.is_extra)
+                const scheduled = available.filter((p: any) => p.status === 'agendado').sort(() => 0.5 - Math.random())
+                const others = available.filter((p: any) => p.status !== 'agendado').sort(() => 0.5 - Math.random())
+                const sel = [...scheduled, ...others].slice(0, falta)
+                for (const x of sel) {
+                  await sb.from('partidas').update({ is_extra: true }).eq('id', x.id)
+                }
+                log(`[${c.api_competition_code}] ${sel.length} jogos extras selecionados aleatoriamente (meta=${requiredExtras}).`)
+              } else {
+                log(`[${c.api_competition_code}] Extras já escolhidos (${currentExtras.length}/${requiredExtras}).`)
+              }
+
               await sb.from('rodadas').update({ 
                 status: 'aberta',
+                required_extra_games: requiredExtras,
                 extras_escolhidos_tipo: 'sistema',
                 extras_escolhidos_em: new Date().toISOString()
               }).eq('id', r.id)
@@ -244,8 +287,7 @@ Deno.serve(async (req: Request) => {
             if (res.ok) {
               const d = await res.json()
               if (d.matches && d.matches.length > 0) {
-                const { data: uwt } = await sb.from('usuarios').select('times(api_team_id)').eq('is_admin', false).not('time_id', 'is', null)
-                const utids = new Set(uwt?.map((u: any) => Array.isArray(u.times) ? u.times[0]?.api_team_id : u.times?.api_team_id).filter(Boolean) || [])
+                const utids = await getChampionshipTeamIds(sb, c.id)
                 let mc = 0
                 let confrontations = 0
                 const mp = d.matches.map((m: any) => {

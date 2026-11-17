@@ -388,14 +388,21 @@ CREATE POLICY "cron_logs_admin_leitura" ON public.cron_logs
 -- SEÇÃO 5: FUNCTIONS & TRIGGERS
 -- ============================================================
 
--- 5.1 Trigger de sincronização de nomes customizados de times
+-- 5.1 Trigger de sincronização de nomes customizados de times e cálculo de obrigatoriedade por campeonato
 CREATE OR REPLACE FUNCTION public.trg_fill_custom_team_names()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
 AS $$
 DECLARE
   v_nome_casa TEXT;
   v_nome_fora TEXT;
+  v_campeonato_id UUID;
+  v_numero_rodada INTEGER;
+  v_formato TEXT;
+  v_max_rodadas INTEGER;
+  v_is_mandatory BOOLEAN;
 BEGIN
   IF NEW.api_team_home_id IS NOT NULL THEN
     SELECT nome INTO v_nome_casa FROM public.times WHERE api_team_id = NEW.api_team_home_id;
@@ -411,6 +418,33 @@ BEGIN
     END IF;
   END IF;
 
+  -- Ao inserir partida, garante is_mandatory baseado nos times dos participantes do campeonato
+  IF TG_OP = 'INSERT' AND NEW.rodada_id IS NOT NULL THEN
+    SELECT r.campeonato_id, r.numero_rodada, c.formato, COALESCE(c.max_rodadas, 38)
+    INTO v_campeonato_id, v_numero_rodada, v_formato, v_max_rodadas
+    FROM public.rodadas r
+    JOIN public.campeonatos c ON c.id = r.campeonato_id
+    WHERE r.id = NEW.rodada_id;
+
+    IF FOUND THEN
+      IF v_formato = 'copa' OR v_numero_rodada = v_max_rodadas THEN
+        NEW.is_mandatory := true;
+      ELSE
+        SELECT EXISTS (
+          SELECT 1
+          FROM public.campeonato_acessos ca
+          JOIN public.times t ON t.id = ca.time_id
+          WHERE ca.campeonato_id = v_campeonato_id
+            AND ca.time_id IS NOT NULL
+            AND t.api_team_id IS NOT NULL
+            AND t.api_team_id IN (NEW.api_team_home_id, NEW.api_team_away_id)
+        ) INTO v_is_mandatory;
+
+        NEW.is_mandatory := COALESCE(v_is_mandatory, false);
+      END IF;
+    END IF;
+  END IF;
+
   RETURN NEW;
 END;
 $$;
@@ -420,6 +454,77 @@ CREATE TRIGGER trg_before_partidas_save
     BEFORE INSERT OR UPDATE ON public.partidas
     FOR EACH ROW
     EXECUTE FUNCTION public.trg_fill_custom_team_names();
+
+
+-- 5.1.1 Trigger para recalcular required_extra_games da rodada ao inserir partidas
+CREATE OR REPLACE FUNCTION public.trg_recalc_round_required_extras()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_campeonato_id UUID;
+  v_numero_rodada INTEGER;
+  v_formato TEXT;
+  v_max_rodadas INTEGER;
+  v_confrontations INTEGER;
+  v_required_extras INTEGER;
+BEGIN
+  IF NEW.rodada_id IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT r.campeonato_id, r.numero_rodada, c.formato, COALESCE(c.max_rodadas, 38)
+  INTO v_campeonato_id, v_numero_rodada, v_formato, v_max_rodadas
+  FROM public.rodadas r
+  JOIN public.campeonatos c ON c.id = r.campeonato_id
+  WHERE r.id = NEW.rodada_id;
+
+  IF NOT FOUND THEN
+    RETURN NULL;
+  END IF;
+
+  IF v_formato = 'copa' OR v_numero_rodada = v_max_rodadas THEN
+    v_required_extras := 0;
+  ELSE
+    SELECT COUNT(*) INTO v_confrontations
+    FROM public.partidas p
+    WHERE p.rodada_id = NEW.rodada_id
+      AND EXISTS (
+        SELECT 1
+        FROM public.campeonato_acessos ca1
+        JOIN public.times t1 ON t1.id = ca1.time_id
+        WHERE ca1.campeonato_id = v_campeonato_id
+          AND ca1.time_id IS NOT NULL
+          AND t1.api_team_id = p.api_team_home_id
+      )
+      AND EXISTS (
+        SELECT 1
+        FROM public.campeonato_acessos ca2
+        JOIN public.times t2 ON t2.id = ca2.time_id
+        WHERE ca2.campeonato_id = v_campeonato_id
+          AND ca2.time_id IS NOT NULL
+          AND t2.api_team_id = p.api_team_away_id
+      );
+
+    v_required_extras := 1 + COALESCE(v_confrontations, 0);
+  END IF;
+
+  UPDATE public.rodadas
+  SET required_extra_games = v_required_extras
+  WHERE id = NEW.rodada_id
+    AND required_extra_games IS DISTINCT FROM v_required_extras;
+
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_after_partida_insert_recalc_extras ON public.partidas;
+CREATE TRIGGER trg_after_partida_insert_recalc_extras
+    AFTER INSERT ON public.partidas
+    FOR EACH ROW
+    EXECUTE FUNCTION public.trg_recalc_round_required_extras();
 
 
 -- 5.2 Algoritmo de determinação dinâmica de organizador por rodízio
