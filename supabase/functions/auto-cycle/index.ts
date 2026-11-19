@@ -360,6 +360,28 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Dispara processamento de notificações push no backend Nuxt/Vercel
+    try {
+      const webhookToken = Deno.env.get('CRON_SECRET') || key
+      const pushRes = await fetch('https://mais-bet.vercel.app/api/push/process-cycle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${webhookToken}`,
+        },
+        body: JSON.stringify({}),
+        signal: AbortSignal.timeout(8000),
+      })
+      if (pushRes.ok) {
+        const pushJson = await pushRes.json()
+        log(`[PUSH] Ciclo processado: ${pushJson.notificationsSent || 0} notificação(ões) enviada(s).`)
+      } else {
+        log(`[PUSH] Aviso HTTP ${pushRes.status} ao acionar process-cycle.`)
+      }
+    } catch (pushErr: any) {
+      log(`[PUSH] Falha não-bloqueante ao acionar process-cycle: ${pushErr?.message || pushErr}`)
+    }
+
     log('--- CICLO CONCLUIDO ---')
     await sb.from('cron_logs').insert({ content: logs.join('\n') })
     return new Response(JSON.stringify({ success: true, logs }), {

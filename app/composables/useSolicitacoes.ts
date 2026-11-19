@@ -168,6 +168,28 @@ export const useSolicitacoes = () => {
 
       // 6. Refresh count
       await fetchPendingCount()
+
+      // 7. Notifica o usuário aprovado via Web Push (não-bloqueante)
+      const firstCampId = bolaoIds[0] || (sol.tipo === 'acesso_bolao' ? sol.campeonato_id : null)
+      let targetUserId = sol.user_id
+      if (!targetUserId && sol.email) {
+        const { data: uRow } = await supabase
+          .from('usuarios')
+          .select('id')
+          .eq('email', sol.email)
+          .maybeSingle()
+        targetUserId = uRow?.id || null
+      }
+      if (targetUserId) {
+        $fetch('/api/push/notify-access', {
+          method: 'POST',
+          body: {
+            action: 'approved',
+            target_user_id: targetUserId,
+            campeonato_id: firstCampId,
+          },
+        }).catch(() => {})
+      }
     } finally {
       loading.value = false
     }
@@ -243,6 +265,16 @@ export const useSolicitacoes = () => {
     })
 
     await fetchPendingCount()
+
+    // Notifica administradores via Web Push (não-bloqueante)
+    $fetch('/api/push/notify-access', {
+      method: 'POST',
+      body: {
+        action: 'new_request',
+        campeonato_id: campeonatoId,
+        nome: nome || email,
+      },
+    }).catch(() => {})
   }
 
   return {

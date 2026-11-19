@@ -68,6 +68,7 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
+      importScripts: ['/push-sw.js'],
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
       runtimeCaching: [
@@ -113,7 +114,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     rapidApiKey: '',
     cronSecret: '',
-    public: {},
+    vapidPrivateKey: process.env.VAPID_PRIVATE_KEY || 'bsjO9tmm5IBMOgbmsr0d-bTGi9DQ6s6v_qDVnVSY2Nw',
+    vapidSubject: process.env.VAPID_SUBJECT || 'mailto:admin@maisbet.vercel.app',
+    public: {
+      vapidPublicKey:
+        process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        process.env.VAPID_PUBLIC_KEY ||
+        'BGb5ATpEiqTPCBfTVV8TtCT-VfNidc5osdeDVHXfUVtpGqHCo4ozTlUDQTxv48aSeAuxcF2Xhgk_txMLdbe3AJs',
+    },
   },
 })
 

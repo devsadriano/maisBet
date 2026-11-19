@@ -95,7 +95,8 @@ CREATE TABLE IF NOT EXISTS public.rodadas (
     campeonato_id UUID NOT NULL REFERENCES public.campeonatos(id) ON DELETE CASCADE,
     fase TEXT DEFAULT 'grupos',
     multiplicador NUMERIC(3,1) DEFAULT 1.0,
-    calendario_alterado BOOLEAN NOT NULL DEFAULT false
+    calendario_alterado BOOLEAN NOT NULL DEFAULT false,
+    notificacoes_enviadas JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 COMMENT ON TABLE public.rodadas IS 'Rodadas associadas a um campeonato com controle de organizador em rodízio.';
 
@@ -181,6 +182,34 @@ CREATE TABLE IF NOT EXISTS public.cron_logs (
 );
 COMMENT ON TABLE public.cron_logs IS 'Registro de logs de automações do sistema.';
 
+-- 2.13 Inscrições de Web Push (múltiplos dispositivos por usuário)
+CREATE TABLE IF NOT EXISTS public.push_subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    user_agent TEXT,
+    device_label TEXT,
+    disabled_at TIMESTAMPTZ,
+    last_used_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.push_subscriptions IS 'Inscrições de Web Push VAPID associadas a dispositivos/navegadores de cada usuário.';
+
+-- 2.14 Preferências de Notificações por Usuário
+CREATE TABLE IF NOT EXISTS public.notification_preferences (
+    user_id UUID PRIMARY KEY REFERENCES public.usuarios(id) ON DELETE CASCADE,
+    push_enabled BOOLEAN NOT NULL DEFAULT true,
+    organizer_alerts BOOLEAN NOT NULL DEFAULT true,
+    round_alerts BOOLEAN NOT NULL DEFAULT true,
+    deadline_reminders BOOLEAN NOT NULL DEFAULT true,
+    results_alerts BOOLEAN NOT NULL DEFAULT true,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.notification_preferences IS 'Preferências de alertas push web configuráveis por usuário.';
+
 
 -- ============================================================
 -- SEÇÃO 3: INDEXES
@@ -200,6 +229,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS campeonato_acessos_campeonato_id_email_key ON 
 CREATE INDEX IF NOT EXISTS idx_campeonato_acessos_email ON public.campeonato_acessos USING btree (email);
 CREATE INDEX IF NOT EXISTS idx_campeonato_acessos_campeonato_id ON public.campeonato_acessos USING btree (campeonato_id);
 CREATE UNIQUE INDEX IF NOT EXISTS palpites_especiais_usuario_id_campeonato_id_tipo_key ON public.palpites_especiais USING btree (usuario_id, campeonato_id, tipo);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON public.push_subscriptions USING btree (user_id);
 
 
 -- ============================================================
@@ -217,6 +247,8 @@ ALTER TABLE public.palpites_especiais ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.solicitacoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_autorizados ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cron_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
 
 -- ---- times ----
 CREATE POLICY "times_leitura_publica" ON public.times
@@ -382,6 +414,26 @@ CREATE POLICY "cron_logs_admin_leitura" ON public.cron_logs
     FOR SELECT USING (
         EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND is_admin = true)
     );
+
+-- ---- push_subscriptions ----
+CREATE POLICY "push_subscriptions_select_own" ON public.push_subscriptions
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "push_subscriptions_insert_own" ON public.push_subscriptions
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "push_subscriptions_update_own" ON public.push_subscriptions
+    FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "push_subscriptions_delete_own" ON public.push_subscriptions
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- ---- notification_preferences ----
+CREATE POLICY "notification_preferences_select_own" ON public.notification_preferences
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "notification_preferences_insert_own" ON public.notification_preferences
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "notification_preferences_update_own" ON public.notification_preferences
+    FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "notification_preferences_delete_own" ON public.notification_preferences
+    FOR DELETE USING (auth.uid() = user_id);
 
 
 -- ============================================================
@@ -746,6 +798,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.campeonato_acessos TO authenticat
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.scoring_systems TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.solicitacoes TO authenticated;
 GRANT SELECT ON public.cron_logs TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.push_subscriptions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notification_preferences TO authenticated;
 
 -- Permissões para a Role 'service_role' (Acesso total para backend)
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO service_role;
@@ -763,3 +817,8 @@ GRANT ALL PRIVILEGES ON ALL ROUTINES IN SCHEMA public TO service_role;
 --   - Atualização da tabela de usuarios com novos campos (cidade, estado, telefone, status).
 --   - Remoção de colunas legadas e consolidação das novas funções e triggers de cálculo de pontos, organizador de rodadas e sincronização de nomes dos times.
 --   - Ajuste das políticas de RLS e permissões (Grants) de forma abrangente.
+--
+-- [2026-11-19] - Sistema de Notificações Web Push (VAPID)
+-- Alterações:
+--   - Adicionada coluna rodadas.notificacoes_enviadas (JSONB) para controle idempotente de alertas.
+--   - Criadas tabelas public.push_subscriptions e public.notification_preferences com RLS e Grants.

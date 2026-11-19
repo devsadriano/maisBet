@@ -163,6 +163,44 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          deadline_reminders: boolean
+          organizer_alerts: boolean
+          push_enabled: boolean
+          results_alerts: boolean
+          round_alerts: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          deadline_reminders?: boolean
+          organizer_alerts?: boolean
+          push_enabled?: boolean
+          results_alerts?: boolean
+          round_alerts?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          deadline_reminders?: boolean
+          organizer_alerts?: boolean
+          push_enabled?: boolean
+          results_alerts?: boolean
+          round_alerts?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       palpites: {
         Row: {
           created_at: string
@@ -318,6 +356,56 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          device_label: string | null
+          disabled_at: string | null
+          endpoint: string
+          id: string
+          last_used_at: string | null
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          device_label?: string | null
+          disabled_at?: string | null
+          endpoint: string
+          id?: string
+          last_used_at?: string | null
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          device_label?: string | null
+          disabled_at?: string | null
+          endpoint?: string
+          id?: string
+          last_used_at?: string | null
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rodadas: {
         Row: {
           betting_deadline: string | null
@@ -326,6 +414,7 @@ export type Database = {
           fase: string | null
           id: string
           multiplicador: number | null
+          notificacoes_enviadas: Json
           numero_rodada: number
           organizer_deadline: string | null
           organizer_id: string | null
@@ -339,6 +428,7 @@ export type Database = {
           fase?: string | null
           id?: string
           multiplicador?: number | null
+          notificacoes_enviadas?: Json
           numero_rodada: number
           organizer_deadline?: string | null
           organizer_id?: string | null
@@ -352,6 +442,7 @@ export type Database = {
           fase?: string | null
           id?: string
           multiplicador?: number | null
+          notificacoes_enviadas?: Json
           numero_rodada?: number
           organizer_deadline?: string | null
           organizer_id?: string | null

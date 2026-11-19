@@ -33,6 +33,22 @@
           Ir para o jogo
         </NuxtLink>
 
+        <!-- Botão Notificações Push (Sininho) -->
+        <button
+          @click="showNotificationsModal = true"
+          :title="pushSubscribed ? 'Notificações ativadas neste aparelho' : 'Ativar notificações push'"
+          class="relative flex items-center justify-center w-9 h-9 rounded-full border border-white/10 bg-white/5 hover:border-[color:var(--brand)] hover:bg-[var(--brand-dim)] transition-all group"
+          aria-label="Configurar notificações"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:scale-110" :class="pushSubscribed ? 'text-emerald-400' : 'text-gray-300'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span
+            class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+            :class="pushSubscribed ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'"
+          ></span>
+        </button>
+
         <!-- User menu -->
         <div class="relative">
           <button
@@ -256,6 +272,12 @@
       </NuxtLink>
     </nav>
 
+    <!-- Modal Notificações Push -->
+    <ModalNotificacoes
+      :open="showNotificationsModal"
+      @close="showNotificationsModal = false"
+    />
+
     <!-- Toast Global -->
     <BaseToast />
   </div>
@@ -264,11 +286,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import BaseToast from '~/components/ui/BaseToast.vue'
+import ModalNotificacoes from '~/components/ModalNotificacoes.vue'
+import { usePushNotifications } from '~/composables/usePushNotifications'
 
 const { profile, logout, fetchProfile, waitForProfile } = useAuth()
 const { isDark, initTheme } = useTheme()
 const { pendingCount, fetchPendingCount } = useSolicitacoes()
+const { isSubscribed: pushSubscribed, initPushState } = usePushNotifications()
 const route = useRoute()
+
+const showNotificationsModal = ref(false)
 
 const showDropdown = ref(false)
 const toggleDropdown = (e: Event) => {
@@ -282,6 +309,7 @@ const closeDropdown = () => {
 onMounted(() => {
   initTheme()
   window.addEventListener('click', closeDropdown)
+  initPushState()
 })
 onUnmounted(() => {
   window.removeEventListener('click', closeDropdown)

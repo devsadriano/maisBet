@@ -1,4 +1,5 @@
 import { serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/server'
+import { processRoundPushCycles } from '../../utils/pushService'
 
 export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseServiceRole<any>(event)
@@ -121,6 +122,12 @@ export default defineEventHandler(async (event) => {
     }).eq('id', rodada_id)
 
     if (updErr) throw new Error(updErr.message)
+
+    try {
+      await processRoundPushCycles(supabase, rodada.campeonato_id)
+    } catch (pushErr) {
+      console.warn('[setup] Falha não-bloqueante ao disparar push de abertura:', pushErr)
+    }
 
     return { 
       success: true, 

@@ -1,4 +1,5 @@
-import { serverSupabaseClient } from '#supabase/server'
+import { serverSupabaseClient, serverSupabaseServiceRole } from '#supabase/server'
+import { processRoundPushCycles } from '../../utils/pushService'
 
 export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseClient(event)
@@ -23,7 +24,15 @@ export default defineEventHandler(async (event) => {
 
     if (error) throw error
 
-    return { success: true, data }
+    let pushSummary: any = null
+    try {
+      const adminSupabase = await serverSupabaseServiceRole<any>(event)
+      pushSummary = await processRoundPushCycles(adminSupabase)
+    } catch (pushErr) {
+      console.warn('[trigger-auto-cycle] Falha não-bloqueante ao processar push:', pushErr)
+    }
+
+    return { success: true, data, pushSummary }
   } catch (error: any) {
     console.error('Error triggering auto-cycle:', error)
     throw createError({ statusCode: 500, message: error.message || 'Internal Server Error' })

@@ -1,5 +1,6 @@
 import { serverSupabaseServiceRole } from '#supabase/server'
 import { requireAdmin } from '../../../../utils/requireAdmin'
+import { processRoundPushCycles } from '../../../../utils/pushService'
 
 export default defineEventHandler(async (event) => {
   // Proteção Server-side Rígida: 
@@ -36,6 +37,12 @@ export default defineEventHandler(async (event) => {
       statusCode: 500,
       message: error.message
     })
+  }
+
+  try {
+    await processRoundPushCycles(supabase, data?.campeonato_id)
+  } catch (pushErr) {
+    console.warn('[organizer.put] Falha não-bloqueante ao disparar push:', pushErr)
   }
 
   return { success: true, round: data }

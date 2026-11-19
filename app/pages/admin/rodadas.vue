@@ -238,12 +238,20 @@
               </div>
 
               <!-- Ação Admin: Escolher Extras pelo Organizador -->
-              <div v-if="r.status === 'aguardando_escolha'" class="mb-3">
+              <div v-if="r.status === 'aguardando_escolha'" class="mb-3 space-y-2">
                 <button 
                   @click="openAdminExtraModal(r)"
                   class="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
                 >
                   👑 Assumir Escolha de Extras da Rodada
+                </button>
+                <button
+                  v-if="r.organizer_id"
+                  @click="remindOrganizer(r)"
+                  :disabled="remindingOrg[r.id]"
+                  class="w-full py-2 px-3 bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 text-brand-400 font-bold text-[10px] uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                >
+                  {{ remindingOrg[r.id] ? 'Enviando...' : '🔔 Enviar Alerta Push ao Organizador' }}
                 </button>
               </div>
 
@@ -920,6 +928,27 @@ async function triggerAutoCycle() {
 }
 
 const isRecalculating = ref(false)
+const remindingOrg = ref<Record<string, boolean>>({})
+
+async function remindOrganizer(r: any) {
+  if (!r?.id || remindingOrg.value[r.id]) return
+  remindingOrg.value[r.id] = true
+  try {
+    const res: any = await $fetch('/api/push/remind-organizer', {
+      method: 'POST',
+      body: { rodada_id: r.id }
+    })
+    if (res?.sent > 0) {
+      toastSuccess(res.message || 'Alerta push enviado ao organizador!')
+    } else {
+      toastInfo(res?.message || 'Organizador ainda não ativou notificações push.')
+    }
+  } catch (e: any) {
+    toastError(e?.data?.message || 'Erro ao enviar alerta push ao organizador.')
+  } finally {
+    remindingOrg.value[r.id] = false
+  }
+}
 
 async function recalculateDeadlines() {
   if (isRecalculating.value) return

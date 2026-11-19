@@ -1,5 +1,6 @@
 import { defineEventHandler, createError, getHeader } from 'h3'
 import { serverSupabaseServiceRole } from '#supabase/server'
+import { processRoundPushCycles } from '../../utils/pushService'
 
 export default defineEventHandler(async (event) => {
   // 1. Autenticação via CRON_SECRET enviada pela Vercel no Header Authorization
@@ -27,11 +28,19 @@ export default defineEventHandler(async (event) => {
       throw error
     }
 
+    let pushSummary: any = null
+    try {
+      pushSummary = await processRoundPushCycles(supabase)
+    } catch (pushErr) {
+      console.warn('[cron-results] Falha não-bloqueante ao processar push:', pushErr)
+    }
+
     console.log('[cron-results] Ciclo concluído com sucesso.')
     return {
       success: true,
       message: 'Ciclo de automação (auto-cycle) executado com sucesso.',
-      data
+      data,
+      pushSummary
     }
   } catch (err: any) {
     console.error('[cron-results] Erro ao invocar auto-cycle:', err)
