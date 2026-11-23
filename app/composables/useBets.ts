@@ -30,6 +30,8 @@ export const useBets = () => {
     // Estado para visualização da última rodada (modo leitura, palpites encerrados)
     const lastClosedRound = useState<RoundWithMatches | null>('bets-last-closed-round', () => null)
     const lastRoundBets = useState<Record<string, BetEntry>>('bets-last-round-bets', () => ({}))
+    // Rodada anterior ainda com jogos rolando (status = 'fechada') em paralelo com a próxima rodada
+    const inProgressClosedRound = useState<{ id: string; numero_rodada: number } | null>('bets-in-progress-closed-round', () => null)
     let timer: any = null
 
     const fetchInitialData = async () => {
@@ -37,6 +39,7 @@ export const useBets = () => {
             rodada.value = null
             bets.value = {}
             cachedCampId.value = ''
+            inProgressClosedRound.value = null
             loading.value = false
             return
         }
@@ -45,6 +48,7 @@ export const useBets = () => {
         if (cachedCampId.value !== campeonatoAtivo.value.id) {
             rodada.value = null
             bets.value = {}
+            inProgressClosedRound.value = null
             cachedCampId.value = campeonatoAtivo.value.id
         }
 
@@ -100,7 +104,21 @@ export const useBets = () => {
             }
 
             startTimer()
+
+            // Verifica se existe uma rodada anterior ainda com jogos rolando (status = 'fechada')
+            const { data: closedInProgress } = await supabase
+                .from('rodadas')
+                .select('id, numero_rodada')
+                .eq('campeonato_id', campeonatoAtivo.value.id)
+                .eq('status', 'fechada')
+                .order('numero_rodada', { ascending: false })
+                .limit(1)
+                .maybeSingle()
+            inProgressClosedRound.value = closedInProgress
+                ? { id: (closedInProgress as any).id, numero_rodada: (closedInProgress as any).numero_rodada }
+                : null
         } else {
+            inProgressClosedRound.value = null
             // Nenhuma rodada aberta: busca última rodada para exibição em leitura
             await fetchLastRoundBets()
         }
@@ -269,6 +287,7 @@ export const useBets = () => {
         saveAllBets,
         sortedMatches,
         lastClosedRound,
-        lastRoundBets
+        lastRoundBets,
+        inProgressClosedRound
     }
 }

@@ -1,13 +1,22 @@
 <template>
   <div class="flex flex-col relative w-full space-y-8">
       
-      <!-- Back Link -->
-      <div class="flex items-center justify-between">
+      <!-- Back Link + Rodada anterior em andamento -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <NuxtLink to="/ranking" class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white flex items-center gap-2 transition-all group">
           <div class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-brand-500/20 group-hover:text-brand-400 transition-all border border-white/10 group-hover:border-brand-500/30">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>
           </div>
           Voltar ao Ranking
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="rodada && inProgressClosedRound"
+          to="/ranking?tab=rodada"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/20 text-emerald-300 text-[11px] font-bold transition-all"
+        >
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>⚽ {{ inProgressClosedRound.numero_rodada }}ª Rodada em andamento →</span>
         </NuxtLink>
       </div>
 
@@ -279,7 +288,8 @@ const {
   saveAllBets, 
   sortedMatches,
   lastClosedRound,
-  lastRoundBets
+  lastRoundBets,
+  inProgressClosedRound
 } = useBets()
 
 const { profile } = useAuth()

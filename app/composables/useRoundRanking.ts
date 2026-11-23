@@ -50,8 +50,11 @@ export const useRoundRanking = () => {
       .order('numero_rodada', { ascending: false })
       
     rounds.value = (data as unknown as RoundSummary[]) || []
-    if (rounds.value.length > 0 && !selectedRoundId.value) {
-      selectedRoundId.value = rounds.value[0]?.id ?? null
+    const hasValidSelection = rounds.value.some(r => r.id === selectedRoundId.value)
+    if (rounds.value.length > 0 && !hasValidSelection) {
+      // Prioriza abrir na rodada em andamento ('fechada'), caso a próxima rodada já tenha sido importada em paralelo
+      const inProgressRound = rounds.value.find(r => r.status === 'fechada')
+      selectedRoundId.value = inProgressRound?.id ?? rounds.value[0]?.id ?? null
     }
   }
 

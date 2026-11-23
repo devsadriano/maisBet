@@ -111,6 +111,23 @@
               </div>
             </div>
 
+            <!-- AVISO DE RODADA ANTERIOR AINDA EM ANDAMENTO -->
+            <NuxtLink
+              v-if="rodada && inProgressClosedRound"
+              to="/ranking?tab=rodada"
+              class="mb-4 px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 hover:bg-emerald-500/15 hover:border-emerald-500/40 transition-all flex items-center justify-between gap-3 group animate-fade-in-up"
+            >
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                <span class="text-xs sm:text-sm font-bold text-emerald-300 truncate">
+                  ⚽ {{ inProgressClosedRound.numero_rodada }}ª Rodada ainda em andamento — Acompanhar jogos e palpites
+                </span>
+              </div>
+              <span class="text-xs font-black uppercase tracking-wider text-emerald-400 group-hover:translate-x-0.5 transition-transform shrink-0">
+                Ver →
+              </span>
+            </NuxtLink>
+
             <!-- Progresso e Alerta Regressivo -->
             <div class="flex flex-col gap-4 sm:gap-6 bg-white/[0.02] border border-white/5 p-4 sm:p-6 rounded-2xl">
               <!-- Barra de Progresso -->
@@ -642,7 +659,8 @@ const {
   salvando: salvandoBets,
   locked,
   lastClosedRound,
-  lastRoundBets
+  lastRoundBets,
+  inProgressClosedRound
 } = useBets()
 
 // Track pending bolão requests for the current user

@@ -31,9 +31,10 @@ export default defineEventHandler(async (event) => {
 
       if (!matches || matches.length === 0) continue
 
-      // Filter out postponed matches ('adiado') when calculating round start deadline
+      // Filter out postponed ('adiado') and already finished ('finalizado') matches when calculating round start deadline
+      const scheduledMatches = matches.filter((m: any) => m.status !== 'adiado' && m.status !== 'finalizado')
       const activeMatches = matches.filter((m: any) => m.status !== 'adiado')
-      const targetMatches = activeMatches.length > 0 ? activeMatches : matches
+      const targetMatches = scheduledMatches.length > 0 ? scheduledMatches : (activeMatches.length > 0 ? activeMatches : matches)
 
       const validDates = targetMatches
         .map((m: any) => new Date(m.data_partida))

@@ -167,8 +167,9 @@ Deno.serve(async (req: Request) => {
                     .eq('rodada_id', rd.id)
                   
                   if (newDbMatches && newDbMatches.length > 0) {
+                    const scheduledMatches = newDbMatches.filter((x: any) => x.status !== 'adiado' && x.status !== 'finalizado')
                     const activeMatches = newDbMatches.filter((x: any) => x.status !== 'adiado')
-                    const targetMatches = activeMatches.length > 0 ? activeMatches : newDbMatches
+                    const targetMatches = scheduledMatches.length > 0 ? scheduledMatches : (activeMatches.length > 0 ? activeMatches : newDbMatches)
                     const sorted = [...targetMatches].sort((a: any, b: any) => new Date(a.data_partida).getTime() - new Date(b.data_partida).getTime())
                     const fmd = new Date(sorted[0].data_partida)
                     
@@ -276,10 +277,11 @@ Deno.serve(async (req: Request) => {
           .eq('campeonato_id', c.id)
           .order('numero_rodada', { ascending: false }).limit(1)
 
-        if (maxR && maxR.length > 0 && maxR[0].status === 'finalizada') {
+        if (maxR && maxR.length > 0 && (maxR[0].status === 'finalizada' || maxR[0].status === 'fechada')) {
           const next = maxR[0].numero_rodada + 1
+          const isPrevClosed = maxR[0].status === 'fechada'
           if (next <= c.max_rodadas) {
-            log(`[${c.api_competition_code}] Importando rd ${next}...`)
+            log(`[${c.api_competition_code}] Verificando importação da rd ${next} (rd anterior: ${maxR[0].status})...`)
             const res = await fetch(
               `https://api.football-data.org/v4/competitions/${c.api_competition_code}/matches?matchday=${next}&season=${c.season}`,
               { headers: { 'X-Auth-Token': fdKey } }
@@ -299,10 +301,22 @@ Deno.serve(async (req: Request) => {
                   return { ...m, is_mandatory: im }
                 })
                 const re = (c.formato === 'copa' || next === c.max_rodadas) ? 0 : 1 + confrontations
+
+                // Ignora jogos adiados e já finalizados no cálculo do prazo de fechamento
+                const scheduledMatches = mp.filter((m: any) => !['POSTPONED', 'CANCELLED', 'SUSPENDED', 'FINISHED', 'AWARDED'].includes(m.status))
                 const nonPostponedMatches = mp.filter((m: any) => !['POSTPONED', 'CANCELLED', 'SUSPENDED'].includes(m.status))
-                const validMatchesForDeadline = nonPostponedMatches.length > 0 ? nonPostponedMatches : mp
+                const validMatchesForDeadline = scheduledMatches.length > 0
+                  ? scheduledMatches
+                  : (nonPostponedMatches.length > 0 ? nonPostponedMatches : mp)
                 const sm = [...validMatchesForDeadline].sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime())
                 const fmd = new Date(sm[0].utcDate)
+
+                // Se a rodada anterior ainda está 'fechada' (jogos rolando), só antecipa a próxima se o 1º jogo estiver a <= 72h
+                const hoursUntilNext = (fmd.getTime() - Date.now()) / 3600000
+                if (isPrevClosed && hoursUntilNext > 72) {
+                  log(`[${c.api_competition_code}] Rd ${next} ainda distante (${hoursUntilNext.toFixed(1)}h > 72h) enquanto Rd ${maxR[0].numero_rodada} segue fechada. Aguardando.`)
+                  continue
+                }
 
                 // Copa Deadline: 2h mata-mata (rd > 3), 1h groups
                 const isCopaMataMata = c.formato === 'copa' && next > 3
@@ -362,7 +376,7 @@ Deno.serve(async (req: Request) => {
 
     // Dispara processamento de notificações push no backend Nuxt/Vercel
     try {
-      const webhookToken = Deno.env.get('CRON_SECRET') || key
+      const webhookToken = Deno.env.get('PUSH_WEBHOOK_TOKEN') || Deno.env.get('CRON_SECRET') || key
       const pushRes = await fetch('https://mais-bet.vercel.app/api/push/process-cycle', {
         method: 'POST',
         headers: {

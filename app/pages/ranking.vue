@@ -132,11 +132,18 @@ const {
 } = useRoundRanking()
 
 // Local State
-const activeTab = ref('geral')
+const route = useRoute()
+const activeTab = ref(route.query.tab === 'rodada' ? 'rodada' : 'geral')
 const tabs = [
   { id: 'geral', label: 'Ranking Geral' },
   { id: 'rodada', label: 'Visão por Rodada' }
 ]
+
+watch(() => route.query.tab, (tab) => {
+  if (tab === 'rodada' || tab === 'geral') {
+    activeTab.value = tab
+  }
+})
 
 const { campeonatoAtivo } = useCampeonato()
 
@@ -174,6 +181,7 @@ const roundStatus = computed(() => {
     const current = rounds.value.find(r => r.id === (selectedRoundId.value || ''))
     if (!current) return '-'
     if (current.status === 'finalizada') return 'Finalizada'
+    if (current.status === 'fechada') return 'Jogos Rolando'
     if (current.status === 'aberta') return 'Em Aberto'
     return current.status.replace('_', ' ')
 })
