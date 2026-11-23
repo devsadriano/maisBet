@@ -20,9 +20,9 @@
                 🔔
               </div>
               <div>
-                <h2 class="text-2xl font-bebas tracking-wider leading-none">Notificações Push</h2>
+                <h2 class="text-2xl font-bebas tracking-wider leading-none">Notificações</h2>
                 <p class="text-[11px] font-bold uppercase tracking-wider mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
-                  Alertas em tempo real no seu aparelho
+                  Histórico e alertas push do +BET
                 </p>
               </div>
             </div>
@@ -38,8 +38,103 @@
             </button>
           </div>
 
-          <!-- Body -->
-          <div class="p-6 space-y-5 overflow-y-auto">
+          <!-- Abas -->
+          <div
+            class="px-6 pt-3 pb-3 border-b grid grid-cols-2 gap-2 shrink-0"
+            :class="isDark ? 'border-white/10 bg-white/[0.01]' : 'border-black/5 bg-gray-50/70'"
+          >
+            <button
+              @click="activeTab = 'recentes'"
+              class="py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+              :class="activeTab === 'recentes'
+                ? 'bg-[var(--brand)] text-white shadow-md'
+                : (isDark ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-black/5 text-gray-600 hover:text-gray-900')"
+            >
+              <span>📬 Recentes</span>
+              <span
+                v-if="unreadCount > 0"
+                class="min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center"
+                :class="activeTab === 'recentes' ? 'bg-white text-[var(--brand)]' : 'bg-red-500 text-white'"
+              >
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
+              </span>
+            </button>
+            <button
+              @click="activeTab = 'config'"
+              class="py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+              :class="activeTab === 'config'
+                ? 'bg-[var(--brand)] text-white shadow-md'
+                : (isDark ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-black/5 text-gray-600 hover:text-gray-900')"
+            >
+              <span>⚙️ Configurar Push</span>
+              <span
+                v-if="!isSubscribed"
+                class="w-2 h-2 rounded-full bg-amber-400"
+              ></span>
+            </button>
+          </div>
+
+          <!-- ABA 1: ÚLTIMAS NOTIFICAÇÕES -->
+          <div v-if="activeTab === 'recentes'" class="p-5 space-y-3 overflow-y-auto flex-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[10px] font-black uppercase tracking-[0.2em]" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                {{ unreadCount > 0 ? `${unreadCount} não lida${unreadCount > 1 ? 's' : ''}` : 'Últimas notificações' }}
+              </span>
+              <button
+                v-if="unreadCount > 0"
+                @click="markAllAsRead"
+                class="text-[11px] font-bold text-[var(--brand)] hover:underline"
+              >
+                Marcar todas como lidas
+              </button>
+            </div>
+
+            <div v-if="loadingNotifications && notifications.length === 0" class="py-12 flex flex-col items-center justify-center gap-3">
+              <div class="w-8 h-8 border-4 border-[var(--brand)]/20 border-t-[var(--brand)] rounded-full animate-spin"></div>
+              <span class="text-xs font-bold uppercase tracking-wider" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                Carregando notificações...
+              </span>
+            </div>
+
+            <div v-else-if="notifications.length === 0" class="py-12 text-center space-y-2">
+              <span class="text-4xl block opacity-60">📭</span>
+              <p class="text-sm font-bold">Nenhuma notificação por enquanto</p>
+              <p class="text-xs max-w-xs mx-auto" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                Quando houver convocação de organizador, abertura de rodada, cravadas ou fechamentos, tudo ficará salvo aqui.
+              </p>
+            </div>
+
+            <div v-else class="space-y-2">
+              <button
+                v-for="item in notifications"
+                :key="item.id"
+                @click="openNotification(item)"
+                class="w-full text-left p-3.5 rounded-2xl border transition-all flex items-start gap-3 group"
+                :class="!item.read_at
+                  ? (isDark ? 'border-[var(--brand)]/40 bg-[var(--brand)]/10 hover:bg-[var(--brand)]/15' : 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/15')
+                  : (isDark ? 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]' : 'border-black/5 bg-gray-50 hover:bg-gray-100')"
+              >
+                <span
+                  class="mt-1.5 w-2 h-2 rounded-full shrink-0"
+                  :class="!item.read_at ? 'bg-[var(--brand)]' : 'bg-transparent'"
+                ></span>
+                <div class="min-w-0 flex-1 space-y-1">
+                  <div class="flex items-start justify-between gap-2">
+                    <span class="text-xs font-extrabold leading-snug">{{ item.title }}</span>
+                    <span class="text-[10px] font-mono shrink-0" :class="isDark ? 'text-gray-400' : 'text-gray-500'">
+                      {{ formatRelativeTime(item.created_at) }}
+                    </span>
+                  </div>
+                  <p class="text-xs leading-relaxed" :class="isDark ? 'text-gray-300' : 'text-gray-700'">
+                    {{ item.message }}
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- ABA 2: CONFIGURAR PUSH -->
+          <div v-else class="p-6 space-y-5 overflow-y-auto flex-1">
             <!-- Aviso iOS fora da Tela de Início -->
             <div
               v-if="needsIosInstall"
@@ -167,6 +262,7 @@
             :class="isDark ? 'border-white/10 bg-white/[0.02]' : 'border-black/5 bg-gray-50'"
           >
             <button
+              v-if="activeTab === 'config'"
               @click="handleTest"
               :disabled="!isSubscribed || testing"
               class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all disabled:opacity-40 disabled:cursor-not-allowed"
@@ -175,6 +271,16 @@
                 : 'bg-white border-black/10 text-gray-700 hover:bg-gray-100'"
             >
               {{ testing ? 'Enviando...' : '🔔 Testar Notificação' }}
+            </button>
+            <button
+              v-else
+              @click="fetchNotifications"
+              class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all"
+              :class="isDark
+                ? 'bg-white/5 border-white/10 text-gray-200 hover:bg-white/10'
+                : 'bg-white border-black/10 text-gray-700 hover:bg-gray-100'"
+            >
+              ↻ Atualizar
             </button>
 
             <button
@@ -191,19 +297,21 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { usePushNotifications } from '~/composables/usePushNotifications'
 import { useToast } from '~/composables/useToast'
-import type { NotificationPreferences } from '~~/shared/types/PushNotification'
+import type { NotificationPreferences, UserNotification } from '~~/shared/types/PushNotification'
 
 const props = defineProps<{
   open: boolean
 }>()
 
-defineEmits(['close'])
+const emit = defineEmits(['close'])
 
 const { isDark } = useTheme()
 const toast = useToast()
+const router = useRouter()
 
 const {
   isSupported,
@@ -215,13 +323,21 @@ const {
   testing,
   errorMessage,
   preferences,
+  notifications,
+  unreadCount,
+  loadingNotifications,
   initPushState,
   fetchPreferences,
+  fetchNotifications,
+  markAsRead,
+  markAllAsRead,
   subscribe,
   unsubscribe,
   updatePreferences,
   sendTestNotification,
 } = usePushNotifications()
+
+const activeTab = ref<'recentes' | 'config'>('recentes')
 
 type PrefBooleanKey = keyof Pick<
   NotificationPreferences,
@@ -260,10 +376,34 @@ watch(
   async (val) => {
     if (val) {
       await initPushState()
-      await fetchPreferences()
+      await Promise.all([fetchPreferences(), fetchNotifications()])
+      activeTab.value = unreadCount.value > 0 || isSubscribed.value ? 'recentes' : 'config'
     }
   }
 )
+
+const formatRelativeTime = (iso: string) => {
+  const diffSec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  if (diffSec < 60) return 'agora'
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `há ${diffMin} min`
+  const diffHours = Math.floor(diffMin / 60)
+  if (diffHours < 24) return `há ${diffHours}h`
+  return new Date(iso).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+const openNotification = async (item: UserNotification) => {
+  if (!item.read_at) {
+    await markAsRead(item.id)
+  }
+  emit('close')
+  await router.push(item.url || '/palpites')
+}
 
 const toggleSubscription = async () => {
   if (isSubscribed.value) {

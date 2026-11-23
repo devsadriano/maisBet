@@ -210,6 +210,19 @@ CREATE TABLE IF NOT EXISTS public.notification_preferences (
 );
 COMMENT ON TABLE public.notification_preferences IS 'Preferências de alertas push web configuráveis por usuário.';
 
+-- 2.15 Histórico de Notificações no Aplicativo
+CREATE TABLE IF NOT EXISTS public.user_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
+    category TEXT NOT NULL DEFAULT 'system',
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    url TEXT NOT NULL DEFAULT '/palpites',
+    read_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE public.user_notifications IS 'Histórico das últimas notificações exibidas no sininho do aplicativo.';
+
 
 -- ============================================================
 -- SEÇÃO 3: INDEXES
@@ -230,6 +243,7 @@ CREATE INDEX IF NOT EXISTS idx_campeonato_acessos_email ON public.campeonato_ace
 CREATE INDEX IF NOT EXISTS idx_campeonato_acessos_campeonato_id ON public.campeonato_acessos USING btree (campeonato_id);
 CREATE UNIQUE INDEX IF NOT EXISTS palpites_especiais_usuario_id_campeonato_id_tipo_key ON public.palpites_especiais USING btree (usuario_id, campeonato_id, tipo);
 CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON public.push_subscriptions USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_user_notifications_user_created ON public.user_notifications USING btree (user_id, created_at DESC);
 
 
 -- ============================================================
@@ -249,6 +263,7 @@ ALTER TABLE public.email_autorizados ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cron_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_notifications ENABLE ROW LEVEL SECURITY;
 
 -- ---- times ----
 CREATE POLICY "times_leitura_publica" ON public.times
@@ -433,6 +448,14 @@ CREATE POLICY "notification_preferences_insert_own" ON public.notification_prefe
 CREATE POLICY "notification_preferences_update_own" ON public.notification_preferences
     FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "notification_preferences_delete_own" ON public.notification_preferences
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- ---- user_notifications ----
+CREATE POLICY "user_notifications_select_own" ON public.user_notifications
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "user_notifications_update_own" ON public.user_notifications
+    FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "user_notifications_delete_own" ON public.user_notifications
     FOR DELETE USING (auth.uid() = user_id);
 
 
@@ -800,6 +823,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.solicitacoes TO authenticated;
 GRANT SELECT ON public.cron_logs TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.push_subscriptions TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.notification_preferences TO authenticated;
+GRANT SELECT, UPDATE, DELETE ON public.user_notifications TO authenticated;
 
 -- Permissões para a Role 'service_role' (Acesso total para backend)
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO service_role;
@@ -822,3 +846,7 @@ GRANT ALL PRIVILEGES ON ALL ROUTINES IN SCHEMA public TO service_role;
 -- Alterações:
 --   - Adicionada coluna rodadas.notificacoes_enviadas (JSONB) para controle idempotente de alertas.
 --   - Criadas tabelas public.push_subscriptions e public.notification_preferences com RLS e Grants.
+--
+-- [2026-11-23] - Histórico de Notificações In-App
+-- Alterações:
+--   - Criada tabela public.user_notifications com índice (user_id, created_at DESC), RLS e Grants.

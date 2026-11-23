@@ -120,36 +120,85 @@ function getTimeWindow(deadlineIso: string | null | undefined, nowMs: number): '
 }
 
 /**
- * Envia notificação Web Push em lote para uma lista de usuários,
+ * Envia notificação Web Push em lote para uma lista de usuários (e persiste no histórico in-app),
  * respeitando as preferências individuais e limpando subscriptions 404/410.
  */
 export async function sendPushToUsers(
   supabase: SupabaseClient<any>,
   userIds: string[],
   category: NotificationCategory,
-  payloadOrBuilder: PushPayload | ((userId: string) => PushPayload | null)
+  payloadOrBuilder: PushPayload | ((userId: string) => PushPayload | null),
+  options?: { persist?: boolean }
 ): Promise<PushSendResult> {
   const result: PushSendResult = { sent: 0, failed: 0, cleaned: 0 }
   const uniqueIds = [...new Set(userIds.filter(Boolean))]
   if (uniqueIds.length === 0) return result
-  if (!ensureVapidConfigured()) return result
 
-  // 1. Filtra usuários com preferência habilitada (padrão = true quando sem registro)
-  let eligibleIds = uniqueIds
+  // 1. Busca preferências em 1 query (padrão = true quando sem registro)
+  const prefMap = new Map<string, any>()
   if (category !== 'system') {
     const { data: prefs } = await supabase
       .from('notification_preferences')
       .select('user_id, push_enabled, organizer_alerts, round_alerts, deadline_reminders, results_alerts')
       .in('user_id', uniqueIds)
 
-    const prefMap = new Map<string, any>((prefs || []).map((p: any) => [p.user_id, p]))
-    eligibleIds = uniqueIds.filter((uid) => {
-      const p = prefMap.get(uid)
-      if (!p) return true
-      if (p.push_enabled === false) return false
-      return p[category] !== false
-    })
+    for (const p of prefs || []) {
+      prefMap.set(p.user_id, p)
+    }
   }
+
+  const payloadCache = new Map<string, PushPayload | null>()
+  const resolvePayload = (uid: string): PushPayload | null => {
+    if (typeof payloadOrBuilder === 'function') {
+      if (!payloadCache.has(uid)) {
+        payloadCache.set(uid, payloadOrBuilder(uid))
+      }
+      return payloadCache.get(uid) ?? null
+    }
+    return payloadOrBuilder
+  }
+
+  // 1.5 Persiste no histórico in-app (mesmo para quem não ativou push no navegador, respeitando a categoria)
+  if (options?.persist !== false) {
+    const historyRows = uniqueIds
+      .filter((uid) => {
+        if (category === 'system') return true
+        const p = prefMap.get(uid)
+        return !p || p[category] !== false
+      })
+      .map((uid) => {
+        const payload = resolvePayload(uid)
+        if (!payload) return null
+        return {
+          user_id: uid,
+          category,
+          title: payload.title,
+          message: payload.message,
+          url: payload.url || '/palpites',
+        }
+      })
+      .filter(Boolean)
+
+    if (historyRows.length > 0) {
+      try {
+        await supabase.from('user_notifications').insert(historyRows)
+      } catch (histErr: any) {
+        console.warn('[PushService] Falha não-bloqueante ao salvar histórico in-app:', histErr?.message)
+      }
+    }
+  }
+
+  if (!ensureVapidConfigured()) return result
+
+  const eligibleIds =
+    category === 'system'
+      ? uniqueIds
+      : uniqueIds.filter((uid) => {
+          const p = prefMap.get(uid)
+          if (!p) return true
+          if (p.push_enabled === false) return false
+          return p[category] !== false
+        })
 
   if (eligibleIds.length === 0) return result
 
@@ -162,22 +211,12 @@ export async function sendPushToUsers(
 
   if (subErr || !subs || subs.length === 0) return result
 
-  const payloadCache = new Map<string, PushPayload | null>()
   const invalidIds: string[] = []
   const usedIds: string[] = []
 
   await Promise.allSettled(
     subs.map(async (sub: any) => {
-      let payload: PushPayload | null
-      if (typeof payloadOrBuilder === 'function') {
-        if (!payloadCache.has(sub.user_id)) {
-          payloadCache.set(sub.user_id, payloadOrBuilder(sub.user_id))
-        }
-        payload = payloadCache.get(sub.user_id) ?? null
-      } else {
-        payload = payloadOrBuilder
-      }
-
+      const payload = resolvePayload(sub.user_id)
       if (!payload) return
 
       try {
@@ -227,9 +266,10 @@ export async function sendPushToUser(
   supabase: SupabaseClient<any>,
   userId: string,
   category: NotificationCategory,
-  payload: PushPayload
+  payload: PushPayload,
+  options?: { persist?: boolean }
 ): Promise<PushSendResult> {
-  return sendPushToUsers(supabase, [userId], category, payload)
+  return sendPushToUsers(supabase, [userId], category, payload, options)
 }
 
 /**
@@ -498,7 +538,7 @@ export async function processRoundPushCycles(
         const res = await sendPushToUsers(supabase, participantIds, 'round_alerts', {
           title: '🔓 Mercado Fechado! Palpites Revelados',
           message: `O sigilo caiu! Toque para espiar os palpites dos seus rivais na ${round.numero_rodada}ª Rodada do bolão ${campLabel}.`,
-          url: '/ranking',
+          url: '/ranking?tab=rodada',
           tag: `market-closed-${round.id}`,
         })
         summary.notificationsSent += res.sent
@@ -552,7 +592,7 @@ export async function processRoundPushCycles(
                 const res = await sendPushToUsers(supabase, cravadores, 'results_alerts', {
                   title: '🎯 NA MOSCA! Placar Exato!',
                   message: `Você cravou ${match.time_casa} ${match.gols_casa}x${match.gols_fora} ${match.time_fora} na ${round.numero_rodada}ª Rodada (${campLabel}) e somou +${earnedPoints} pontos!`,
-                  url: '/ranking',
+                  url: '/ranking?tab=rodada',
                   tag: `cravada-${match.id}`,
                 })
                 summary.notificationsSent += res.sent
@@ -681,6 +721,14 @@ export async function processRoundPushCycles(
         summary.roundsUpdated++
       }
     }
+  }
+
+  // Limpeza automática de notificações antigas (> 30 dias)
+  try {
+    const cutoffIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    await supabase.from('user_notifications').delete().lt('created_at', cutoffIso)
+  } catch {
+    // Não-bloqueante
   }
 
   return summary

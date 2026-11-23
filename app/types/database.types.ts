@@ -517,6 +517,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_notifications: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          title: string
+          url?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           cidade: string | null

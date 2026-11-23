@@ -1,5 +1,5 @@
 import { useRuntimeConfig, useState } from '#imports'
-import type { NotificationPreferences } from '~~/shared/types/PushNotification'
+import type { NotificationPreferences, UserNotification } from '~~/shared/types/PushNotification'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -53,6 +53,9 @@ export const usePushNotifications = () => {
   const testing = useState<boolean>('push-testing', () => false)
   const errorMessage = useState<string | null>('push-error', () => null)
   const initialized = useState<boolean>('push-initialized', () => false)
+  const notifications = useState<UserNotification[]>('push-notifications-history', () => [])
+  const unreadCount = useState<number>('push-unread-count', () => 0)
+  const loadingNotifications = useState<boolean>('push-loading-notifications', () => false)
 
   const preferences = useState<NotificationPreferences>('push-preferences', () => ({
     user_id: '',
@@ -117,12 +120,61 @@ export const usePushNotifications = () => {
     }
   }
 
+  const fetchNotifications = async () => {
+    if (!import.meta.client) return
+    loadingNotifications.value = notifications.value.length === 0
+    try {
+      const res = await $fetch<{ notifications: UserNotification[]; unreadCount: number }>(
+        '/api/push/notifications'
+      )
+      notifications.value = res?.notifications || []
+      unreadCount.value = res?.unreadCount ?? 0
+    } catch {
+      // Silencioso quando deslogado
+    } finally {
+      loadingNotifications.value = false
+    }
+  }
+
+  const markAsRead = async (id: string) => {
+    const target = notifications.value.find((n) => n.id === id)
+    if (target && !target.read_at) {
+      target.read_at = new Date().toISOString()
+      unreadCount.value = Math.max(0, unreadCount.value - 1)
+    }
+    try {
+      const res = await $fetch<{ success: boolean; unreadCount: number }>('/api/push/notifications-read', {
+        method: 'POST',
+        body: { id },
+      })
+      if (typeof res?.unreadCount === 'number') {
+        unreadCount.value = res.unreadCount
+      }
+    } catch {
+      // Não-bloqueante
+    }
+  }
+
+  const markAllAsRead = async () => {
+    const nowIso = new Date().toISOString()
+    notifications.value = notifications.value.map((n) => (n.read_at ? n : { ...n, read_at: nowIso }))
+    unreadCount.value = 0
+    try {
+      await $fetch('/api/push/notifications-read', {
+        method: 'POST',
+        body: { all: true },
+      })
+    } catch {
+      await fetchNotifications()
+    }
+  }
+
   const initPushState = async () => {
     if (!import.meta.client) return
     await refreshState()
     if (!initialized.value) {
       initialized.value = true
-      await fetchPreferences()
+      await Promise.all([fetchPreferences(), fetchNotifications()])
     }
   }
 
@@ -280,12 +332,19 @@ export const usePushNotifications = () => {
     testing,
     errorMessage,
     preferences,
+    notifications,
+    unreadCount,
+    loadingNotifications,
     initPushState,
     refreshState,
     fetchPreferences,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
     subscribe,
     unsubscribe,
     updatePreferences,
     sendTestNotification,
   }
 }
+

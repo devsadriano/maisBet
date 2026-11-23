@@ -5,12 +5,18 @@ export default defineEventHandler(async (event) => {
   const user = await requireAuthUser(event)
   const supabase = await serverSupabaseServiceRole<any>(event)
 
-  const res = await sendPushToUser(supabase, user.id, 'system', {
-    title: '🔔 Notificação de Teste do +BET!',
-    message: 'Tudo certo por aqui! Este aparelho já está pronto para receber seus alertas do bolão.',
-    url: '/palpites',
-    tag: 'test-push',
-  })
+  const res = await sendPushToUser(
+    supabase,
+    user.id,
+    'system',
+    {
+      title: '🔔 Notificação de Teste do +BET!',
+      message: 'Tudo certo por aqui! Este aparelho já está pronto para receber seus alertas do bolão.',
+      url: '/palpites',
+      tag: 'test-push',
+    },
+    { persist: false }
+  )
 
   if (res.sent === 0) {
     throw createError({
@@ -21,3 +27,4 @@ export default defineEventHandler(async (event) => {
 
   return { success: true, ...res }
 })
+
