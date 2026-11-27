@@ -152,8 +152,12 @@ export const useRoundRanking = () => {
         }
       })
 
-      roundRanking.value = ranking.sort((a, b) => b.total_pontos - a.total_pontos || b.total_cravados - a.total_cravados)
-        .map((r, i) => ({ ...r, position: i + 1 }))
+      roundRanking.value = ranking.sort((a, b) =>
+        (b.total_pontos || 0) - (a.total_pontos || 0) ||
+        (b.total_cravados || 0) - (a.total_cravados || 0) ||
+        (b.total_acertos || 0) - (a.total_acertos || 0) ||
+        a.nome.localeCompare(b.nome)
+      ).map((r, i) => ({ ...r, position: i + 1 }))
 
     } catch (err) {
       console.error('Erro ao buscar dados da rodada:', err)

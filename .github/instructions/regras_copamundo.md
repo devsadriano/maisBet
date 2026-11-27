@@ -1,77 +1,33 @@
-# +BET — Regras do Bolão da Copa do Mundo
+# +BET — Regulamento Oficial (Copa)
 
-Abaixo estão descritas as regras do bolão para campeonatos no formato Copa do Mundo (FIFA World Cup e similares):
+Abaixo estão descritas as regras definitivas do bolão para campeonatos no formato **Copa**:
 
-## 1. Composição da Rodada (Quais jogos entram?)
-- **Todos os jogos da rodada entram na aposta.** Diferente do formato Brasileirão, não existe filtro de jogos obrigatórios ou extras.
-- Cada rodada corresponde a um matchday da fase de grupos ou eliminatórias. Todos os jogos disponíveis na rodada ficam abertos para palpite.
-- **Não há a figura do Organizador** para selecionar jogos extras — o sistema importa automaticamente todos os jogos e todos ficam disponíveis.
+## 1. Composição da Rodada (Todos os Jogos)
+- **Todos os jogos da rodada entram na aposta** automaticamente (`0` jogos extras).
+- **Não há figura de Organizador** — as rodadas são importadas rodada a rodada e já abrem diretamente para palpites.
+- Na Fase de Grupos, os jogos são exibidos organizados por grupo.
 
-## 2. Fases do Campeonato
-- **Fase de Grupos:** Todos os jogos de todas as rodadas da fase de grupos ficam disponíveis para palpite de uma só vez. O participante pode fazer seus palpites antecipadamente para qualquer jogo da fase de grupos.
-- **Mata-Mata (Oitavas, Quartas, Semifinal, Final):** Os jogos do mata-mata serão abertos **conforme o campeonato for desenrolando**. À medida que as classificações forem definidas e os confrontos do mata-mata confirmados, os palpites para cada fase eliminatória serão liberados progressivamente pelo sistema.
+## 2. Seleção do Coração
+- Cada participante escolhe uma **seleção nacional** ao entrar no bolão (escolha definitiva durante o campeonato).
+- O escudo é exibido no ranking ao lado do nome do participante (não filtra partidas).
 
-## 3. Time do Coração
-- Cada participante pode escolher uma **seleção nacional** como seu "Time do Coração" ao entrar no bolão.
-- A seleção escolhida aparece como escudo no ranking ao lado do nome do participante.
+## 3. Multiplicadores Progressivos por Fase
+| Fase | Rodada | Multiplicador | Exemplo Cravado (3 pts) | Exemplo Resultado (1 pt) |
+|---|---|---|---|---|
+| Fase de Grupos | 1ª à 3ª | ×1.0 | 3 pts | 1 pt |
+| Oitavas de Final | 4ª | ×1.0 | 3 pts | 1 pt |
+| Quartas de Final | 5ª | ×1.5 | 4.5 pts | 1.5 pt |
+| Semifinal | 6ª | ×2.0 | 6 pts | 2 pts |
+| Final / 3º Lugar | 7ª | ×3.0 | 9 pts | 3 pts |
 
-## 4. Pontuação Base
-O sistema de pontuação base segue o mesmo padrão:
-- **RESULTADO CORRETO (1 ponto):** Para cada resultado acertado (quem vence ou empate, independente do placar), o apostador ganha um ponto (1 pt).
-- **PLACAR CRAVADO (3 pontos):** Para cada placar acertado (resultado exato da partida), o apostador ganha três pontos (3 pts).
+## 4. Palpites Especiais e Placar no Mata-Mata
+- **Palpites Especiais (Bônus somado ao Ranking Geral):**
+  - **Grande Campeão:** +10 pontos
+  - **Artilheiro:** +10 pontos
+  - **Melhor do Grupo (Melhor Campanha):** +5 pontos
+  - Ficam ocultos dos demais competidores até o encerramento oficial do campeonato (`status = finalizado`).
+- **Prorrogação e Pênaltis:** a pontuação considera exclusivamente o placar oficial `fullTime` retornado pela API (`Football-Data.org`). Disputas de pênaltis não alteram o placar e não há pontuação bônus separada por classificado nos pênaltis.
 
-## 5. Peso Crescente no Mata-Mata
-Os pontos ganhos em cada jogo são multiplicados de acordo com a fase eliminatória:
-
-| Fase           | Multiplicador | Exemplo: Cravado (3pts) |
-|---------------|---------------|-------------------------|
-| Fase de Grupos | ×1.0          | 3 pontos                |
-| Oitavas de Final| ×1.0         | 3 pontos                |
-| Quartas de Final| ×1.5         | 4.5 pontos              |
-| Semifinal      | ×2.0          | 6 pontos                |
-| Final / 3º Lugar| ×3.0         | 9 pontos                |
-
-> Isso valoriza os jogos decisivos do torneio e premia quem acerta nos momentos cruciais.
-
-## 6. Palpites Especiais (Bônus)
-Antes da Copa começar, cada participante faz 3 palpites especiais. Os pontos bônus são somados ao ranking final:
-
-### 6.1 Campeão do Torneio (+10 pontos)
-- Cada participante aposta qual seleção será a **campeã da Copa do Mundo**.
-- Se acertar, ganha **+10 pontos** de bônus no ranking geral.
-
-### 6.2 Artilheiro da Copa (+5 pontos)
-- Cada participante aposta qual jogador será o **artilheiro** (maior goleador) do torneio.
-- Se acertar, ganha **+5 pontos** de bônus no ranking geral.
-
-### 6.3 Melhor Seleção do Grupo (+3 pontos por grupo)
-- Antes da fase de grupos, cada participante aposta qual seleção terminará em **1º lugar** de cada grupo (A a H).
-- Para cada grupo acertado, ganha **+3 pontos** de bônus.
-- Acertando todos os 8 grupos = **+24 pontos** de bônus potencial.
-
-## 7. Palpite de Classificação no Mata-Mata (+1 ponto)
-- Além do placar, o participante aposta **quem avança de fase** em cada jogo eliminatório.
-- Se o jogo for para prorrogação/pênaltis e o participante acertar o classificado (mas errar o placar), ganha **+1 ponto** bônus.
-- Este bônus é independente da pontuação do placar.
-
-## 8. Prazo de Palpites
-- **Fase de Grupos:** Palpites encerram **1 hora** antes do primeiro jogo de cada rodada.
-- **Mata-Mata:** Palpites encerram **1 hora** antes do primeiro jogo de cada rodada eliminatória (Oitavas, Quartas, Semifinal, Final/3º Lugar).
-
-## 9. Ranking
-- O ranking é calculado por campeonato. Apenas participantes autorizados para o bolão da Copa do Mundo aparecem no ranking.
-- Critérios de desempate (em ordem): **Pontos DESC > Cravados DESC > Acertos Parciais DESC > Nome ASC**.
-- Os pontos de Palpites Especiais (Seção 6 e 7) são somados ao total geral.
-
-## Diferenças em relação ao Brasileirão (`regras_bet.md`)
-
-| Aspecto                 | Brasileirão              | Copa do Mundo           |
-|------------------------|--------------------------|-------------------------|
-| Jogos por rodada       | Obrigatórios + 2 extras  | Todos os jogos          |
-| Organizador            | Sim (escolhe extras)     | Não (automático)        |
-| Time do Coração        | Clube brasileiro         | Seleção nacional        |
-| Confronto direto       | +1 extra por confronto   | N/A                     |
-| Multiplicador          | Não                      | Sim (×1 a ×3)           |
-| Palpites Especiais     | Não                      | Campeão, Artilheiro, Grupos |
-| Prazo de palpites      | 1h antes                 | 1h antes (grupos e mata-mata) |
-| Pontuação base         | 1pt resultado / 3pt cravado | Igual                 |
+## 5. Prazos e Regras Gerais
+- **Fechamento do Mercado:** **1 hora antes** do 1º jogo válido na **Fase de Grupos** (1ª à 3ª rodada) e **2 horas antes** a partir do **Mata-Mata** (4ª rodada em diante), no fuso horário oficial do bolão, com trava individual por partida já iniciada.
+- **Jogos Adiados / Calendário / Sigilo (RLS) / Notificações / Desempate:** seguem exatamente as mesmas regras gerais da plataforma **+BET** (`Pontos > Cravados > Acertos Parciais > Ordem Alfabética`).

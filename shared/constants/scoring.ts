@@ -23,8 +23,8 @@ export const SCORING = {
 /** Número máximo de jogos por rodada (obrigatórios + extras) */
 export const MAX_MATCHES_PER_ROUND = 7
 
-/** Número de jogos extras que o organizador escolhe por rodada */
-export const EXTRA_MATCHES_COUNT = 2
+/** Número base de jogos extras por rodada (1 + número de confrontos diretos) */
+export const EXTRA_MATCHES_COUNT = 1
 
 /** Horas antes do 1º jogo para auto-selecionar extras (se organizador não escolheu) */
 export const ORGANIZER_DEADLINE_HOURS = 1
