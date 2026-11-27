@@ -184,9 +184,17 @@
                 ? 'bg-brand-600 dark:bg-brand-500 border-brand-500 dark:border-brand-400 text-slate-50 dark:text-slate-950 shadow-[0_0_24px_rgba(0,232,122,0.28)]'
                 : 'bg-white dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:bg-brand-500/10'"
             >
-              <span class="flex items-center gap-2.5 min-w-0">
-                <span class="text-base shrink-0">📋</span>
-                <span class="text-xs font-black uppercase tracking-wider truncate">Regulamento Completo</span>
+              <span class="flex items-center gap-3 min-w-0">
+                <span class="text-xl shrink-0">📋</span>
+                <span class="flex flex-col min-w-0">
+                  <span class="text-xs font-black uppercase tracking-wider truncate leading-tight">Regulamento Oficial</span>
+                  <span
+                    class="text-[11px] font-semibold truncate mt-0.5 leading-tight"
+                    :class="scopeFilter === 'all' ? 'text-slate-100 dark:text-slate-900/85' : 'text-slate-500 dark:text-slate-400'"
+                  >
+                    {{ bolaoTabSubtitle }}
+                  </span>
+                </span>
               </span>
               <span
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black shrink-0"
@@ -208,10 +216,20 @@
                   : 'bg-blue-600 border-blue-400 text-slate-50 shadow-[0_0_24px_rgba(37,99,235,0.35)]')
                 : 'bg-white dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10'"
             >
-              <span class="flex items-center gap-2.5 min-w-0">
-                <span class="text-base shrink-0">{{ activeFormato === 'copa' ? '🌍' : '🏟️' }}</span>
-                <span class="text-xs font-black uppercase tracking-wider truncate">
-                  {{ activeFormato === 'copa' ? 'Exclusivas da Copa' : 'Exclusivas da Liga' }}
+              <span class="flex items-center gap-3 min-w-0">
+                <span class="text-xl shrink-0">{{ activeFormato === 'copa' ? '🌍' : '🏟️' }}</span>
+                <span class="flex flex-col min-w-0">
+                  <span class="text-xs font-black uppercase tracking-wider truncate leading-tight">
+                    {{ activeFormato === 'copa' ? 'Exclusivas da Copa' : 'Exclusivas da Liga' }}
+                  </span>
+                  <span
+                    class="text-[11px] font-semibold truncate mt-0.5 leading-tight"
+                    :class="scopeFilter === 'format'
+                      ? (activeFormato === 'copa' ? 'text-slate-900/85' : 'text-blue-100')
+                      : 'text-slate-500 dark:text-slate-400'"
+                  >
+                    {{ activeFormato === 'copa' ? 'Multiplicadores, especiais e mata-mata' : 'Extras, rodízio e última rodada' }}
+                  </span>
                 </span>
               </span>
               <span
@@ -232,9 +250,17 @@
                 ? 'bg-emerald-600 dark:bg-emerald-500 border-emerald-400 text-slate-50 dark:text-slate-950 shadow-[0_0_24px_rgba(16,185,129,0.32)]'
                 : 'bg-white dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:border-emerald-500/50 hover:bg-emerald-500/10'"
             >
-              <span class="flex items-center gap-2.5 min-w-0">
-                <span class="text-base shrink-0">📌</span>
-                <span class="text-xs font-black uppercase tracking-wider truncate">Regras Gerais</span>
+              <span class="flex items-center gap-3 min-w-0">
+                <span class="text-xl shrink-0">📌</span>
+                <span class="flex flex-col min-w-0">
+                  <span class="text-xs font-black uppercase tracking-wider truncate leading-tight">Regras Gerais</span>
+                  <span
+                    class="text-[11px] font-semibold truncate mt-0.5 leading-tight"
+                    :class="scopeFilter === 'geral' ? 'text-emerald-50 dark:text-slate-900/85' : 'text-slate-500 dark:text-slate-400'"
+                  >
+                    Pontuação, prazos e desempate
+                  </span>
+                </span>
               </span>
               <span
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black shrink-0"
@@ -453,6 +479,13 @@ watch(
 const activeFormato = computed<'liga' | 'copa'>(() => {
   if (rulesPayload.value?.formato) return rulesPayload.value.formato
   return isCopaAtivo.value ? 'copa' : 'liga'
+})
+
+const bolaoTabSubtitle = computed(() => {
+  const nome = (campeonatoAtivo.value?.nome || '').replace(/Campeonato Brasileiro/i, 'Brasileirão').trim()
+  const apelido = (campeonatoAtivo.value?.apelido_grupo || '').trim()
+  if (apelido && nome) return `${apelido} — ${nome}`
+  return apelido || nome || 'Todas as regras do bolão'
 })
 
 const activeMeta = computed(() => {
