@@ -158,48 +158,94 @@
       </BaseCard>
 
       <!-- Scope Filter Tabs -->
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 class="text-2xl font-bebas text-slate-900 dark:text-white tracking-wider uppercase">
-            Regras do Sistema & Competição
-          </h2>
-          <p class="text-xs text-slate-500 dark:text-gray-400">
-            Exibindo automaticamente as regras válidas para o formato
-            <strong class="text-slate-800 dark:text-white">{{ activeFormato === 'copa' ? 'Copa' : 'Campeonato / Liga' }}</strong> e regras gerais.
-          </p>
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+          <div>
+            <h2 class="text-2xl font-bebas text-slate-900 dark:text-white tracking-wider uppercase">
+              Regras do Sistema & Competição
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-gray-400">
+              Exibindo automaticamente as regras válidas para o formato
+              <strong class="text-slate-800 dark:text-white">{{ activeFormato === 'copa' ? 'Copa' : 'Campeonato / Liga' }}</strong> e regras gerais.
+            </p>
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-widest text-brand-700 dark:text-brand-400">
+            Filtrar por categoria
+          </span>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 bg-slate-200/70 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-300/70 dark:border-white/10">
-          <button
-            type="button"
-            @click="scopeFilter = 'all'"
-            class="px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
-            :class="scopeFilter === 'all'
-              ? 'bg-brand-500 text-white shadow-md'
-              : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'"
-          >
-            Regulamento Completo ({{ sections.length }})
-          </button>
-          <button
-            type="button"
-            @click="scopeFilter = 'format'"
-            class="px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
-            :class="scopeFilter === 'format'
-              ? (activeFormato === 'copa' ? 'bg-amber-500 text-white shadow-md' : 'bg-blue-600 text-white shadow-md')
-              : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'"
-          >
-            {{ activeFormato === 'copa' ? 'Exclusivas da Copa' : 'Exclusivas da Liga' }} ({{ formatSectionsCount }})
-          </button>
-          <button
-            type="button"
-            @click="scopeFilter = 'geral'"
-            class="px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
-            :class="scopeFilter === 'geral'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white'"
-          >
-            Regras Gerais ({{ geralSectionsCount }})
-          </button>
+        <div class="p-2.5 sm:p-3 rounded-3xl bg-slate-200/75 dark:bg-white/[0.03] border border-slate-300/80 dark:border-white/10 shadow-lg">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <button
+              type="button"
+              @click="scopeFilter = 'all'"
+              class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border text-left transition-all cursor-pointer active:scale-[0.98]"
+              :class="scopeFilter === 'all'
+                ? 'bg-brand-600 dark:bg-brand-500 border-brand-500 dark:border-brand-400 text-slate-50 dark:text-slate-950 shadow-[0_0_24px_rgba(0,232,122,0.28)]'
+                : 'bg-white dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:bg-brand-500/10'"
+            >
+              <span class="flex items-center gap-2.5 min-w-0">
+                <span class="text-base shrink-0">📋</span>
+                <span class="text-xs font-black uppercase tracking-wider truncate">Regulamento Completo</span>
+              </span>
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black shrink-0"
+                :class="scopeFilter === 'all'
+                  ? 'bg-black/20 text-slate-50 dark:text-slate-950'
+                  : 'bg-slate-200 dark:bg-black/40 text-slate-700 dark:text-slate-300'"
+              >
+                {{ sections.length }}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              @click="scopeFilter = 'format'"
+              class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border text-left transition-all cursor-pointer active:scale-[0.98]"
+              :class="scopeFilter === 'format'
+                ? (activeFormato === 'copa'
+                  ? 'bg-amber-500 border-amber-400 text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.3)]'
+                  : 'bg-blue-600 border-blue-400 text-slate-50 shadow-[0_0_24px_rgba(37,99,235,0.35)]')
+                : 'bg-white dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:border-blue-500/50 hover:bg-blue-500/10'"
+            >
+              <span class="flex items-center gap-2.5 min-w-0">
+                <span class="text-base shrink-0">{{ activeFormato === 'copa' ? '🌍' : '🏟️' }}</span>
+                <span class="text-xs font-black uppercase tracking-wider truncate">
+                  {{ activeFormato === 'copa' ? 'Exclusivas da Copa' : 'Exclusivas da Liga' }}
+                </span>
+              </span>
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black shrink-0"
+                :class="scopeFilter === 'format'
+                  ? (activeFormato === 'copa' ? 'bg-black/15 text-slate-950' : 'bg-black/25 text-slate-50')
+                  : 'bg-slate-200 dark:bg-black/40 text-slate-700 dark:text-slate-300'"
+              >
+                {{ formatSectionsCount }}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              @click="scopeFilter = 'geral'"
+              class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl border text-left transition-all cursor-pointer active:scale-[0.98]"
+              :class="scopeFilter === 'geral'
+                ? 'bg-emerald-600 dark:bg-emerald-500 border-emerald-400 text-slate-50 dark:text-slate-950 shadow-[0_0_24px_rgba(16,185,129,0.32)]'
+                : 'bg-white dark:bg-white/[0.06] border-slate-300 dark:border-white/15 text-slate-700 dark:text-slate-200 hover:border-emerald-500/50 hover:bg-emerald-500/10'"
+            >
+              <span class="flex items-center gap-2.5 min-w-0">
+                <span class="text-base shrink-0">📌</span>
+                <span class="text-xs font-black uppercase tracking-wider truncate">Regras Gerais</span>
+              </span>
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black shrink-0"
+                :class="scopeFilter === 'geral'
+                  ? 'bg-black/20 text-slate-50 dark:text-slate-950'
+                  : 'bg-slate-200 dark:bg-black/40 text-slate-700 dark:text-slate-300'"
+              >
+                {{ geralSectionsCount }}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
